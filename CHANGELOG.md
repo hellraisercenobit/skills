@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- [`f7b5199`](https://github.com/hellraisercenobit/skills/commit/f7b519965616b6c8aeef7aa3018d0ba46d20089b) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Quote the `review-comments` description so strict YAML parsers (skills.sh) discover the skill, and rename the skill template to `SKILL.template.md` so installers no longer list it as `example-skill`.
+
 ## 0.1.0
 
 ### Minor Changes

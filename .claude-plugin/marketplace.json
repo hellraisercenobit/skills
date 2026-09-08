@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Personal agent skills by Guillaume Mongin (@hellraisercenobit) — small, composable, versioned.",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "plugins": [
     {
       "name": "hellraisercenobit-skills",
       "source": "./",
       "description": "Personal agent skills by Guillaume Mongin — small, composable, versioned. Companion pairs: a transpose-* skill applies a rule set while writing, its review-* twin audits the result.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Guillaume Mongin",
         "url": "https://github.com/hellraisercenobit"
