@@ -10,9 +10,6 @@ srcs=()
 while IFS= read -r -d '' skill_md; do
   src="$(dirname "$skill_md")"
   name="$(basename "$src")"
-  if [ "$name" = "_template" ]; then
-    continue
-  fi
   names+=("$name")
   srcs+=("$src")
 done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -print0)

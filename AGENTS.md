@@ -11,8 +11,8 @@ Skills live in bucket folders under `skills/`:
 
 ## Adding a skill
 
-1. Copy `skills/in-progress/_template/` to `skills/<bucket>/<skill-name>/`.
-2. Fill in `SKILL.md` frontmatter (`name`, `description`) and body.
+1. Copy `skills/in-progress/_template/` to `skills/<bucket>/<skill-name>/` and rename `SKILL.template.md` to `SKILL.md`.
+2. Fill in the `SKILL.md` frontmatter (`name`, `description`) and body. Quote a `description` that contains `: `, or strict YAML parsers such as skills.sh skip the skill.
 3. Keep `agents/openai.yaml` in sync with invocation mode (see [.agents/invocation.md](./.agents/invocation.md)).
 4. Update the bucket `README.md`.
 5. If **promoted** (`engineering/` or `productivity/`):

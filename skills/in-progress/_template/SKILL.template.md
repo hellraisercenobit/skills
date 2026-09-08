@@ -18,4 +18,4 @@ Replace this body with the workflow the agent should follow.
 
 - Prefer invoking other skills with `/skill-name` prose rather than cross-folder file links.
 - Read `CONTEXT.md` when domain vocabulary matters.
-- Delete this template copy (or rename it) once your real skill exists — `_template` itself is not linked by `npm run link-skills`.
+- Rename this file to `SKILL.md` in your copy. The template keeps the `.template.md` suffix so that skill installers do not list it as a skill.

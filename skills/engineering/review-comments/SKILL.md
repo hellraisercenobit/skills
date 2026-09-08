@@ -1,6 +1,6 @@
 ---
 name: review-comments
-description: Review code comments against the shared comment rules: keep the why, delete narration, rewrite the rest in Simplified Technical English (ASD-STE100). Use when reviewing comments in a diff, MR, or file, deciding whether a comment belongs, or checking a comment against STE. Companion to transpose-comments.
+description: "Review code comments against the shared comment rules: keep the why, delete narration, rewrite the rest in Simplified Technical English (ASD-STE100). Use when reviewing comments in a diff, MR, or file, deciding whether a comment belongs, or checking a comment against STE. Companion to transpose-comments."
 license: MIT
 author: Guillaume Mongin (@hellraisercenobit)
 ---
