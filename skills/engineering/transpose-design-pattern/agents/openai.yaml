@@ -1,0 +1,3 @@
+interface:
+  display_name: "Transpose Design Pattern"
+  short_description: "Pick a pattern and transpose it to the framework"

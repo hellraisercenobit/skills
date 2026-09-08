@@ -1,0 +1,5 @@
+interface:
+  display_name: "Example Skill"
+  short_description: "Replace with a one-line summary"
+policy:
+  allow_implicit_invocation: false

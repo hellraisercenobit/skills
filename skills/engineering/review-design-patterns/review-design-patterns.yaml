@@ -1,0 +1,25 @@
+name: review-design-patterns
+type: skill
+tools:
+  - claude-code
+  - cursor
+  - github-copilot
+description: "Independently audit design-pattern decisions against a shared catalog: re-derive each choice blind, then put every finding through a steelman gate so it ships confirmed or flagged with evidence. Use when reviewing code, a diff, or a PR for pattern soundness and anti-patterns, or when challenging a not-yet-built design. Companion to transpose-design-pattern."
+label: "Review Design Patterns"
+author: "Guillaume Mongin (@hellraisercenobit)"
+license: "MIT"
+copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
+homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/review-design-patterns"
+version: "1.0.0"
+icon: "https://img.icons8.com/color/48/code-review.png"
+tags:
+  - software-engineering
+  - code-review
+  - audit
+  - architecture
+  - quality-gate
+content: SKILL.md
+installPaths:
+  claude-code: .claude/skills/review-design-patterns/SKILL.md
+  cursor: .cursor/skills/review-design-patterns/SKILL.md
+  github-copilot: .github/instructions/review-design-patterns.instructions.md

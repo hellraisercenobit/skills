@@ -1,0 +1,26 @@
+{
+  "name": "hellraisercenobit-skills",
+  "version": "0.0.0",
+  "description": "Personal agent skills by Guillaume Mongin — versioned and composable.",
+  "author": {
+    "name": "Guillaume Mongin",
+    "url": "https://github.com/hellraisercenobit"
+  },
+  "homepage": "https://github.com/hellraisercenobit/skills",
+  "repository": "https://github.com/hellraisercenobit/skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "engineering",
+    "productivity",
+    "agents",
+    "design-patterns",
+    "code-comments"
+  ],
+  "skills": [
+    "./skills/engineering/transpose-design-pattern",
+    "./skills/engineering/review-design-patterns",
+    "./skills/engineering/transpose-comments",
+    "./skills/engineering/review-comments"
+  ]
+}

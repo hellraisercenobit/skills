@@ -1,0 +1,3 @@
+interface:
+  display_name: "Transpose Comments"
+  short_description: "Write only the why, one STE line, in the language's idiom"

@@ -1,0 +1,25 @@
+name: transpose-comments
+type: skill
+tools:
+  - claude-code
+  - cursor
+  - github-copilot
+description: "Apply the comment rules while writing code: no comment by default, one line in Simplified Technical English (ASD-STE100) where a why exists, placed in the target language's idiom (lint directives carry their why inline). Use before writing or editing any code. Companion to review-comments."
+label: "Transpose Comments"
+author: "Guillaume Mongin (@hellraisercenobit)"
+license: "MIT"
+copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
+homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-comments"
+version: "1.0.0"
+icon: "https://img.icons8.com/color/48/comments.png"
+tags:
+  - software-engineering
+  - code-comments
+  - documentation
+  - simplified-technical-english
+  - conventions
+content: SKILL.md
+installPaths:
+  claude-code: .claude/skills/transpose-comments/SKILL.md
+  cursor: .cursor/skills/transpose-comments/SKILL.md
+  github-copilot: .github/instructions/transpose-comments.instructions.md
