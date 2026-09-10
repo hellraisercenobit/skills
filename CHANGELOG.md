@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1](https://github.com/hellraisercenobit/skills/pull/1) [`3dfd362`](https://github.com/hellraisercenobit/skills/commit/3dfd3622e38027c8da045ef959d7166266fd47a1) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add `nuke-review`, a user-invoked fork of Cursor's `thermo-nuclear-code-quality-review` skill (cursor-team-kit, MIT, Copyright (c) 2026 Cursor): Cursor's standards, threshold, finding order and approval bar, restructured for agents with the writing-for-agents levers (four-step procedure with completion criteria, one signal/remedy table, positive wording). Provenance recorded in the skill LICENSE, the docs page and the root NOTICE.
+
 ## 0.1.1
 
 ### Patch Changes
