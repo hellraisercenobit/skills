@@ -42,7 +42,7 @@ Copy [`skills/in-progress/_template/`](./skills/in-progress/_template/) when sta
 
 ### User-invoked
 
-_None yet._
+- **[nuke-review](./skills/engineering/nuke-review/SKILL.md)** — Thermo-nuclear code quality review: an extremely strict maintainability audit of a branch (abstractions, 1k-line files, spaghetti growth, code-judo simplifications). Fork of Cursor's [thermo-nuclear-code-quality-review](https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md) (MIT), restructured for agents.
 
 ### Model-invoked
 
