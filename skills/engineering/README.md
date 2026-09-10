@@ -6,7 +6,7 @@ Skills for daily code work. **Promoted** — listed in the top-level README and 
 
 Reachable only when you type them (`disable-model-invocation: true` + `policy.allow_implicit_invocation: false`).
 
-_None yet._
+- **[nuke-review](./nuke-review/SKILL.md)** — Thermo-nuclear code quality review: extremely strict maintainability audit of a branch. Fork of Cursor's [thermo-nuclear-code-quality-review](https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md) (MIT), restructured for agents.
 
 ## Model-invoked
 

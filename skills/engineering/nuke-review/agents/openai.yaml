@@ -1,0 +1,5 @@
+interface:
+  display_name: "Nuke Review"
+  short_description: "Thermo-nuclear code quality review, forked from Cursor's team kit, restructured for agents"
+policy:
+  allow_implicit_invocation: false

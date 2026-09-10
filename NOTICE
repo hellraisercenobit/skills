@@ -5,7 +5,8 @@ Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit). All rights reserved
 except as granted by the MIT License in ./LICENSE.
 
 This repository and every skill it contains are original works authored by
-Guillaume Mongin. Third-party reuse is allowed only under the MIT License terms;
+Guillaume Mongin, except the third-party skills listed below, which keep their
+upstream license and copyright. Third-party reuse is allowed only under the MIT License terms;
 attribution must preserve the copyright notice above.
 
 Authored skills in this repository
@@ -17,3 +18,11 @@ Authored skills in this repository
 - skills/engineering/review-comments
 
 Contact / identity: https://github.com/hellraisercenobit
+
+Third-party skills (forks, redistributed under their upstream license)
+----------------------------------------------------------------------
+
+- skills/engineering/nuke-review: fork of thermo-nuclear-code-quality-review from
+  https://github.com/cursor/plugins (cursor-team-kit), MIT, Copyright (c) 2026 Cursor.
+  Restructured for agents by Guillaume Mongin; the modifications are MIT as well.
+  See skills/engineering/nuke-review/LICENSE.

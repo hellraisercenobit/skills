@@ -15,12 +15,14 @@
     "productivity",
     "agents",
     "design-patterns",
-    "code-comments"
+    "code-comments",
+    "code-review"
   ],
   "skills": [
     "./skills/engineering/transpose-design-pattern",
     "./skills/engineering/review-design-patterns",
     "./skills/engineering/transpose-comments",
-    "./skills/engineering/review-comments"
+    "./skills/engineering/review-comments",
+    "./skills/engineering/nuke-review"
   ]
 }
