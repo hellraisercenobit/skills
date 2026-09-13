@@ -23,10 +23,13 @@ this skill needs ships inside it; it references **no project files**, so it work
 | Vue               | [`references/transpose-vue.md`](references/transpose-vue.md)         | Pinia (setup store)          |
 | Vanilla TS (none) | [`references/transpose-vanilla.md`](references/transpose-vanilla.md) | closure observable store / signals |
 | Quarkus (Java)    | [`references/transpose-quarkus.md`](references/transpose-quarkus.md) | `@ApplicationScoped` CDI bean |
+| PHP (Symfony)     | [`references/transpose-php.md`](references/transpose-php.md)         | stateless shared service; Cache / Lock for cross-request state |
 
 > Determine the target framework from the project you are editing — `package.json` deps for the JS/TS
 > frameworks (no UI framework → Vanilla TS), or a `pom.xml` / `build.gradle` declaring `io.quarkus`
-> deps → Quarkus. To support another, see _Extending to a new framework_.
+> deps → Quarkus, or a `composer.json` → PHP (`symfony/framework-bundle` in its `require` confirms the Symfony
+> wiring; without it the same class shapes apply at a composition root). To support another, see
+> _Extending to a new framework_.
 
 ## Mandatory procedure
 
@@ -49,8 +52,9 @@ Run **every** step before writing or changing implementation code. Do not jump s
 
 Every guide uses the **same section names** (Strategy, Registry, Factory, Command, Adapter / DTO Mapping,
 Composition, Singleton / shared state), so open the section matching your pattern. For
-reactivity / async / forms, read that guide's _Cross-cutting <framework> practice_ section; for anything
-else, its _Decision Matrix_ (bottom). Store choice per framework is in the _Bundled sources_ table above.
+everything around the pattern (front end: reactivity, async, forms; back end: transactions, validation,
+runtime model), read that guide's _Cross-cutting <framework> practice_ section; for anything else, its
+_Decision Matrix_ (bottom). Store choice per framework is in the _Bundled sources_ table above.
 
 ## Enforcement rules
 
@@ -65,7 +69,8 @@ else, its _Decision Matrix_ (bottom). Store choice per framework is in the _Bund
 
 ## Extending to a new framework
 
-1. Author `references/transpose-<framework>.md`, mirroring `references/transpose-angular.md`: a
-   _Decision Matrix_ plus one section per catalog pattern with idiomatic wiring for that framework.
+1. Author `references/transpose-<framework>.md`, mirroring `references/transpose-angular.md` (front end) or
+   `references/transpose-quarkus.md` (back end): a _Decision Matrix_ plus one section per catalog pattern
+   with idiomatic wiring for that framework.
 2. Add one row to the _Target framework_ table above, pointing at the new guide.
 3. Leave `references/pattern-catalog.md` framework-agnostic and unchanged — it is shared across all targets.

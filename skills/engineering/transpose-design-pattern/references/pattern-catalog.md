@@ -1,4 +1,4 @@
-# Design Pattern Catalog — framework-agnostic (TypeScript 2026)
+# Design Pattern Catalog - framework-agnostic (reference idioms in TypeScript)
 
 Self-contained catalog for the `transpose-design-pattern` skill. Framework-agnostic on purpose:
 select the pattern here, then apply the wiring from the matching `transpose-<framework>.md` guide.
@@ -33,13 +33,16 @@ domain services, typed contracts.
 
 ### 5. Use Strong Typing Everywhere
 
-Prefer inferred unions, `as const`, `satisfies`, discriminated unions, generics, branded types for IDs.
-Avoid `any`, magic strings, weak object maps.
+Use the strongest typing the language offers, and a static analyzer where the language stops. TypeScript:
+inferred unions, `as const`, `satisfies`, discriminated unions, generics, branded types for IDs. Java:
+records, sealed interfaces, generics. PHP: native types, `readonly`, backed enums, PHPStan generics and array
+shapes. Avoid `any` / `mixed` / `Object`, magic strings, weak object maps.
 
 ### 6. Runtime Validation Matters
 
-TypeScript only validates at compile time. Validate API payloads, runtime plugins, environment configs
-with zod / valibot / arktype.
+Static types stop at the process boundary. Validate API payloads, runtime plugins and environment configs
+at that boundary - zod / valibot / arktype in TypeScript, Bean Validation in Java, Validator constraints in
+PHP.
 
 ### 7. Prefer Immutable Data
 
@@ -147,7 +150,10 @@ const userFromDto = (d: UserDto): User => ({ id: d.id, createdAt: new Date(d.cre
 
 ---
 
-## TypeScript 2026 Recommendations
+## Reference idioms (TypeScript)
+
+The catalog's examples are TypeScript. Each `transpose-<framework>.md` carries the same idioms in its own
+language (records and sealed interfaces for Quarkus, `readonly` classes and backed enums for PHP).
 
 ```ts
 // Prefer `satisfies`
@@ -180,6 +186,6 @@ export const userFromDto = (dto: UserDto): User => ({ /* ... */ });
 | Object creation complexity         | Factory                   |
 | DTO transformation                 | Adapter / from-to mapping |
 | Shared app state                   | Singleton / facade        |
-| UI state                           | Signals                   |
+| UI state (front-end guides)        | Signals                   |
 | Reusable action                    | Command                   |
 | Decoupling systems                 | Composition               |

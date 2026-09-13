@@ -51,9 +51,9 @@ Run every step. The discipline is in steps 3 and 5 — do not skip from "I spott
 
 2. **Inventory the pattern-shaped sites.** Find every site with a pattern-shaped decision — interchangeable
    behavior, plugin/extensibility, object-creation logic, a DTO/domain boundary, shared state, a composable
-   action, a cross-cutting concern. Locate them by search, never by eyeballing: in an Nx repo use the recon
-   layer (architecture-map / graphify / Nx graph) per the agents-router; elsewhere grep for the signatures in
-   `references/smell-signatures.md`. For a not-yet-built design proposal, sites come from the design doc
+   action, a cross-cutting concern. Locate them by search, never by eyeballing: start from the repo's
+   dependency graph when it has one (Nx graph, graphify, Deptrac layers in PHP), then grep for the signatures
+   in `references/smell-signatures.md`. For a not-yet-built design proposal, sites come from the design doc
    instead of code, and "location" in the report below becomes the doc section. _Done when:_ every site in
    scope is listed — exhaustive, not a sample.
 
@@ -85,7 +85,8 @@ Tie severity to impact, not to how clever the finding is.
 - **Major** — wrong or missing pattern: a pattern-shaped need solved ad-hoc, or a pattern misapplied (giant
   strategy class, a factory with no creation logic, a hand-maintained enum where a Registry belongs).
 - **Minor** — transposition / idiom drift that survives the steelman as "works, not idiomatic" (e.g. constructor
-  injection over `inject()`, TS `private` over `#`).
+  injection over `inject()` in Angular, TS `private` over `#`, per-service YAML wiring where attributes
+  suffice in PHP).
 
 ## Report format
 

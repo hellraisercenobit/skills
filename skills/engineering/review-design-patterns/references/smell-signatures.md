@@ -19,7 +19,7 @@ A finding is only real when the **signature** is present **and** the **steelman*
 - **Signature:** a `switch (type)` or `if (kind === '…')` chain that selects *behavior*; one class with a method per variant; a behavior chosen by reading `constructor.name` or a magic string.
 - **Steelman:** exactly two variants that demonstrably never grow, no external/plugin variants → a small inline branch can beat Strategy ceremony (YAGNI). A `{ … } as const satisfies Record<K, Strategy>` lookup table is the *correct* idiom — not a smell.
 - **Confirm when:** adding a variant means editing the switch; the switch is duplicated at more than one call site; variants come from plugins/config/runtime; the branch decides domain behavior, not a trivial display string.
-- **Framework:** Angular expects `InjectionToken` + `multi` providers resolved by key (transpose-angular → Strategy). A behavior-selecting `switch` inside a component is a **blocker**.
+- **Framework:** Angular expects `InjectionToken` + `multi` providers resolved by key (transpose-angular → Strategy). A behavior-selecting `switch` inside a component is a **blocker**. PHP expects `#[AutoconfigureTag]` on the interface + `#[AutowireIterator]` + `supports()`, or a backed enum + exhaustive `match` for a closed set (transpose-php → Strategy): a `switch` on a string tag in a service or controller is a **blocker**; a `match` over an enum with no `default` is the correct idiom, not a smell.
 
 ## Registry
 
@@ -27,7 +27,7 @@ A finding is only real when the **signature** is present **and** the **steelman*
 - **Signature:** a central `switch`/object literal edited by hand every time a plugin is added; an enum of plugin keys kept in sync manually; a global "get me anything by string" locator.
 - **Steelman:** the set of entries is compile-time-known and closed (e.g. two app-owned exporters) → a typed `satisfies Record<K, T>` table is fine and is *not* the service-locator smell. Registration centralized in one composition-root module is acceptable.
 - **Confirm when:** entries are external/dynamic yet enumerated by hand; adding a plugin forces edits in unrelated modules; lookups are untyped string fetches scattered across the code (service locator).
-- **Framework:** Angular = DI lookup over `multi` providers *is* the registry (transpose-angular → Registry).
+- **Framework:** Angular = DI lookup over `multi` providers *is* the registry (transpose-angular → Registry). PHP = `#[AutowireLocator]` / indexed `#[AutowireIterator]` over one tag (transpose-php → Registry); a locator scoped to one tag is *not* the service-locator smell - injecting the application container or a static `Container::get()` facade is.
 
 ## Factory
 
@@ -42,6 +42,7 @@ A finding is only real when the **signature** is present **and** the **steelman*
 - **Signature:** a store/facade method (`withMethods`, Zustand/Pinia action, closure-store method) that performs a side-effecting action which is — or should be — reused, composed, or unit-tested in isolation, yet lives only inside the store and drags state flags + IO + mapping together.
 - **Steelman:** a genuine one-off with no reuse or isolated-test pressure → inlining it in the store is correct (YAGNI); extracting a use-case would be premature. The store legitimately owns the *surrounding* state (status flags, journal, reset) and may **delegate** to a use-case — delegation is the right shape, not a smell.
 - **Confirm when:** the action is called from (or clearly needs) more than one place; it can't be unit-tested without standing up the whole store; domain logic is fused with persistence/presentation inside the method. Fix: extract a distinct injectable use-case / exported function the store delegates to (catalog → Command for the layering).
+- **Framework:** PHP: the action lives in a controller action, a repository method or an ORM model method (transpose-php → Command); the fix is a `readonly` command + invokable handler the caller delegates to.
 
 ## Adapter / DTO Mapping
 
@@ -49,6 +50,7 @@ A finding is only real when the **signature** is present **and** the **steelman*
 - **Signature:** snake_case / raw API fields, `created_at`, untyped JSON, or `*Dto` types referenced inside components/templates; mapping logic that depends on the framework; mapping done in the component instead of at the data-access boundary.
 - **Steelman:** DTO and domain shapes are genuinely identical for this resource → a pass-through with no mapper is acceptable (don't manufacture a `fromDto` that copies fields 1:1). A typed response used only inside the service is fine.
 - **Confirm when:** raw DTO shapes reach a template or view-model; mapping lives in a component; the mapper imports framework symbols. Fix: pure `from`/`to` functions at the service boundary (catalog → Adapter; framework guide → Adapter).
+- **Framework:** PHP: an entity or ORM model serialized directly (`$this->json($entity)`, `$model->toArray()`) or reaching a Twig template (transpose-php → Adapter); the fix is a `final readonly` DTO with a static `from*` constructor.
 
 ## Composition
 
@@ -60,8 +62,8 @@ A finding is only real when the **signature** is present **and** the **steelman*
 ## Singleton / shared state
 
 - **Catalog → Singleton → Avoid:** global mutable state; hidden shared state.
-- **Signature:** module-level `let` mutated across the app; a service exposing a writable signal / the whole store object; shared state mutated through paths the type system doesn't guard.
-- **Steelman:** a root-provided service with private state and a **readonly/computed** public surface is the *correct* shape, not a smell. Minimal, explicitly-shared app state is fine.
+- **Signature:** module-level `let` mutated across the app; a service exposing a writable signal / the whole store object; shared state mutated through paths the type system doesn't guard. PHP: `static` properties, `$GLOBALS`, a stateful service without `ResetInterface` (invisible under PHP-FPM, a cross-request leak under a worker runtime).
+- **Steelman:** a root-provided service with private state and a **readonly/computed** public surface is the *correct* shape, not a smell. Minimal, explicitly-shared app state is fine. In PHP, a stateless shared service, or a memo behind `ResetInterface` with a read-only surface, is the correct shape (transpose-php → Singleton / shared state).
 - **Confirm when:** state is module-global and mutable; writable signals or the raw store are exposed; consumers mutate shared state directly. Fix: keep state private, expose readonly/computed (framework guide → Singleton / shared state).
 
 ---
@@ -84,5 +86,6 @@ These are not single patterns but principles the catalog enforces everywhere. Sa
   *Confirm when:* behavior keys are untyped strings, or effects fire from hidden global state.
 - **Framework-specific anti-patterns** — business logic in components/templates/effects, `BehaviorSubject`
   stores for UI state, `@HostListener`/`@HostBinding` in new Angular code, calling `HttpClient` from a
-  component. These are owned by the project's `transpose-<framework>.md` _Anti-Patterns to Avoid_ — cite that
+  component; in PHP, business logic in controllers / ORM models / Twig, `new \DateTime()` inside a service, a
+  file without `declare(strict_types=1)`. These are owned by the project's `transpose-<framework>.md` _Anti-Patterns to Avoid_ — cite that
   list verbatim; do not re-derive it here.

@@ -14,7 +14,7 @@ npx skills update transpose-design-pattern
 
 ## What it does
 
-Selects a design pattern from a built-in framework-agnostic catalog, then transposes it to the target framework (Angular, React, Vue, Vanilla TS, Quarkus) **before** writing implementation code. The defining constraint: pattern choice and framework wiring are mandatory steps — you do not jump straight to coding on pattern-shaped work.
+Selects a design pattern from a built-in framework-agnostic catalog, then transposes it to the target framework (Angular, React, Vue, Vanilla TS, Quarkus, PHP/Symfony) **before** writing implementation code. The defining constraint: pattern choice and framework wiring are mandatory steps — you do not jump straight to coding on pattern-shaped work.
 
 ## When to reach for it
 
