@@ -12,7 +12,7 @@ Reachable only when you type them (`disable-model-invocation: true` + `policy.al
 
 Model- or user-reachable (rich trigger phrasing in `description`).
 
-- **[transpose-design-pattern](./transpose-design-pattern/SKILL.md)** — Select a pattern from the catalog and transpose it to Angular / React / Vue / Vanilla TS / Quarkus / PHP (Symfony) before implementation.
-- **[review-design-patterns](./review-design-patterns/SKILL.md)** — Independent design-pattern audit: blind re-derivation + steelman gate. Companion to `transpose-design-pattern`.
+- **[transpose-design-pattern](./transpose-design-pattern/SKILL.md)** — Decide a pattern or an explicit `none` from the catalog, transpose it to Angular / React / Vue / Vanilla TS / Quarkus / PHP (Symfony), record the decision before implementation, then hand the code to a fresh blind reviewer.
+- **[review-design-patterns](./review-design-patterns/SKILL.md)** — Independent design-pattern audit: blind re-derivation frozen first, three-way comparison (expected / recorded / actual), steelman gate, catalog gaps. Companion to `transpose-design-pattern`.
 - **[transpose-comments](./transpose-comments/SKILL.md)** — Write only the why: no comment by default, one Simplified Technical English (ASD-STE100) line where a why exists, placed in the language's idiom (lint directives carry it inline). Runs before any code write.
 - **[review-comments](./review-comments/SKILL.md)** — Audit comments in a diff, MR, or file: keep the why, delete narration, tighten the rest to STE. Companion to `transpose-comments`.

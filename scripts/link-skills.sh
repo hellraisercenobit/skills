@@ -42,3 +42,21 @@ for DEST in "${DESTS[@]}"; do
     echo "linked $name -> $src ($DEST)"
   done
 done
+
+# Only Claude Code reads subagents, from ~/.claude/agents. The other harnesses have no equivalent.
+AGENTS_DEST="$HOME/.claude/agents"
+mkdir -p "$AGENTS_DEST"
+for agent_md in "$REPO"/agents/*.md; do
+  [ -e "$agent_md" ] || continue
+  name="$(basename "$agent_md")"
+  target="$AGENTS_DEST/$name"
+
+  # A real file there is the user's own agent. Do not overwrite it; the user must resolve the name clash.
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    echo "skipped $name: $target exists and is not a symlink" >&2
+    continue
+  fi
+
+  ln -sfn "$agent_md" "$target"
+  echo "linked $name -> $agent_md ($AGENTS_DEST)"
+done

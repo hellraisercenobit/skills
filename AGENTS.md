@@ -22,6 +22,10 @@ Skills live in bucket folders under `skills/`:
 6. Run `npm run link-skills` to symlink into local harness directories.
 7. Add a changeset: `npm run changeset`.
 
+## Agents
+
+Claude Code subagents live in `agents/<agent-name>.md` at the repo root (frontmatter `name`, `description`, `tools`, `model`). They ship through `.claude-plugin/plugin.json` → `agents` and `npm run link-skills` symlinks them into `~/.claude/agents`. A skill that dispatches to an agent must still work without it (skills.sh installs skills only): name the agent, and give the fallback.
+
 ## Versioning
 
 - Bump with [changesets](https://github.com/changesets/changesets). `npm run version` applies pending changesets, then `scripts/sync-version.sh` copies the `package.json` `version` into `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. Never edit those three versions by hand.

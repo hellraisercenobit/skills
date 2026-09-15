@@ -11,7 +11,7 @@ npx skills add hellraisercenobit/skills
 npx skills add hellraisercenobit/skills --skill transpose-design-pattern --skill review-design-patterns
 ```
 
-**Claude Code plugin.** The whole set, always installed together:
+**Claude Code plugin.** The whole set, always installed together, plus the `design-pattern-reviewer` subagent (skills.sh installs skills only; the skills work without the agent, with a fresh general subagent):
 
 ```bash
 claude plugin marketplace add hellraisercenobit/skills
@@ -46,8 +46,8 @@ Copy [`skills/in-progress/_template/`](./skills/in-progress/_template/) when sta
 
 ### Model-invoked
 
-- **[transpose-design-pattern](./skills/engineering/transpose-design-pattern/SKILL.md)** — Pick a design pattern from the catalog and transpose it to the target framework before writing code.
-- **[review-design-patterns](./skills/engineering/review-design-patterns/SKILL.md)** — Independently audit pattern decisions (blind re-derive + steelman gate). Companion to `transpose-design-pattern`.
+- **[transpose-design-pattern](./skills/engineering/transpose-design-pattern/SKILL.md)** — Decide a design pattern (or an explicit `none`) from the catalog, transpose it to the target framework, and record the decision before writing code; then hand the code to a fresh blind reviewer.
+- **[review-design-patterns](./skills/engineering/review-design-patterns/SKILL.md)** — Independently audit pattern decisions: blind re-derive and freeze, compare with the recorded decision and the code, steelman gate, catalog gaps. Companion to `transpose-design-pattern`; the `design-pattern-reviewer` agent runs it read-only.
 - **[transpose-comments](./skills/engineering/transpose-comments/SKILL.md)** — Write only the why: no comment by default, one Simplified Technical English (ASD-STE100) line where a why exists, placed in the language's idiom. Runs before any code write.
 - **[review-comments](./skills/engineering/review-comments/SKILL.md)** — Audit comments in a diff, MR, or file: keep the why, delete narration, tighten the rest to STE. Companion to `transpose-comments`.
 

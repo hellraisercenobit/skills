@@ -24,5 +24,8 @@
     "./skills/engineering/transpose-comments",
     "./skills/engineering/review-comments",
     "./skills/engineering/nuke-review"
+  ],
+  "agents": [
+    "./agents/design-pattern-reviewer.md"
   ]
 }
