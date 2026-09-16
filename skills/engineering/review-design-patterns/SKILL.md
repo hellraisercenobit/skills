@@ -35,6 +35,7 @@ it ships.
 
 This skill owns no catalog. It judges against the bundled sources of its companion, `transpose-design-pattern`:
 
+- **Shared procedure:** resolve `/transpose-design-pattern` and read its `references/suite-contract.md` (contract 1.0.0). Apply its dependency, read-only, neutral-context, composition and state-expiry guarantees alongside this domain protocol. Missing required references mean incomplete execution, never `SOUND`.
 - **Catalog (the rules):** [`../transpose-design-pattern/references/pattern-catalog.md`](../transpose-design-pattern/references/pattern-catalog.md)
   - the _Structural forces_ table (with the _Extension-cost test_) and each entry's _Invariants_ are the
   **positive** checklist (what must be observable when the design is right); each entry's **Avoid** clause

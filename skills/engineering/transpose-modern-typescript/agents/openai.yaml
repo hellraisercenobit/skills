@@ -1,0 +1,3 @@
+interface:
+  display_name: "Transpose Modern TypeScript"
+  short_description: "Choose supported TS/JS idioms and verify the result"

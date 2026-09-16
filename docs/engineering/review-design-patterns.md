@@ -14,6 +14,8 @@ npx skills update review-design-patterns
 
 ## What it does
 
+See the [shared suite guide](../skill-suite.md) for common validation, composition and verdict expiry.
+
 Independently audits design-pattern decisions against the shared catalog: re-derives each site blind and freezes the expected design, then compares it with the recorded decision and the actual code, and puts every finding through a steelman gate. The defining constraint: author intent is never evidence - the catalog is the standard, the expected design is written before the record is opened and never revised afterwards, and each finding must survive the strongest defense of the current code.
 
 ## When to reach for it

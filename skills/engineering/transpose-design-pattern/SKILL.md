@@ -15,6 +15,7 @@ it; it references **no project files**, so it works in any repository.
 
 ## Bundled sources (this skill owns them - read, do not paraphrase from memory)
 
+- **Shared procedure:** [suite contract 1.0.0](references/suite-contract.md) - read once per execution for C01-C12, neutral context, composition, state expiry and portable/gate limits. Domain decisions and the existing record schema below remain unchanged.
 - **Catalog (framework-agnostic):** [`references/pattern-catalog.md`](references/pattern-catalog.md) -
   the _Structural forces_ table (force → decision) with the _Extension-cost test_, one entry per pattern
   (_Use when / Best practices / Avoid / Invariants_), the `None` entry.

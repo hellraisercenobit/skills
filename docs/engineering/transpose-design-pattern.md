@@ -14,6 +14,9 @@ npx skills update transpose-design-pattern
 
 ## What it does
 
+This pair follows the [shared suite contract](../skill-suite.md). The design catalog,
+framework decisions and existing record schema remain domain-specific.
+
 Decides the design pattern for a code change - or an explicit `none` - from a built-in framework-agnostic catalog, transposes it to the target framework (Angular, React, Vue, Vanilla TS, Quarkus, PHP/Symfony), and records the decision **before** writing implementation code. After implementation it hands the code to a fresh reviewer that re-derives the design blind. The defining constraint: the decision is the deliverable, not the pattern. A `none` carries the same burden of proof as a Strategy, and the task is not done until a fresh review says `SOUND`.
 
 ## When to reach for it

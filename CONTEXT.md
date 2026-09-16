@@ -19,6 +19,20 @@ A Claude Code subagent definition under `agents/`, shipped by the plugin and lin
 **Companion pair**:
 A `transpose-*` skill that decides and writes, and its `review-*` twin that audits blind against the reference files the first one owns.
 
+**Dimension**: one quality domain, with its own catalog, decisions and verdict.
+
+**Shared contract**: versioned procedural guarantees C01-C12 owned in `contracts/suite-contract.md` and generated into portable transpose bundles.
+
+**Decision record**: a domain-schema document written before affected implementation, preserved outside the repository with revisions.
+
+**Frozen matrix**: a reviewer's immutable expectations emitted before reading author records or rationale.
+
+**Verdict**: SOUND, SMELLS or VIOLATIONS after a complete audit. Missing prerequisites mean incomplete execution, not a verdict.
+
+**Attestation**: a reviewer's supported gate operation binding SOUND to the state fingerprinted by that gate. A portable report is evidence without that enforcement.
+
+**Pair conformity**: observed adherence to the shared contract and domain rules; neither its name nor a valid JSON record proves it.
+
 ## Relationships
 
 - A **Bucket** holds many **Skills**

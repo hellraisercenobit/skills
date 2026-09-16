@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Modern TypeScript"
+  short_description: "Independently audit TS/JS idioms and native APIs"

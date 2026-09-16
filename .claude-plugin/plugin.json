@@ -21,11 +21,14 @@
   "skills": [
     "./skills/engineering/transpose-design-pattern",
     "./skills/engineering/review-design-patterns",
+    "./skills/engineering/transpose-modern-typescript",
+    "./skills/engineering/review-modern-typescript",
     "./skills/engineering/transpose-comments",
     "./skills/engineering/review-comments",
     "./skills/engineering/nuke-review"
   ],
   "agents": [
-    "./agents/design-pattern-reviewer.md"
+    "./agents/design-pattern-reviewer.md",
+    "./agents/modern-typescript-reviewer.md"
   ]
 }
