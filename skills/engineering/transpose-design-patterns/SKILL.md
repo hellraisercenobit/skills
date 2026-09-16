@@ -1,11 +1,11 @@
 ---
-name: transpose-design-pattern
+name: transpose-design-patterns
 description: Decide the design pattern - or an explicit none - for a code change from a built-in framework-agnostic catalog, transpose it to the target framework via a bundled per-framework guide, and record the decision BEFORE writing implementation code; after implementation, hand the code to a fresh blind reviewer. USE WHEN implementing or refactoring code with a pattern-shaped decision - interchangeable behaviors, plugin/extensibility, object-creation logic, DTO/API-shape mapping, shared state, composable actions, cross-cutting concerns - or when choosing where code goes or whether a design is sound. EXAMPLES - "add a new exporter type", "wire two payment providers via DI", "where should this DTO mapping live", "make this service pluggable", "Strategy or Registry here?".
 license: MIT
 author: Guillaume Mongin (@hellraisercenobit)
 ---
 
-# Transpose Design Pattern
+# Transpose Design Patterns
 
 Autonomous, portable, **mandatory** workflow: detect the structural forces in the change, decide on a
 catalog pattern **or on an explicit `none`**, transpose it to the target framework with a bundled guide,

@@ -350,6 +350,13 @@ needs:
   shared across requests under PHP-FPM, and _is_ under a worker runtime - both are bugs.
 - **A memo that must exist** (a per-run cache) - the service implements **`ResetInterface`**; the
   framework autoconfigures it on `kernel.reset` and worker runtimes clear it between requests / messages.
+- **Inside one process that walks several tenants** (a cron, a batch command, an export that loops over
+  accounts) - `ResetInterface` alone does **not** reset a service between iterations of your own loop.
+  The container reset lifecycle is separate from that loop. The lifetime that matters is the **unit of work**, and here the unit of
+  work is the iteration, not the request. Give the cache to the caller - a small object built per unit and
+  passed in - so its lifetime is visible at the call site instead of being a property nobody scopes.
+  An existing explicit reset at every iteration boundary can also satisfy this lifetime. Verify error
+  paths and two tenants in one process. See Symfony's [service reset lifecycle](https://symfony.com/doc/6.4/messenger.html#stateless-worker).
 
 ```php
 final class FeatureFlags implements ResetInterface
@@ -429,6 +436,44 @@ The unit of work wraps the handler: `$em->wrapInTransaction()` / Messenger's `Do
 on Doctrine, `DB::transaction()` on Eloquent. Not in the controller, not in the entity, not around two
 handlers.
 
+### Reads under an ambient scope
+
+An ORM that scopes reads to the current tenant, account or user - a legacy `_restrictToAccount`
+flag, a Doctrine filter, a global scope - can hide an existing row. A fallback can conceal that the
+lookup ran under the wrong scope. Verify the actual query and identity-map behavior.
+
+Two obligations, and the second is the one reviews catch:
+
+- A read that **must** cross the ambient scope says so at the call site (the ORM's documented opt-out),
+  and carries a test built on an entity **outside** the scope. A test whose fixture helper re-stamps the
+  current tenant proves nothing - check the row the helper actually wrote.
+- Lifting the scope **widens** a read, so name what still bounds it. If the identifier came from the
+  request, authorize the target explicitly. A server-side identifier also needs evidence that its
+  relationship to an authorized parent permits this access; provenance alone is not authorization.
+  Record that constraint beside the opt-out. Restore temporarily lifted filters in `finally`, including
+  on exceptions; test the next scoped read. See [Doctrine's filter lifecycle](https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/filters.html).
+
+### Reaching a modern service from legacy code
+
+Concrete `final` services are fine when callers need no substitution seam. When a legacy caller
+reaches a service through a locator (`Container::create(X::class)`, a static facade, a framework registry),
+check whether tests can replace that collaborator through the actual lookup path.
+
+If substitution is needed and the legacy boundary cannot yet use injection, expose an interface
+**and make the bridge resolve that interface**. In Symfony, bind it with `#[AsAlias]` or service config;
+direct access through the application container needs a public alias. Other legacy containers need
+their own binding mechanism. Keep this bridge narrow, prove replacement at the caller in a test,
+and use injection in owned code. See [Symfony aliases and visibility](https://symfony.com/doc/6.4/service_container/alias_private.html).
+
+### Declaration order, because a docblock binds forward
+
+A PHP docblock belongs to its following structural element. Inserting a property or a constant between
+a method's docblock and declaration can reattach it to the wrong element. Keep the block with its
+declaration; do not rely on formatter or analyzer configuration to catch the move. See [PHPDoc association](https://docs.phpdoc.org/guide/guides/docblocks.html).
+
+Follow the project's member-order convention, and insert new declarations outside existing docblocks
+and their declarations. A field before the complete docblock/method pair is valid.
+
 ### Layers enforced by tooling, not by convention
 
 Domain ← application ← infrastructure / presentation, declared in `deptrac.yaml` and failed in CI;
@@ -449,6 +494,12 @@ collaborator has one. `KernelTestCase` + `static::getContainer()->set(Port::clas
 service in a booted container; `WebTestCase` covers the HTTP boundary through `#[MapRequestPayload]` and
 the serializer; `MockClock` fixes time.
 
+Use independently specified expected values for derived results; copying the production algorithm into
+the assertion can reproduce the same defect. A direct field-mapping assertion against an input object
+can be valid, but fixed literal fixtures make fallback and tenant distinctions easier to inspect. Test a
+pure function without booting the kernel or opening a transaction; keep integration tests for real
+container and persistence seams. See `/tdd`; check that a targeted mutation breaks the assertion.
+
 ### Beyond PHP 8.2 (when the project floor moves)
 
 - **8.3** - typed class constants, `#[\Override]` on overriding methods, `readonly` properties
@@ -465,6 +516,9 @@ the serializer; `MockClock` fixes time.
 | Shared service                   | stateless `final readonly class`; the container already makes it one instance             |
 | State across requests            | Cache contracts (`CacheInterface`) / Lock (`LockFactory`) / database - never a property   |
 | Per-run memo on a service        | `ResetInterface` (autoconfigured on `kernel.reset`)                                       |
+| Memo in a loop over tenants      | match the iteration lifetime: caller-owned cache or a tested reset at every boundary     |
+| Read crossing the tenant scope   | the ORM's documented opt-out + a test on an out-of-scope row                              |
+| Legacy locator needs substitution | bridge resolves an interface; bind it in the actual container, with required visibility |
 | Depend on an abstraction         | constructor injection of the interface; `#[AsAlias]` / `#[Target]` to bind                |
 | Interchangeable behaviors        | Strategy (`#[AutoconfigureTag]` on the interface + `#[AutowireIterator]` + `supports()`)  |
 | Closed, finite variant set       | backed enum + exhaustive `match` (no `default`)                                           |
@@ -500,3 +554,7 @@ the serializer; `MockClock` fixes time.
 - setters and mutable DTOs; `\DateTime`; `clone`-based withers on `readonly` before 8.3
 - a Command merged into a controller action or a model method when it must be reusable - keep it a distinct handler the caller delegates to
 - a factory whose `create()` only calls `new` - delete it, autowiring constructs the class
+- a cached entry that survives its tenant boundary in a command loop without an intentional cross-tenant contract
+- a read that returns `null` under an ambient tenant filter with a fallback that makes it look like it worked
+- a declaration inserted between a docblock and its method - the contract attaches to the wrong element
+- an assertion that copies the production derivation, or a kernel boot for a pure function with no integration seam

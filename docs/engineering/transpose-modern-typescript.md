@@ -18,7 +18,7 @@ a fresh independent review. Keeping a useful helper or simple loop can be the ri
 - **Invocation mode.** Type /transpose-modern-typescript, or let the agent invoke it when applicable.
 - **Trigger boundary.** TS/JS implementation/refactoring: extraction and nullish access, collection
   choice, lazy production, lifetime, async/browser mechanisms and useful type guarantees.
-  Excludes prose/formatting edits. Architectural forces belong to /transpose-design-pattern.
+  Excludes prose/formatting edits. Architectural forces belong to /transpose-design-patterns.
 
 ## Prerequisites
 

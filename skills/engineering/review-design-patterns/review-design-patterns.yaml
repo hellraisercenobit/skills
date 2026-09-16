@@ -4,7 +4,7 @@ tools:
   - claude-code
   - cursor
   - github-copilot
-description: "Independently audit design-pattern decisions against a shared catalog - re-derive each site blind and freeze the expected design, compare it with the recorded decision and the code, then put every finding through a steelman gate - so it ships confirmed or flagged with evidence, with catalog gaps reported apart. Use when reviewing code, a diff, or a PR for pattern soundness and anti-patterns, or when challenging a not-yet-built design. Companion to transpose-design-pattern."
+description: "Independently audit design-pattern decisions against a shared catalog - re-derive each site blind and freeze the expected design, compare it with the recorded decision and the code, then put every finding through a steelman gate - so it ships confirmed or flagged with evidence, with catalog gaps reported apart. Use when reviewing code, a diff, or a PR for pattern soundness and anti-patterns, or when challenging a not-yet-built design. Companion to transpose-design-patterns."
 label: "Review Design Patterns"
 author: "Guillaume Mongin (@hellraisercenobit)"
 license: "MIT"

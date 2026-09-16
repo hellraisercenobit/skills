@@ -31,7 +31,7 @@ No framework guide is required by this catalog.
 1. **Frame.** Identify raw need, exact scope/base and actual compiler/lockfile, tsconfig,
    build, runtimes and browsers. Do not pin projects to the test compiler. In JS, use
    runtime rules and existing JSDoc/checkJs without requiring a TS migration. Respect
-   framework reactivity, DOM ownership and cleanup. Invoke /transpose-design-pattern only
+   framework reactivity, DOM ownership and cleanup. Invoke /transpose-design-patterns only
    for architectural decisions; a local idiom does not automatically need a pattern.
 2. **Inventory.** Walk every catalog axis across relevant sites, including retained code.
    Record applicable axes and reasoned exclusions at scope level. Searches suggest

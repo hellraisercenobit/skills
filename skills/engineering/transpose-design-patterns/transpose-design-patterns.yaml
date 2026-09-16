@@ -1,15 +1,15 @@
-name: transpose-design-pattern
+name: transpose-design-patterns
 type: skill
 tools:
   - claude-code
   - cursor
   - github-copilot
 description: "Decide a design pattern - or an explicit none - from a framework-agnostic catalog, transpose it to the target framework (Angular, React, Vue, Vanilla TS, Quarkus, PHP/Symfony), and record the decision before writing implementation code; then hand the code to a fresh blind reviewer. Use when implementing or refactoring a pattern-shaped decision - interchangeable behaviors, plugin extensibility, object creation, DTO mapping, shared state, or cross-cutting concerns."
-label: "Transpose Design Pattern"
+label: "Transpose Design Patterns"
 author: "Guillaume Mongin (@hellraisercenobit)"
 license: "MIT"
 copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
-homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-design-pattern"
+homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-design-patterns"
 version: "1.2.0"
 icon: "https://img.icons8.com/color/48/blueprint.png"
 tags:
@@ -19,6 +19,6 @@ tags:
   - conventions
 content: SKILL.md
 installPaths:
-  claude-code: .claude/skills/transpose-design-pattern/SKILL.md
-  cursor: .cursor/skills/transpose-design-pattern/SKILL.md
-  github-copilot: .github/instructions/transpose-design-pattern.instructions.md
+  claude-code: .claude/skills/transpose-design-patterns/SKILL.md
+  cursor: .cursor/skills/transpose-design-patterns/SKILL.md
+  github-copilot: .github/instructions/transpose-design-patterns.instructions.md
