@@ -65,25 +65,23 @@ The domain layer holds business types and rules only. Two rules every framework 
 
 ### 10. A Derived Value Has One Owner
 
-A value computed from others - a resolved theme, a permission summary, a cached lookup - has one
-owner for its derivation and lifecycle:
+A value computed from other values has one owner for its derivation and lifecycle:
 
 - **Read-only derived fields stay out of persistence.** When a field exists only in the read model,
   its owner defines both its derivation and its exclusion from writes; **every** write path uses that
   boundary. Overwriting a stored field on read can hide an accidental persisted copy. Deliberately
   materialized derived values instead need an explicit refresh/invalidation contract.
-- **A memo key carries every input the value depends on**, fallback paths included. A key built from
-  the nominal input alone collapses when that input is absent while the value silently derives from
-  another one. Skip caching a no-work branch unless negative caching is intentional and has a
-  defined scope and invalidation policy.
+- **A memo key carries every input the value depends on**, fallback inputs included. A key built
+  from the nominal input alone can collide between cases the derived value distinguishes. Skip
+  caching a no-work branch unless negative caching is intentional and has a defined scope and
+  invalidation policy.
 
 ### 11. One Owner for a Set an API Replaces
 
-When a collaborator **replaces** a set rather than merging into it - targeting attributes, a context
-bag, a header map - callers providing the same logical context must agree on the complete set.
-Omitting a key can silently change behavior. Give that context one named builder used by each such
-caller. Distinct contexts can have distinct builders; a comment asking duplicated builders to stay
-in step does not enforce their agreement.
+When a call **replaces** a set instead of merging into it, callers providing the same logical context
+must agree on the complete set. Omitting a member can silently change behavior. Give that context
+one named builder used by each such caller. Distinct contexts can have distinct builders; a comment
+asking duplicated builders to stay in step does not enforce their agreement.
 
 ---
 
