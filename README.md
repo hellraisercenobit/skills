@@ -2,7 +2,11 @@
 
 Personal agent skills by **Guillaume Mongin** ([@hellraisercenobit](https://github.com/hellraisercenobit)). Licensed under [MIT](./LICENSE); ownership is recorded in [NOTICE](./NOTICE).
 
-The **transpose/review suite** records decisions before implementation, then checks the result through an independent review. Its four skills are **model-invoked** and can also be selected by the user. It has exactly two dimensions:
+The **transpose/review suite** gives coding agents a repeatable way to make, implement and challenge engineering decisions. It combines domain rules with decisions recorded before code, project checks and an independent review of the final result. The aim is higher, more consistent quality through an inspectable process.
+
+**Start here:** [strategy](#how-the-suite-works) · [value beyond rules](#what-this-adds-to-project-rules) · [scaling](#how-the-suite-scales) · [installation](#1-install-the-suite) · [project configuration](#2-configure-the-target-project) · [hooks and delivery](#4-integrate-with-a-delivery-pipeline).
+
+The suite currently has two **dimensions**, each with a companion pair. Its four skills are **model-invoked** and can also be selected by the user:
 
 | Dimension | Before implementation | Independent review |
 | --- | --- | --- |
@@ -10,6 +14,81 @@ The **transpose/review suite** records decisions before implementation, then che
 | Modern TS/JS | [transpose-modern-typescript](./skills/engineering/transpose-modern-typescript/SKILL.md) | [review-modern-typescript](./skills/engineering/review-modern-typescript/SKILL.md) |
 
 `nuke-review`, `transpose-comments` and `review-comments` are **separate tools, outside this suite**. The whole plugin also installs them; that does not make them suite members or prerequisites.
+
+## How the suite works
+
+Each dimension answers a different question. Design patterns asks which architecture fits the forces and framework. Modern TypeScript asks which language, type-system, collection and platform choices fit the behavior and deployment targets. Both follow the same [versioned contract, C01-C12](./contracts/suite-contract.md).
+
+**Transpose** turns the original need into an explicit choice: inventory the relevant sites, compare alternatives, record the decision before the first affected edit, implement and run checks. Keeping existing code or choosing no specialized pattern can be correct. Modernity alone is not a reason to rewrite.
+
+**Review** starts in a fresh, read-only context. It receives the original request and factual constraints, without the builder's conversation or justification. It derives and freezes its own expected choices **before opening the decision records**, then compares **expected / recorded / actual**. For every suspected defect, it constructs the strongest legitimate defense, called a *steelman*. Only findings that survive that defense affect the verdict.
+
+```mermaid
+sequenceDiagram
+    participant B as Transpose / builder
+    participant R as Fresh read-only reviewer
+    Note over B,R: Original need, project constraints, shared catalog and contract
+    B->>B: Compare alternatives and record decisions
+    B->>B: Implement and run project checks
+    B->>R: Neutral brief, no builder history or rationale
+    R->>R: Freeze independent expectations
+    R->>R: Then read records and compare with actual code
+    R->>R: Steelman each candidate finding
+    R-->>B: Report and verdict tied to examined state
+    alt Findings or expired evidence
+        Note over B,R: Builder fixes or reframes, then a new reviewer starts
+    else Every applicable review SOUND and checks current
+        Note over B,R: Publish the reviewed state through the chosen workflow
+    end
+```
+
+The builder makes corrections; the reviewer edits nothing. Each correction requires a new independent review. Missing prerequisites leave execution incomplete; unresolved disputes go to the user. A change to covered code, records, schemas or references expires affected verdicts. A shared-file edit expires every review covering that file. Publication uses the exact state the final reports identify.
+
+For example, consider replacing a grouping helper with a native API. A rule can say "prefer native APIs". The pair must also establish the supported browsers, key semantics and public behavior, compare the native API with `Map`, a library or the existing helper, and record why the chosen option fits. Project checks exercise behavior; the fresh reviewer challenges the choice independently. An unsupported API or changed key semantics can fail review even with a persuasive decision record. Keeping the helper is valid when its defense holds. Performance claims need evidence.
+
+## What this adds to project rules
+
+Project rules remain useful for persistent conventions. The suite adds a procedure, explicit evidence and completion criteria around decisions that need judgment. Its advantage comes from following that protocol, not from naming an instruction file a "skill".
+
+| With a rule alone | What the suite adds | Why it matters |
+| --- | --- | --- |
+| "Use appropriate patterns / modern idioms" | Scoped inventory, alternatives, trade-offs and observable invariants | Makes applicability explicit, including retained code and justified exclusions |
+| "Explain the implementation" | A decision record created **before** the affected edit, with revisions preserved | Makes a later change of reasoning visible instead of reconstructing intent afterwards |
+| "Review your work" | A fresh reviewer freezes expectations before reading the builder's decisions | Reduces anchoring on the author's explanation |
+| "Follow these guidelines" | One catalog shared by the pair; each confirmed finding needs a rule, evidence and a refuted defense | Constrains taste-based rewrites and unsupported objections |
+| "The tests pass" | Deterministic checks **and** separate semantic judgment | Tests establish observed behavior; review challenges design and implementation choices |
+| "Approved" | A verdict tied to scope, source state and reference versions | Prevents reusing an old approval as evidence for changed code |
+
+The completion rule is **passing applicable checks AND current `SOUND` in every applicable dimension, with no unresolved dispute**. `SOUND` means a complete audit with zero confirmed findings. `SMELLS` and `VIOLATIONS` are findings to resolve; missing prerequisites are incomplete execution. A dimension with no applicable site is recorded as non-applicable, not awarded a synthetic `SOUND`.
+
+These are **protocol requirements**, not an automatic guarantee of bug-free code. Reviewers can miss defects, share model blind spots or work from incomplete catalogs. The repository's [smoke fixtures](./tests/README.md) exercise representative behaviors; they do not establish a measured quality gain over rules alone. The process is designed to reduce omissions, unsupported decisions and stale approvals while making its limits visible.
+
+Enforcement depends on the delivery setup. Portable records and independent reports provide reviewable evidence. The [session hooks](#connect-claude-code-and-codex-hooks) provide reminders. Blocking publication requires a trusted verifier or compatible gate that checks completeness, reviewer identity and current state. **This repository does not ship that verifier.** Its no-mistakes integration is instruction-based; generic CI success is not a suite verdict.
+
+## How the suite scales
+
+The unit of extension is a **dimension with two companions**, sharing a domain catalog and conforming to the same contract. Adding a dimension should not require copying the whole workflow into every existing skill.
+
+- **Shared procedure, domain-owned rules.** The canonical contract owns independence, evidence, verdicts and expiry. Each transpose owns its catalog, schema and guides; its review reads those same references. Generated contract bundles make installed pairs portable without maintaining separate protocol copies by hand.
+- **Load the relevant expertise.** Select only dimensions and guides applicable to the task. A local TS idiom does not automatically require an architectural decision. Splitting domains and reviewer contexts limits unrelated material in each review.
+- **Compose reviews on one state.** One builder coordinates decisions. Final reviewers can run in parallel on the same frozen source state, with separate reports and no exchange of rationale. Parallelism shortens the review path; it does not remove the cost of each review.
+- **Combine requirements, not scores.** A design `SOUND` cannot compensate for a TypeScript `VIOLATIONS`. Conflicting invariants reopen the decisions; recurring conflicts require user arbitration. After a shared-file edit, repeat every affected review. Without precise scope tracking, repeat all reviews for the change.
+- **Qualify every new pair.** A matching name is insufficient. Exercise a complete fixture flow: prior decision, implementation, checks, independent review, detected defect, correction and fresh review. Include justified retention, missing companions and cross-dimension expiry. Declare supported contract versions and verify real gate support separately.
+
+This scales maintenance through shared contracts and focused catalogs, and execution through scoped decisions and independent reviewers. It deliberately adds review work where a dimension applies. It does not depend on one enormous prompt or an ever-growing global rule list. The [maintainer guide](./docs/skill-suite.md#maintain-and-extend) explains registration and qualification.
+
+## Where to read next
+
+This README owns the human entry point: strategy, installation, project policy, hooks and delivery. The other pages have narrower responsibilities:
+
+| Document | Purpose |
+| --- | --- |
+| [Shared contract](./contracts/suite-contract.md) | Authoritative C01-C12 requirements, neutral reviewer brief and expiry rules |
+| [Suite maintainer guide](./docs/skill-suite.md) | Composition details, ownership and qualification of new dimensions |
+| [Engineering skill pages](./docs/engineering/README.md) | Each tool's purpose, triggers and domain-specific usage |
+| Each `transpose-*/references/` bundle | Authoritative domain catalog, decision schema and applicable guides |
+| [Smoke validation](./tests/README.md) | Reproduce deterministic checks and behavioral evaluations; understand their limits |
+| [Glossary](./CONTEXT.md) | Definitions of dimension, decision record, frozen matrix, verdict and attestation |
 
 ## 1. Install the suite
 
