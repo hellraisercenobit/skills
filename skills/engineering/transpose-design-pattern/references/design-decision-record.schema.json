@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-pattern/references/design-decision-record.schema.json",
+  "title": "Design decision record",
+  "description": "One record per pattern-shaped site, written by transpose-design-pattern before the first implementation write and read by review-design-patterns after its blind matrix is frozen. A gate validates shape and catalog membership against this file, never semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dimension",
+    "need",
+    "forces",
+    "alternatives",
+    "decision",
+    "framework",
+    "artifacts",
+    "invariants"
+  ],
+  "properties": {
+    "dimension": {
+      "const": "design"
+    },
+    "need": {
+      "type": "string",
+      "minLength": 1
+    },
+    "forces": {
+      "description": "All eight catalog forces, in the catalog's order: `<force>: yes - <site or requirement>` or `<force>: no - <reason>`.",
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "pattern": "^(variability|extension|creation policy|boundary mismatch|reusable action|composition|shared lifecycle / state|cross-cutting behavior): (yes|no)\\b"
+      },
+      "uniqueItems": true
+    },
+    "alternatives": {
+      "description": "Each alternative considered and why it lost. The current shape of the code is always one of them.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pattern",
+        "reason",
+        "extensionCost",
+        "reconsiderWhen"
+      ],
+      "properties": {
+        "pattern": {
+          "enum": [
+            "strategy",
+            "registry",
+            "factory",
+            "command",
+            "adapter",
+            "composition",
+            "singleton",
+            "none"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extensionCost": {
+          "description": "The extension-cost test as counted: edit sites the next variant costs today, and with the decision.",
+          "type": "string",
+          "minLength": 1
+        },
+        "reconsiderWhen": {
+          "description": "The trigger that reopens the decision. Required for `none`, allowed for any pattern.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "transposition"
+      ],
+      "properties": {
+        "name": {
+          "description": "`angular`, `react`, `vue`, `vanilla`, `quarkus`, `php`, or the detected stack when no guide covers it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "transposition": {
+          "description": "The guide section followed, and what was adapted when its example did not fit. `null` when no guide covers the stack, or for `none`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "symbol"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "symbol": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "invariants": {
+      "description": "The catalog entry's Invariants, made concrete for this change. The reviewer checks each one against the code.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "pattern"
+            ]
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "object",
+            "properties": {
+              "reconsiderWhen": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "framework": {
+            "type": "object",
+            "properties": {
+              "transposition": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "artifacts": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

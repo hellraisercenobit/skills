@@ -1,0 +1,136 @@
+{
+  "dimension": "modern-typescript",
+  "schemaVersion": "1.0.0",
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "need": "Group already validated rows by their string category without changing order.",
+  "scope": [
+    "src/group.ts"
+  ],
+  "revision": {
+    "number": 1,
+    "previous": null,
+    "reason": "Illustrative initial decision; replace all facts for a real execution."
+  },
+  "inventory": {
+    "idioms": {
+      "applicable": true,
+      "reason": "Grouping a typed finite collection in a runtime module.",
+      "sites": [
+        "src/group.ts:groupRows"
+      ]
+    },
+    "data-access": {
+      "applicable": true,
+      "reason": "Grouping a typed finite collection in a runtime module.",
+      "sites": [
+        "src/group.ts:groupRows"
+      ]
+    },
+    "consumption": {
+      "applicable": false,
+      "reason": "No related operation in this scoped pure function.",
+      "sites": []
+    },
+    "lifetime": {
+      "applicable": false,
+      "reason": "No related operation in this scoped pure function.",
+      "sites": []
+    },
+    "async": {
+      "applicable": false,
+      "reason": "No related operation in this scoped pure function.",
+      "sites": []
+    },
+    "platform": {
+      "applicable": false,
+      "reason": "No related operation in this scoped pure function.",
+      "sites": []
+    },
+    "types": {
+      "applicable": true,
+      "reason": "Grouping a typed finite collection in a runtime module.",
+      "sites": [
+        "src/group.ts:groupRows"
+      ]
+    },
+    "modules": {
+      "applicable": true,
+      "reason": "Grouping a typed finite collection in a runtime module.",
+      "sites": [
+        "src/group.ts:groupRows"
+      ]
+    }
+  },
+  "profile": {
+    "language": "typescript",
+    "compiler": "Illustrative fixture compiler; read the real lockfile.",
+    "declarations": "ES2024",
+    "build": "ESM emitted without API polyfills",
+    "targets": [
+      "Node 24"
+    ],
+    "evidence": [
+      {
+        "source": "Runtime probe: typeof Object.groupBy",
+        "checkedAt": "2026-09-16",
+        "claim": "function in the explicitly tested Node 24 fixture runtime",
+        "covers": [
+          "Node 24"
+        ]
+      }
+    ]
+  },
+  "sites": [
+    {
+      "site": "src/group.ts:groupRows",
+      "ruleIds": [
+        "MT-05",
+        "MT-19",
+        "MT-23"
+      ],
+      "alternatives": [
+        {
+          "kind": "current",
+          "description": "Manual null-prototype string grouping loop",
+          "assessment": "Correct but repeats native semantics without extra contract."
+        },
+        {
+          "kind": "native",
+          "description": "Object.groupBy",
+          "assessment": "Same key conversion and group order on the declared target."
+        }
+      ],
+      "decision": {
+        "choice": "idioms",
+        "idioms": [
+          "MT-05"
+        ],
+        "mechanism": "native",
+        "action": "apply",
+        "reason": "The native expresses the existing grouping contract.",
+        "tradeoffs": [
+          "Result remains a null-prototype object; callers must not assume inherited methods."
+        ],
+        "reconsiderWhen": "A required runtime lacks the API or keys need object identity."
+      },
+      "benefits": [
+        {
+          "kind": "maintenance",
+          "claim": "Remove one duplicate grouping loop.",
+          "evidence": "The helper adds no validation, normalization or domain rule."
+        }
+      ],
+      "artifacts": [
+        {
+          "file": "src/group.ts",
+          "symbol": "groupRows"
+        }
+      ],
+      "invariants": [
+        "Preserve row identity and order within each category.",
+        "Empty input produces no groups; __proto__ remains a data key."
+      ]
+    }
+  ]
+}

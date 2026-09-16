@@ -1,0 +1,22 @@
+name: transpose-modern-typescript
+type: skill
+tools:
+  - claude-code
+  - cursor
+  - github-copilot
+description: "Record and implement modern TS/JS decisions, then obtain an independent review."
+label: "Transpose Modern TypeScript"
+author: "Guillaume Mongin (@hellraisercenobit)"
+license: "MIT"
+copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
+homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-modern-typescript"
+version: "1.0.0"
+tags:
+  - software-engineering
+  - typescript
+  - javascript
+content: SKILL.md
+installPaths:
+  claude-code: .claude/skills/transpose-modern-typescript/SKILL.md
+  cursor: .cursor/skills/transpose-modern-typescript/SKILL.md
+  github-copilot: .github/instructions/transpose-modern-typescript.instructions.md

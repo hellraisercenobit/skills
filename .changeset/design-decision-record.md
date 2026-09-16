@@ -1,0 +1,5 @@
+---
+"hellraisercenobit-skills": minor
+---
+
+Make the design-pattern pair an enforced pipeline. `transpose-design-pattern` now detects the eight structural forces, runs the extension-cost test, decides a pattern or an explicit `none`, records a JSON design decision record before the first implementation write (piped to `ai-engineering-gate` when that command exists), and hands the code to a fresh blind reviewer with a fixed brief. `review-design-patterns` freezes its expected design before opening the record, compares expected / recorded / actual, defines `SOUND` / `SMELLS` / `VIOLATIONS`, reports catalog gaps apart, attests only `SOUND`, and never modifies code. The catalog gains a _Structural forces_ table with a two-question extension-cost test and a Strategy-or-Registry tie-breaker, an _Invariants_ line per pattern and a `None` entry; the record's shape ships as `references/design-decision-record.schema.json`; the smell signatures gain a `None` section and a Vanilla TS line. A read-only `design-pattern-reviewer` subagent ships with the plugin and is linked by `npm run link-skills`.

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native cancellation smoke test</title>
+<body>
+<h1>Native cancellation smoke test</h1>
+<p>Run <code>await runSmoke()</code> through chrome-devtools-axi.</p>
+<output id="result">Ready</output>
+<script type="module">
+import { startOperation } from '/browser.mjs';
+
+const check = (condition, message) => { if (!condition) throw new Error(message); };
+const state = () => fetch('/state').then(response => response.json());
+async function until(predicate) {
+  const deadline = performance.now() + 5000;
+  while (!await predicate()) {
+    if (performance.now() > deadline) throw new Error('Controlled endpoint did not reach the expected state');
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+}
+
+window.runSmoke = async () => {
+  const before = await state();
+  const target = new EventTarget();
+  let calls = 0;
+  const tick = () => target.dispatchEvent(new Event('tick'));
+  const pending = startOperation(target, () => calls++, '/pending');
+  await until(async () => (await state()).active === 1);
+  tick();
+  check(calls === 1, 'Pending subscription must receive events');
+  pending.dispose();
+  pending.dispose();
+  check((await pending.finished).status === 'aborted', 'Disposal must settle as aborted');
+  tick();
+  check(calls === 1, 'Disposal must remove the listener');
+  await until(async () => (await state()).active === 0);
+  check((await state()).closed === before.closed + 1, 'Disposal must close the pending server resource');
+
+  const successful = startOperation(target, () => calls++, '/ok');
+  const result = await successful.finished;
+  check(result.status === 'ok' && result.text === 'complete', 'Success must preserve the response');
+  tick();
+  check(calls === 1, 'Completion must remove the listener');
+  successful.dispose();
+
+  const failed = startOperation(target, () => calls++, '/fail');
+  let failure;
+  try { await failed.finished; } catch (error) { failure = error; }
+  check(failure?.message === 'HTTP 500', 'Unexpected HTTP failure must reject');
+  tick();
+  check(calls === 1, 'Failure must remove the listener');
+  failed.dispose();
+
+  const evidence = { status: 'passed', cases: ['abort', 'server-close', 'repeated-disposal', 'success-cleanup', 'failure-cleanup'], userAgent: navigator.userAgent };
+  document.querySelector('#result').textContent = JSON.stringify(evidence);
+  return evidence;
+};
+</script>
+</body>
+</html>
