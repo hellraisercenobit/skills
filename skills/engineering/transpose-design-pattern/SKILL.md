@@ -53,8 +53,9 @@ Run **every** step before writing or changing implementation code. Do not jump s
    More than one orchestration edit points at a pattern. Count the next plausible variant, never the
    current one, and never pick the inline branch because it is shorter.
 3. **Decide: pattern or `none`.** Take the decision the _Structural forces_ table gives for the forces
-   present (Strategy or Registry: the catalog's tie-breaker) and read the chosen entry's _Use when / Best practices / Avoid /
-   Invariants_. Name every alternative you considered and why it lost; the **current shape of the code is
+   present, after step 2: a variability force whose set passes question 1 records as `none`, and the
+   extension force splits on the catalog's Strategy-or-Registry tie-breaker. Read the chosen entry's
+   _Use when / Best practices / Avoid / Invariants_. Name every alternative you considered and why it lost; the **current shape of the code is
    always one of them**. `none` is a first-class result and carries the same burden: the forces, the
    alternatives, the structural reason the simpler shape wins, and the trigger that reopens the decision.
    Never force a pattern to satisfy a gate; never pick `none` to save ceremony.
@@ -62,7 +63,8 @@ Run **every** step before writing or changing implementation code. Do not jump s
    matching your pattern (plus its _Decision Matrix_) and apply the wiring it shows - DI, signals, stores,
    layering. When the section's example does not fit (injected dependencies, no entry module to wire at),
    keep its layering and say in `framework.transposition` what you adapted and why. No guide:
-   `transposition: null`, and the catalog's _Best practices_ are the wiring.
+   `transposition: null`, and the catalog's _Best practices_ are the wiring. For `none` there is no guide
+   section either: the catalog's `None` _Best practices_ are the wiring, and `transposition` is `null`.
 5. **Record the decision.** Write one design decision record per pattern-shaped site in the change
    (shape below, schema in `references/`), **before the first implementation write**. A force that is
    present but absorbed by the chosen pattern is recorded as `yes - absorbed by <pattern>: <site>`. Put
@@ -70,7 +72,8 @@ Run **every** step before writing or changing implementation code. Do not jump s
    keep its path: the reviewer opens it after its blind pass. When `ai-engineering-gate` is on the PATH,
    also pipe the record in: `ai-engineering-gate record --dimension design --stdin`. The gate checks shape
    and catalog membership against the bundled schema, never semantics; a refused record is fixed, not
-   bypassed.
+   bypassed. Without the gate, check the record against the schema yourself (ajv, or a hand check of
+   every constraint): the reviewer compares against it as written.
 6. **Implement per the transposition.** In your summary state the chain _forces → pattern (or `none`) →
    framework section followed_, **and for each pattern name the concrete artifact** (file + symbol) that
    realizes it. Verify the artifact is **distinct from unrelated layers** - e.g. a Command/use-case is its
@@ -87,43 +90,46 @@ _Decision Matrix_ (bottom). Store choice per framework is in the _Bundled source
 
 ## Design decision record - step 5
 
+The values below are illustrative. Every fact in your record comes from the code or from the requirement
+as stated, never from this example.
+
 ```json
 {
   "dimension": "design",
-  "need": "add PayPal as a third payment provider; charge and refund must work as for Stripe and Adyen",
+  "need": "quote shipping rates from a second carrier; the sales team wants to add carriers by market",
   "forces": [
-    "variability: yes - src/payment/payment.service.ts PaymentService.charge and refund hold one body per provider",
-    "extension: yes - the ticket plans PayPal now and names two more providers for next year",
-    "creation policy: no - each client is a plain constructor call with no runtime decision",
-    "boundary mismatch: yes - absorbed by strategy: Adyen's { value, currency } amount shape stays inside its strategy",
-    "reusable action: no - charge and refund have no caller outside PaymentService",
-    "composition: no - one behavior per provider, nothing is combined",
+    "variability: yes - src/shipping/rate.service.ts RateService.quote holds one body per carrier",
+    "extension: yes - the ticket names a second carrier now and carriers per market later",
+    "creation policy: no - each carrier client is a plain constructor call with no runtime decision",
+    "boundary mismatch: yes - absorbed by strategy: the carrier's weight unit stays inside its strategy",
+    "reusable action: no - quote has no caller outside RateService",
+    "composition: no - one behavior per carrier, nothing is combined",
     "shared lifecycle / state: no - the service and the clients hold configuration only",
     "cross-cutting behavior: no - no logging, retry or metrics requested"
   ],
   "alternatives": [
-    "none, the current switch - the set is not closed by declaration and the branch is duplicated in charge and refund",
-    "registry - providers are compile-time known with typed credentials; a Map lookup loses the completeness check",
-    "factory - createStripeStrategy(client) holds no creation decision, it is injection by closure"
+    "none, the current if/else on the carrier code - the set is not closed by declaration and a second market reopens it",
+    "registry - carriers are compile-time known with typed credentials; a Map lookup loses the completeness check",
+    "factory - createUpsStrategy(client) holds no creation decision, it is injection by closure"
   ],
   "decision": {
     "pattern": "strategy",
-    "reason": "variability and extension on one axis, the provider; PaymentService must depend on a contract, not on a client class",
-    "extensionCost": "today: 5 edit sites in PaymentService per provider (ProviderKind, import, constructor, charge case, refund case); with the map: 1 strategy module, 1 ProviderKind literal, 1 map entry, PaymentService untouched",
-    "reconsiderWhen": "a provider arrives from configuration or a plugin at runtime - then Registry"
+    "reason": "variability and extension on one axis, the carrier; RateService must depend on a contract, not on a client class",
+    "extensionCost": "today: 4 edit sites in RateService per carrier (CarrierCode, import, constructor, quote branch); with the map: 1 strategy module, 1 CarrierCode literal, 1 map entry, RateService untouched",
+    "reconsiderWhen": "a carrier arrives from configuration or a plugin at runtime - then Registry"
   },
   "framework": {
     "name": "vanilla",
-    "transposition": "Strategy → typed lookup map resolved by key; adapted: strategies are factory closures over their injected client, the map is built by createPaymentStrategies because the tree has no entry module"
+    "transposition": "Strategy → typed lookup map resolved by key; adapted: strategies are factory closures over their injected client, the map is built by createRateStrategies because the tree has no entry module"
   },
   "artifacts": [
-    { "file": "src/payment/payment.strategy.ts", "symbol": "PaymentStrategy" },
-    { "file": "src/payment/payment.providers.ts", "symbol": "createPaymentStrategies" }
+    { "file": "src/shipping/rate.strategy.ts", "symbol": "RateStrategy" },
+    { "file": "src/shipping/rate.strategies.ts", "symbol": "createRateStrategies" }
   ],
   "invariants": [
-    "PaymentService depends on PaymentStrategy and on Record<ProviderKind, PaymentStrategy> only; it imports no client",
-    "a fourth provider is added without editing payment.service.ts, and the build fails until its map entry exists",
-    "no switch, if or ternary on the provider tag remains under src/payment"
+    "RateService depends on RateStrategy and on Record<CarrierCode, RateStrategy> only; it imports no client",
+    "a third carrier is added without editing rate.service.ts, and the build fails until its map entry exists",
+    "no switch, if or ternary on the carrier code remains under src/shipping"
   ]
 }
 ```

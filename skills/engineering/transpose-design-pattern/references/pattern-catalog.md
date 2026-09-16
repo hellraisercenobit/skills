@@ -72,11 +72,11 @@ and name each force present with the site that carries it. No force present is a
 
 | Force | What it looks like in the change | Decision |
 | --- | --- | --- |
-| Variability | several implementations perform the same responsibility | Strategy |
+| Variability | several interchangeable implementations of one responsibility, selected by a discriminator (not two copies of the same body - that is a reusable action) | Strategy |
 | Extension | new implementations are expected without editing consumers | Strategy or Registry (tie-breaker below) |
 | Creation policy | construction depends on runtime or business rules | Factory |
 | Boundary mismatch | an external DTO / API shape differs from the domain shape | Adapter / DTO Mapping |
-| Reusable action | an operation has meaning independent of its caller or state container | Command |
+| Reusable action | an operation has meaning independent of its caller and of its state container (a transition that only changes a store's own state is a store action, not a Command) | Command |
 | Composition | several independent behaviors combine into one | Composition |
 | Shared lifecycle / state | application-wide identity or lifecycle is required | Singleton / shared state (a facade over a store records as `singleton`) |
 | Cross-cutting behavior | logging, metrics, auth, caching, retry, tracing around many operations | Composition (decorator / interceptor), per the framework guide |
@@ -96,9 +96,14 @@ key, a config value. For each axis, two questions in this order:
    site, and no variant arriving from config, plugins or runtime. A closed set is a legitimate `none`
    even though adding a variant edits the branch: that edit is the declaration.
 2. Otherwise, _count the edit sites the next legitimate variant costs_: files and symbols in
-   orchestration code (the consumer, its constructor, each branch). More than one orchestration edit
-   points at a pattern from the table. Never choose the inline branch because it is shorter; count the
-   next plausible variant, not the current one.
+   orchestration code (the consumer, its constructor, each branch); manifests such as `package.json` do
+   not count. More than one orchestration edit points at a pattern from the table. Never choose the
+   inline branch because it is shorter; count the next plausible variant, not the current one.
+
+A force without a variant axis (creation policy, boundary mismatch, reusable action, shared state,
+composition, cross-cutting behavior) takes the same count on the next change of its kind: the next
+environment, the next API field, the next caller, the next consumer, the next concern to stack. Today's
+cost against the cost with the decision is the `extensionCost` the reviewer re-counts.
 
 ---
 
@@ -214,7 +219,7 @@ consumers cannot mutate shared state directly.
 ### None - no named pattern
 
 **Use when** no structural force is present, or the only force is a variant set that is intentionally
-closed and compiler-checked.
+closed, compiler-checked, and branched on at one site (question 1 of the extension-cost test).
 
 **Best practices** - keep the exhaustive branch on a discriminated union (TypeScript `switch` with a
 `never` check, Java `sealed` + `switch`, PHP backed enum + `match`); declare that the set is closed;
@@ -223,8 +228,10 @@ name the trigger that reopens the decision.
 **Avoid** - `none` chosen to save ceremony while a force is present; an "exhaustive" branch duplicated
 at several call sites; a closed set that receives variants from config, plugins or runtime.
 
-**Invariants** - the branch stays exhaustive and the compiler or analyzer enforces it; the variant set
-is closed by declaration, not by accident; adding a variant is a deliberate reopening of the decision.
+**Invariants** - for a closed set: the branch stays exhaustive and the compiler or analyzer enforces it,
+the variant set is closed by declaration, not by accident, and adding a variant is a deliberate reopening
+of the decision. When no force is present: the change adds no layer, alias or indirection, and the shape
+that exists is preserved.
 
 ---
 
