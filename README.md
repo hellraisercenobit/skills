@@ -24,15 +24,22 @@ Each dimension answers a different question. Design patterns asks which architec
 **Review** starts in a fresh, read-only context. It receives the original request and factual constraints, without the builder's conversation or justification. It derives and freezes its own expected choices **before opening the decision records**, then compares **expected / recorded / actual**. For every suspected defect, it constructs the strongest legitimate defense, called a *steelman*. Only findings that survive that defense affect the verdict.
 
 ```mermaid
-flowchart TD
-    A["Original need, scope and project constraints"] --> B["Transpose: compare alternatives<br/>Record decisions before editing"]
-    B --> C["Implement and run project checks"]
-    C --> D["Start a fresh, read-only reviewer<br/>Neutral brief, no builder history"]
-    D --> E["Freeze independent expectations<br/>Then read the decision records"]
-    E --> F["Compare expected / recorded / actual<br/>Steelman each candidate finding"]
-    F --> G{"Passing checks and current SOUND<br/>in every applicable dimension?"}
-    G -- "No: fix or reframe, then review afresh" --> B
-    G -- "Yes" --> H["Publish through the chosen workflow"]
+sequenceDiagram
+    participant B as Transpose / builder
+    participant R as Fresh read-only reviewer
+    Note over B,R: Original need, project constraints, shared catalog and contract
+    B->>B: Compare alternatives and record decisions
+    B->>B: Implement and run project checks
+    B->>R: Neutral brief, no builder history or rationale
+    R->>R: Freeze independent expectations
+    R->>R: Then read records and compare with actual code
+    R->>R: Steelman each candidate finding
+    R-->>B: Report and verdict tied to examined state
+    alt Findings or expired evidence
+        Note over B,R: Builder fixes or reframes; start a new fresh review
+    else Every applicable review SOUND and checks current
+        Note over B,R: Publish the reviewed state through the chosen workflow
+    end
 ```
 
 The builder makes corrections; the reviewer edits nothing. Each correction requires a new independent review. Missing prerequisites leave execution incomplete; unresolved disputes go to the user. A change to covered code, records, schemas or references expires affected verdicts. A shared-file edit expires every review covering that file. Publication uses the exact state the final reports identify.
