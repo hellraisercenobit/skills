@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2
+
+### Patch Changes
+
+- [#10](https://github.com/hellraisercenobit/skills/pull/10) [`6323ffa`](https://github.com/hellraisercenobit/skills/commit/6323ffae954a7a5578d4c969d367c70266774db7) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Make the README the suite's entry point with its decision and independent-review workflow,
+  a Mermaid diagram, the value beyond project rules, scaling through qualified dimensions,
+  and explicit enforcement limits. Focus the suite guide on maintenance and extension.
+
 ## 0.4.1
 
 ### Patch Changes
