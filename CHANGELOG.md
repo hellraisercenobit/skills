@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- [#4](https://github.com/hellraisercenobit/skills/pull/4) [`dba0413`](https://github.com/hellraisercenobit/skills/commit/dba0413d36b5b30331e96b9a742d7434809ba219) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Make the design-pattern pair an enforced pipeline. `transpose-design-pattern` now detects the eight structural forces, runs the extension-cost test, decides a pattern or an explicit `none`, records a JSON design decision record before the first implementation write (piped to `ai-engineering-gate` when that command exists), and hands the code to a fresh blind reviewer with a fixed brief. `review-design-patterns` freezes its expected design before opening the record, compares expected / recorded / actual, defines `SOUND` / `SMELLS` / `VIOLATIONS`, reports catalog gaps apart, attests only `SOUND`, and never modifies code. The catalog gains a _Structural forces_ table with a two-question extension-cost test and a Strategy-or-Registry tie-breaker, an _Invariants_ line per pattern and a `None` entry; the record's shape ships as `references/design-decision-record.schema.json`; the smell signatures gain a `None` section and a Vanilla TS line. A read-only `design-pattern-reviewer` subagent ships with the plugin and is linked by `npm run link-skills`.
+
+- [#4](https://github.com/hellraisercenobit/skills/pull/4) [`a611b0e`](https://github.com/hellraisercenobit/skills/commit/a611b0e19b005306d09729da557c878c47ff77c2) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add modern TypeScript transpose/review companions covering language idioms, types, collections,
+  resource lifetime and native platform APIs with independent validation.
+  
+  Document the shared transpose/review contract, generate portable contract bundles and add
+  small behavioral, type, schema and distribution smoke checks. Add reproducible installation,
+  project setup and delivery-pipeline recipes. Keep nuke-review and the comments pair outside
+  the suite, with their existing behavior unchanged.
+
+- [#4](https://github.com/hellraisercenobit/skills/pull/4) [`5c77bf7`](https://github.com/hellraisercenobit/skills/commit/5c77bf77f731e13988e470d7af00653edc2057b1) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add a PHP 8.2 / Symfony 6.4 transposition guide to `transpose-design-pattern` (tagged-service Strategy and Registry, `factory:` and `#[When]` + `#[AsAlias]` Factory, command + invokable handler Command, `readonly` DTO Adapter, decorator / event Composition, shared-nothing Singleton with `ResetInterface`, cross-cutting PHP 8.2 practice, Decision Matrix and anti-patterns), make the catalog's typing and validation principles language-neutral, and teach `review-design-patterns` the PHP smell signatures and recon tooling.
+
 ## 0.2.0
 
 ### Minor Changes
