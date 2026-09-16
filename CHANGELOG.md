@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1
+
+### Patch Changes
+
+- [#8](https://github.com/hellraisercenobit/skills/pull/8) [`725797b`](https://github.com/hellraisercenobit/skills/commit/725797beac153074bfae5ae4135f25c54047bfa8) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Generalize the design catalog's derived-value and replacement-set wording, and remove
+  project-specific terminology from the PHP guide. Preserve the reviewed exceptions for
+  materialized values, intentional negative caching, distinct contexts and explicit cache resets.
+
 ## 0.4.0
 
 ### Minor Changes
