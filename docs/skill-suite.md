@@ -1,6 +1,7 @@
-The transpose/review suite turns a scoped intention into an explicit decision, implementation
-and independent judgment. Each pair owns a different dimension; all complete pairs share
-[contract 1.0.0](../contracts/suite-contract.md).
+This is the maintainer guide for composing and extending the transpose/review suite.
+Start with the [README](../README.md#how-the-suite-works) for the strategy, workflow diagram,
+value beyond project rules and step-by-step setup. [Contract 1.0.0](../contracts/suite-contract.md)
+is the authoritative execution protocol; this guide explains how to maintain pairs that follow it.
 
 ## Members and responsibilities
 
@@ -9,40 +10,23 @@ and independent judgment. Each pair owns a different dimension; all complete pai
 | [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Existing precedent, linked to the common contract; existing record schema preserved |
 | [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented companion protocol; see [smoke validation](../tests/README.md) for evidence and limits |
 
-`nuke-review`, `transpose-comments` and `review-comments` are separate tools, outside the
-suite. They are not members, prerequisites or substitutes for a suite verdict. The comments
-review edits files; its behavior remains unchanged. See the
-[README setup guide](../README.md#1-install-the-suite) for installation, project policy and
-integration with no-mistakes or another pipeline.
+The [member manifest](../contracts/members.json) is the registry. `nuke-review`,
+`transpose-comments` and `review-comments` are outside it; installing them alongside the
+suite does not make them members, prerequisites or substitutes for a suite verdict.
 
-Transpose owns its catalog, schema and guides, makes decisions before editing and runs
-checks. Review derives expectations in a fresh context, freezes them before reading records,
-compares expected/recorded/actual and defends every potential finding before confirming it.
-The named reviewer agent is a thin wrapper with no additional rules.
+Transpose owns its domain catalog, schema and guides. Review consumes those references;
+it does not maintain a competing catalog. The named reviewer agent is a thin wrapper with
+no additional rules. Keep procedural requirements in the shared contract and domain
+requirements in the relevant catalog.
 
-## Use a pair
+## Execution contract
 
-Install companions together; a review-only installation cannot recreate its missing catalog.
-
-```sh
-npx skills add hellraisercenobit/skills --skill transpose-modern-typescript --skill review-modern-typescript
-```
-
-The plugin also ships reviewer agents. Other installers can use a fresh general subagent
-without builder history. If the harness cannot provide independent context, completion is
-pending. Each bundle contains local required references; no maintainer checkout is needed.
-
-1. Establish original need, scope/base, targets and pinned reference versions.
-2. Inventory applicable sites and alternatives, including the existing implementation.
-3. Validate decision records and preserve revisions outside the repository before editing.
-4. Implement and execute appropriate deterministic checks.
-5. Send the contract's neutral brief to a fresh read-only reviewer.
-6. Fix confirmed findings as the builder, then dispatch a new fresh reviewer.
-
-The report covers every relevant site, includes defended choices and lists catalog gaps
-separately. `SOUND` means complete audit with no confirmed finding; `SMELLS` means findings
-without a Blocker; `VIOLATIONS` includes a Blocker. Only current SOUND completes a transposition.
-Missing prerequisites are incomplete execution, not a fourth quality verdict.
+Follow the [README installation and first-task steps](../README.md#1-install-the-suite)
+to use a pair. Implementations must satisfy all [C01-C12 requirements](../contracts/suite-contract.md#guarantees),
+including the [neutral brief](../contracts/suite-contract.md#neutral-brief) and
+[composition and expiry rules](../contracts/suite-contract.md#composition-and-expiry).
+Installed companions must resolve their references without a maintainer checkout. A missing
+catalog or unavailable independent reviewer leaves execution incomplete.
 
 A justified `none` is not a skipped decision. In modern-typescript it means no specialized
 transposition is useful and can still involve simple new code. Retaining existing code is
