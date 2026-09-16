@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transpose Testing Patterns"
+  short_description: "Choose test strategy and observe TDD evidence"
+  default_prompt: "Use $transpose-testing-patterns to choose and implement tests for this behavior."

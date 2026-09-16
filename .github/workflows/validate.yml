@@ -17,3 +17,31 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:contract
+  testing-patterns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tests/testing-patterns/project/package-lock.json
+            tests/testing-patterns/compat/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix tests/testing-patterns/project
+      - run: npm ci --prefix tests/testing-patterns/compat
+      - run: npm run test:testing-patterns
+        env:
+          TESTING_EVIDENCE_DIR: ${{ runner.temp }}/testing-probes
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: testing-patterns-probes
+          path: ${{ runner.temp }}/testing-probes
+          if-no-files-found: warn
+          retention-days: 7
+      - run: npx --no-install playwright install --with-deps chromium
+        working-directory: tests/testing-patterns/project
+      - run: npm run test:testing-browser

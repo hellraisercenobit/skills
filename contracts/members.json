@@ -14,6 +14,13 @@
       "review": "skills/engineering/review-modern-typescript",
       "agent": "agents/modern-typescript-reviewer.md",
       "status": "implemented"
+    },
+    {
+      "dimension": "testing-patterns",
+      "transpose": "skills/engineering/transpose-testing-patterns",
+      "review": "skills/engineering/review-testing-patterns",
+      "agent": "agents/testing-pattern-reviewer.md",
+      "status": "implemented"
     }
   ]
 }

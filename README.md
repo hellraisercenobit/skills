@@ -6,18 +6,19 @@ The **transpose/review suite** gives coding agents a repeatable way to make, imp
 
 **Start here:** [strategy](#how-the-suite-works) · [value beyond rules](#what-this-adds-to-project-rules) · [scaling](#how-the-suite-scales) · [installation](#1-install-the-suite) · [project configuration](#2-configure-the-target-project) · [hooks and delivery](#4-integrate-with-a-delivery-pipeline).
 
-The suite currently has two **dimensions**, each with a companion pair. Its four skills are **model-invoked** and can also be selected by the user:
+The suite currently has three **dimensions**, each with a companion pair. Its six skills are **model-invoked** and can also be selected by the user:
 
 | Dimension | Before implementation | Independent review |
 | --- | --- | --- |
 | Design patterns | [transpose-design-patterns](./skills/engineering/transpose-design-patterns/SKILL.md) | [review-design-patterns](./skills/engineering/review-design-patterns/SKILL.md) |
 | Modern TS/JS | [transpose-modern-typescript](./skills/engineering/transpose-modern-typescript/SKILL.md) | [review-modern-typescript](./skills/engineering/review-modern-typescript/SKILL.md) |
+| Testing / TDD | [transpose-testing-patterns](./skills/engineering/transpose-testing-patterns/SKILL.md) | [review-testing-patterns](./skills/engineering/review-testing-patterns/SKILL.md) |
 
 `nuke-review`, `transpose-comments` and `review-comments` are **separate tools, outside this suite**. The whole plugin also installs them; that does not make them suite members or prerequisites.
 
 ## How the suite works
 
-Each dimension answers a different question. Design patterns asks which architecture fits the forces and framework. Modern TypeScript asks which language, type-system, collection and platform choices fit the behavior and deployment targets. Both follow the same [versioned contract, C01-C12](./contracts/suite-contract.md).
+Each dimension answers a different question. Design patterns asks which architecture fits the forces and framework. Modern TypeScript asks which language, type-system, collection and platform choices fit the behavior and deployment targets. Testing patterns asks which observations, test forms and evidence protect the behavior, including static TypeScript guarantees. All three follow the same [versioned contract, C01-C12](./contracts/suite-contract.md).
 
 **Transpose** turns the original need into an explicit choice: inventory the relevant sites, compare alternatives, record the decision before the first affected edit, implement and run checks. Keeping existing code or choosing no specialized pattern can be correct. Modernity alone is not a reason to rewrite.
 
@@ -45,6 +46,12 @@ sequenceDiagram
 The builder makes corrections; the reviewer edits nothing. Each correction requires a new independent review. Missing prerequisites leave execution incomplete; unresolved disputes go to the user. A change to covered code, records, schemas or references expires affected verdicts. A shared-file edit expires every review covering that file. Publication uses the exact state the final reports identify.
 
 For example, consider replacing a grouping helper with a native API. A rule can say "prefer native APIs". The pair must also establish the supported browsers, key semantics and public behavior, compare the native API with `Map`, a library or the existing helper, and record why the chosen option fits. Project checks exercise behavior; the fresh reviewer challenges the choice independently. An unsupported API or changed key semantics can fail review even with a persuasive decision record. Keeping the helper is valid when its defense holds. Performance claims need evidence.
+
+For testing, a shipping threshold can justify direct examples without a builder or mock.
+Testing records the public seam and independent expected charges before writing, observes
+RED/GREEN and runs the compiler separately. Its reviewer checks whether a wrong boundary
+would be detected. Creating a port activates design only if there is a real architectural
+force; a local test does not require three records. The first runner adapter is Vitest.
 
 ## What this adds to project rules
 
@@ -103,17 +110,18 @@ From the root of the project where you want to use the skills:
 ```sh
 npx skills add hellraisercenobit/skills \
   --skill transpose-design-patterns review-design-patterns transpose-modern-typescript review-modern-typescript \
+  transpose-testing-patterns review-testing-patterns \
   --agent codex claude-code --yes
 npx skills list
 ```
 
-Keep only the agent names you use. Add `--global` for a personal installation shared by projects, then verify with `npx skills list --global`. The [skills CLI](https://github.com/vercel-labs/skills#options) supports both scopes. This installs the four suite skills, without the optional named reviewer agents.
+Keep only the agent names you use. Add `--global` for a personal installation shared by projects, then verify with `npx skills list --global`. The [skills CLI](https://github.com/vercel-labs/skills#options) supports both scopes. This installs the six suite skills, without the optional named reviewer agents.
 
 For a team, keep the project skill files, relative links and `skills-lock.json` produced by the installer under version control; verify from a fresh checkout. To pin the source, clone this repository, check out the chosen tag or commit, then use that local checkout path instead of `hellraisercenobit/skills` above. Record `npx skills --version` too. Avoid absolute links into another developer's home directory.
 
 ### Claude Code plugin
 
-This installs all promoted skills and the `design-pattern-reviewer` and `modern-typescript-reviewer` agents:
+This installs all promoted skills and the `design-pattern-reviewer`, `modern-typescript-reviewer` and `testing-pattern-reviewer` agents:
 
 ```sh
 claude plugin marketplace add hellraisercenobit/skills
@@ -142,12 +150,13 @@ Start a new session in your target project and ask:
 
 ```text
 Without editing files, resolve transpose-design-patterns, review-design-patterns,
-transpose-modern-typescript and review-modern-typescript. List their installed
+transpose-modern-typescript, review-modern-typescript, transpose-testing-patterns
+and review-testing-patterns. List their installed
 paths, shared contract version and catalogs/schemas. Confirm that you can start
 a fresh reviewer without inheriting this conversation.
 ```
 
-Expected: four skills, accessible companion references and shared contract `1.0.0`. Missing companions or independent context must be reported. Codex supports project `.agents/skills` and user `~/.agents/skills`, including symlinks; use `/skills` or `$` to select a skill. See [OpenAI's skill documentation](https://learn.chatgpt.com/docs/build-skills).
+Expected: six skills, accessible companion references and shared contract `1.0.0`. Missing companions or independent context must be reported. Codex supports project `.agents/skills` and user `~/.agents/skills`, including symlinks; use `/skills` or `$` to select a skill. See [OpenAI's skill documentation](https://learn.chatgpt.com/docs/build-skills).
 
 ## 2. Configure the target project
 
@@ -158,7 +167,8 @@ Add this policy to the existing project `AGENTS.md`, preserving its other rules.
 
 - Identify scope/base, actual compiler/runtime targets and applicable dimensions.
   Use transpose-design-patterns for architectural forces and
-  transpose-modern-typescript for TS/JS implementation choices.
+  transpose-modern-typescript for TS/JS implementation choices, and
+  transpose-testing-patterns for test strategy and TDD evidence.
 - Resolve both companions and their shared contract. Record and validate decisions
   outside the repository before the first affected implementation write.
 - Run project checks. Give each applicable review skill to a fresh read-only
@@ -189,6 +199,19 @@ Use an external evidence directory, run project checks and obtain the required
 fresh independent reviews before reporting completion.
 ```
 
+For a first testing task, use:
+
+```text
+Implement the shipping threshold described in the ticket using Vitest. Use
+transpose-testing-patterns, record the seam and oracle before writing, retain
+actual RED/GREEN outputs and inspectable states outside the repository, run
+runtime and TypeScript checks, then obtain a fresh review-testing-patterns review.
+```
+
+The evidence must identify the required scenarios and tests actually executed, including
+skips, expected failures and retries. A global green result is insufficient. See the
+[Vitest qualification guide](./tests/testing-patterns/README.md) for reproducible examples.
+
 The suite skills support implicit invocation; a named request makes the first run easier to inspect. When a named reviewer agent is unavailable, use a fresh general subagent or separate session with the same neutral brief. Reusing the builder's conversation does not provide independence.
 
 Expect decisions, checks, a frozen review matrix, comparison and verdict. `SOUND` means zero confirmed findings after a complete audit. `SMELLS` and `VIOLATIONS` require correction or explicit resolution; missing prerequisites leave execution incomplete. Retaining an existing implementation can be the right decision.
@@ -209,7 +232,7 @@ Installing these skills does **not** install hooks. A skill describes a procedur
    {
      "hookSpecificOutput": {
        "hookEventName": "SessionStart",
-       "additionalContext": "Follow the project's transpose/review policy. Before applicable edits, use transpose-design-patterns and/or transpose-modern-typescript and record decisions. After checks, obtain fresh read-only review-design-patterns and/or review-modern-typescript reviews. Keep their verdicts separate and current. Respect read-only reviewer roles. nuke-review and the comments skills are outside the suite."
+       "additionalContext": "Follow the project's transpose/review policy. Before applicable edits, use applicable transpose-design-patterns, transpose-modern-typescript and transpose-testing-patterns skills and record decisions. After checks, obtain their fresh read-only review-design-patterns, review-modern-typescript and review-testing-patterns reviews. Keep their verdicts separate and current. Respect read-only reviewer roles. nuke-review and the comments skills are outside the suite."
      }
    }
    ```
@@ -259,7 +282,7 @@ Installing these skills does **not** install hooks. A skill describes a procedur
    sh -c 'cat "$(git rev-parse --show-toplevel)/.agent-hooks/suite-context.json"' | python3 -m json.tool
    ```
 
-   Then start a fresh session in each harness. Ask it to report the hook context and resolve the four skills without editing. Check the hook log if context is absent. Repeat from a subdirectory and from the worktree used for delivery. Commit the three configuration files so that new worktrees receive them. These POSIX examples need `cat`, Git and a shell; adapt the command for a Windows-only environment.
+   Then start a fresh session in each harness. Ask it to report the hook context and resolve the six skills without editing. Check the hook log if context is absent. Repeat from a subdirectory and from the worktree used for delivery. Commit the three configuration files so that new worktrees receive them. These POSIX examples need `cat`, Git and a shell; adapt the command for a Windows-only environment.
 
 The event determines what a **separately implemented verifier** could enforce:
 
@@ -293,7 +316,7 @@ No verifier or automatic review launcher ships here. A real blocker needs valida
      path_instructions:
        - path: "*"
          instructions: |
-           For applicable design-pattern and modern-TypeScript dimensions,
+           For applicable design-patterns, modern-typescript and testing-patterns dimensions,
            obtain separate fresh read-only suite reviews with neutral briefs.
            Freeze expectations before records. Missing companions, contaminated
            context or unavailable independent sessions leave the suite incomplete.
@@ -342,7 +365,7 @@ Use the repository's existing `pre-push` hook manager for fast deterministic che
 
 ### Migrate the design-pattern skill name
 
-`transpose-design-patterns` replaces `transpose-design-pattern`. There is no alias. For an existing skills.sh installation, install the four companions with the new names using step 1, then remove the old entry in the same scope:
+`transpose-design-patterns` replaces `transpose-design-pattern`. There is no alias. For an existing skills.sh installation, install the six companions with the new names using step 1, then remove the old entry in the same scope:
 
 ```sh
 npx skills remove transpose-design-pattern --yes
@@ -355,10 +378,10 @@ Replace the old invocation in your project's `AGENTS.md`, `CLAUDE.md`, pipeline 
 
 ### Update installed companions
 
-Update the four companions together in the chosen scope:
+Update the six companions together in the chosen scope:
 
 ```sh
-npx skills update transpose-design-patterns review-design-patterns transpose-modern-typescript review-modern-typescript --project --yes
+npx skills update transpose-design-patterns review-design-patterns transpose-modern-typescript review-modern-typescript transpose-testing-patterns review-testing-patterns --project --yes
 ```
 
 Use `--global` instead of `--project` for personal installs. For the plugin, run `claude plugin update hellraisercenobit-skills@hellraisercenobit`, then restart. For a local checkout, pull or select the desired revision, run `npm ci`, `npm test` and `npm run check:contract`, then relink if paths changed. Changed references expire affected reviews.

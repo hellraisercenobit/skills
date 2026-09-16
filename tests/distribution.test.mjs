@@ -21,6 +21,14 @@ test('distributed companions expose a usable local contract, catalog and schema'
       assert.equal(await readFile(join(root, basename(member.transpose), 'references/suite-contract.md'), 'utf8'),
         await readFile('contracts/suite-contract.md', 'utf8'));
     }
+    const testing = join(root, 'transpose-testing-patterns/references');
+    for (const file of ['catalog.md', 'tdd.md', 'doubles-data.md', 'typescript.md', 'transpose-vitest.md', 'record.md']) {
+      assert.ok((await stat(join(testing, file))).isFile());
+    }
+    const testingSchema = JSON.parse(await readFile(join(testing, 'decision-record.schema.json'), 'utf8'));
+    const testingRecord = JSON.parse(await readFile(join(testing, 'record.example.json'), 'utf8'));
+    const validateTesting = new Ajv({ strict: true }).compile(testingSchema);
+    assert.equal(validateTesting(testingRecord), true, JSON.stringify(validateTesting.errors));
     const installed = join(root, 'transpose-modern-typescript/references');
     for (const file of ['catalog.md', 'compatibility.md', 'idioms.md', 'collections.md', 'platform.md', 'types.md', 'record.md']) {
       assert.ok((await stat(join(installed, file))).isFile());

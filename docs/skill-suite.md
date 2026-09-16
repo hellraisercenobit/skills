@@ -9,6 +9,7 @@ is the authoritative execution protocol; this guide explains how to maintain pai
 | --- | --- | --- |
 | [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Existing precedent, linked to the common contract; existing record schema preserved |
 | [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented companion protocol; see [smoke validation](../tests/README.md) for evidence and limits |
+| [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Vitest adapter; [qualification](../tests/testing-patterns/README.md) |
 
 The [member manifest](../contracts/members.json) is the registry. `nuke-review`,
 `transpose-comments` and `review-comments` are outside it; installing them alongside the
@@ -35,7 +36,9 @@ an independent action. A dimension with no applicable site is documented as non-
 ## Compose dimensions
 
 Use one builder and only the dimensions the change needs. A local JS guard does not require
-a design-pattern record. When both apply, architecture constrains implementation, while a
+a design-pattern record. Testing owns observation and process evidence; design owns an architectural response to
+a real testability force; modern-typescript owns idioms and platform choices. When dimensions
+apply together, architecture constrains implementation, while a
 runtime constraint can reopen architecture. Keep separate records and compatible invariants.
 
 Run any separate tools that edit files before final independent reviews. Final reviewers can
@@ -52,7 +55,7 @@ the user after identifying their incompatible invariants.
 
 A compatible gate validates record shape/catalog membership and binds a reviewer attestation
 to a state it fingerprints itself. It does not judge semantics. Inspect its real CLI first:
-support for `modern-typescript` has not been assumed or implemented in an external gate.
+support for `modern-typescript` or `testing-patterns` has not been assumed or implemented in an external gate.
 
 Without a required gate, validated records, checks and independent state-bound reports allow
 portable completion. They provide no automatic enforcement. If the project requires gate
@@ -83,3 +86,13 @@ and reference resolution. Never maintain these copies by hand.
    contract changes explicitly and document each member's required migration.
 
 Read [the glossary](../CONTEXT.md) for dimension, record, frozen matrix, verdict and attestation.
+
+## Add a testing runner adapter
+
+Keep the testing catalog runner-neutral. Add a transpose-owned guide declaring detection,
+version/capabilities, catalog mapping, recommended APIs, setup/cleanup, runtime/type
+commands, environments, limits and executed examples. Update the domain schema deliberately
+when admitting a new adapter, its routing and compatible versions. Qualify a complete
+fixture flow, retained choices, defects and unsupported capabilities before claiming support.
+The reviewer consumes the same guide. No runtime registry or duplicated catalog is needed.
+Vitest Browser Mode with its Playwright provider is part of the Vitest adapter.

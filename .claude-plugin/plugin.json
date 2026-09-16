@@ -1,7 +1,7 @@
 {
   "name": "hellraisercenobit-skills",
   "version": "0.4.2",
-  "description": "Personal agent skills by Guillaume Mongin — versioned and composable.",
+  "description": "Personal agent skills by Guillaume Mongin \u2014 versioned and composable.",
   "author": {
     "name": "Guillaume Mongin",
     "url": "https://github.com/hellraisercenobit"
@@ -25,10 +25,13 @@
     "./skills/engineering/review-modern-typescript",
     "./skills/engineering/transpose-comments",
     "./skills/engineering/review-comments",
-    "./skills/engineering/nuke-review"
+    "./skills/engineering/nuke-review",
+    "./skills/engineering/transpose-testing-patterns",
+    "./skills/engineering/review-testing-patterns"
   ],
   "agents": [
     "./agents/design-pattern-reviewer.md",
-    "./agents/modern-typescript-reviewer.md"
+    "./agents/modern-typescript-reviewer.md",
+    "./agents/testing-pattern-reviewer.md"
   ]
 }
