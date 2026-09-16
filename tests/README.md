@@ -3,6 +3,9 @@
 Run `npm ci`, `npm test` and `npm run check:contract` on Node 24. The lockfile pins the
 test compiler; it is not a compiler baseline imposed on projects using the skills.
 
+For the third dimension, follow [testing-patterns qualification](testing-patterns/README.md)
+to install both locked Vitest profiles and run runtime, type, mutant and real-browser checks.
+
 ## Seams
 
 - Public generator command: missing/stale bundle repair and read-only check mode.

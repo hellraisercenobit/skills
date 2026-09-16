@@ -1,0 +1,23 @@
+name: transpose-testing-patterns
+type: skill
+tools:
+  - claude-code
+  - cursor
+  - github-copilot
+description: "Record and implement testing decisions and TDD evidence, then obtain an independent review."
+label: "Transpose Testing Patterns"
+author: "Guillaume Mongin (@hellraisercenobit)"
+license: "MIT"
+copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
+homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-testing-patterns"
+version: "1.0.0"
+tags:
+  - software-engineering
+  - typescript
+  - testing
+  - vitest
+content: SKILL.md
+installPaths:
+  claude-code: .claude/skills/transpose-testing-patterns/SKILL.md
+  cursor: .cursor/skills/transpose-testing-patterns/SKILL.md
+  github-copilot: .github/instructions/transpose-testing-patterns.instructions.md

@@ -1,0 +1,62 @@
+{
+  "dimension": "testing-patterns",
+  "schemaVersion": "1.0.0",
+  "catalogVersion": "1.0.0",
+  "contractVersion": "1.0.0",
+  "adapter": {"name": "vitest", "version": "1.0.0"},
+  "need": "Illustrative: orders of at least 100 cents ship free; otherwise shipping is 10 cents.",
+  "scope": ["src/shipping.ts", "test/shipping.test.ts", "tsconfig.json"],
+  "base": "standalone illustrative fixture, not an observed execution",
+  "revision": {"number": 1, "previous": null, "reason": "Initial illustrative choice before writes."},
+  "profile": {
+    "language": "typescript",
+    "runner": "vitest 5.0.1",
+    "compiler": "typescript 7.0.2 tsc",
+    "declarations": "ES2024 and installed Node declarations",
+    "build": "Vitest/Vite ESM transform",
+    "configuration": ["strict compiler project includes production and tests"],
+    "environments": ["node"],
+    "runtimes": ["Node 24"],
+    "evidence": [{"source": "Illustrative lockfile and version probes; replace with actual observations", "checkedAt": "2026-09-16", "claim": "Example profile only; no execution claimed", "covers": ["fixture"]}]
+  },
+  "inventory": {
+    "behavior": {"applicable": true, "reason": "Boundary calculation.", "sites": ["shipping"]},
+    "process": {"applicable": true, "reason": "New behavior using TDD.", "sites": ["shipping"]},
+    "doubles": {"applicable": false, "reason": "Pure function has no collaborators.", "sites": []},
+    "data": {"applicable": true, "reason": "Inline amounts are sufficient.", "sites": ["shipping"]},
+    "isolation": {"applicable": false, "reason": "No collaborating boundary.", "sites": []},
+    "testability": {"applicable": false, "reason": "Existing public function is sufficient.", "sites": []},
+    "types": {"applicable": true, "reason": "Compile consumer and implementation.", "sites": ["shipping"]},
+    "async-lifetime": {"applicable": false, "reason": "Synchronous calculation owns no resource.", "sites": []},
+    "environment": {"applicable": true, "reason": "Node suffices for pure behavior.", "sites": ["shipping"]},
+    "oracle": {"applicable": true, "reason": "Literal outputs from shipping requirement.", "sites": ["shipping"]},
+    "execution": {"applicable": true, "reason": "Map boundary cases to executed tests.", "sites": ["shipping"]}
+  },
+  "sites": [{
+    "site": "shipping",
+    "behavior": "Shipping charge at, below and above free-shipping threshold.",
+    "risk": "Off-by-one threshold accepts the wrong charge.",
+    "ruleIds": ["TP-01", "TP-07", "TP-12", "TP-15", "TP-16"],
+    "alternatives": [
+      {"kind": "current", "description": "No tests or behavior yet.", "assessment": "Does not protect requested threshold."},
+      {"kind": "alternative", "description": "Direct literal examples.", "assessment": "Small and discriminating."},
+      {"kind": "alternative", "description": "Generated properties and data builder.", "assessment": "Extra setup gives little value for this boundary."}
+    ],
+    "form": "input-output examples",
+    "level": "unit",
+    "seam": "shipping(amount: number): number",
+    "oracle": "Raw requirement supplies literal results for 99, 100 and 101 cents.",
+    "doubles": "none",
+    "data": "inline literals",
+    "isolation": "pure function, no boundary to isolate",
+    "decision": {"choice": "none", "patterns": [], "action": "apply", "reason": "Direct tests express the complete small contract.", "tradeoffs": ["Examples do not exhaust numeric inputs."], "limits": ["Input validation is outside this request."], "reconsiderWhen": "Shipping rules acquire history or external effects."},
+    "invariants": ["99 costs 10; 100 and 101 cost zero."],
+    "mode": "tdd",
+    "checks": [
+      {"kind": "runtime", "command": "vitest run test/shipping.test.ts", "guarantee": "Three named boundary examples execute without skips or retries."},
+      {"kind": "static", "command": "tsc --noEmit -p tsconfig.json", "guarantee": "Production and test source compile."}
+    ],
+    "artifacts": ["src/shipping.ts", "test/shipping.test.ts"],
+    "evidence": ["external/shipping-events.jsonl", "external/snapshots/"]
+  }]
+}

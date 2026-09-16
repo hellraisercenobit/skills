@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Testing Patterns"
+  short_description: "Independently audit tests and TDD evidence"
+  default_prompt: "Use $review-testing-patterns to audit this test strategy independently."
