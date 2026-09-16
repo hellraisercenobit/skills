@@ -36,7 +36,7 @@ sequenceDiagram
     R->>R: Steelman each candidate finding
     R-->>B: Report and verdict tied to examined state
     alt Findings or expired evidence
-        Note over B,R: Builder fixes or reframes; start a new fresh review
+        Note over B,R: Builder fixes or reframes, then a new reviewer starts
     else Every applicable review SOUND and checks current
         Note over B,R: Publish the reviewed state through the chosen workflow
     end
