@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-pattern/references/design-decision-record.schema.json",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-patterns/references/design-decision-record.schema.json",
   "title": "Design decision record",
-  "description": "One record per pattern-shaped site, written by transpose-design-pattern before the first implementation write and read by review-design-patterns after its blind matrix is frozen. A gate validates shape and catalog membership against this file, never semantics.",
+  "description": "One record per pattern-shaped site, written by transpose-design-patterns before the first implementation write and read by review-design-patterns after its blind matrix is frozen. A gate validates shape and catalog membership against this file, never semantics.",
   "type": "object",
   "additionalProperties": false,
   "required": [

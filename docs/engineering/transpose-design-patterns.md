@@ -1,16 +1,18 @@
 Quickstart:
 
 ```bash
-npx skills add hellraisercenobit/skills --skill=transpose-design-pattern
+npx skills add hellraisercenobit/skills --skill=transpose-design-patterns
 ```
 
 ```bash
-npx skills update transpose-design-pattern
+npx skills update transpose-design-patterns
 ```
 
-[Source](https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-design-pattern)
+[Source](https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/transpose-design-patterns)
 
-**Author:** Guillaume Mongin ([@hellraisercenobit](https://github.com/hellraisercenobit)) · **License:** [MIT](https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-pattern/LICENSE)
+**Author:** Guillaume Mongin ([@hellraisercenobit](https://github.com/hellraisercenobit)) · **License:** [MIT](https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-patterns/LICENSE)
+
+Renamed from `transpose-design-pattern`. Existing installations must follow the [name migration](../../README.md#migrate-the-design-pattern-skill-name), including project instructions and pipeline prompts.
 
 ## What it does
 
@@ -21,10 +23,15 @@ Decides the design pattern for a code change - or an explicit `none` - from a bu
 
 ## When to reach for it
 
-- **Invocation mode.** Type `/transpose-design-pattern`, or the agent reaches for it automatically when a task fits.
+- **Invocation mode.** Type `/transpose-design-patterns`, or the agent reaches for it automatically when a task fits.
 - **Trigger boundary.** Reach for this when implementing or refactoring interchangeable behaviors, plugins, factories, DTO mapping, shared state, composable actions, or cross-cutting concerns. For auditing existing pattern choices after the fact, use [review-design-patterns](./review-design-patterns.md).
 
 ## The decision record
+
+The PHP/Symfony guide covers cache lifetime inside tenant loops, authorized cross-scope reads,
+legacy service substitution, docblock placement and meaningful test boundaries. The shared catalog
+also covers derived-value ownership and callers of APIs that replace a complete set. The reviewer
+uses matching signatures and considers legitimate exceptions before raising a finding.
 
 The procedure ends, before the first write, on one JSON document: the need, the structural forces found (with the site that carries each), the alternatives considered, the pattern or `none` with its reason, the framework transposition (or `null` when no guide covers the stack), the planned artifacts, and the invariants the code must make observable. It lives outside the repository. When the harness provides an `ai-engineering-gate` command, the record is piped to it; otherwise it sits in the summary and in a file the reviewer opens after its blind pass.
 

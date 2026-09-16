@@ -19,7 +19,7 @@ Fork of [`thermo-nuclear-code-quality-review`](https://github.com/cursor/plugins
 - one procedure of four steps, each with a completion criterion, where upstream had a baseline prompt plus rules
 - each standard stated once in a signal/remedy table, where upstream restated them across five sections (standards, questions, flags, remedies, approval bar)
 - positive wording throughout, where upstream steered by prohibition
-- the name `nuke-review`, typed as `/nuke-review`, and a one-line description per this repo's user-invoked convention
+- the name `nuke-review`, with model discovery triggers and explicit `/nuke-review` invocation
 
 About a third of the upstream length. The original text is at the link above; the modifications are MIT as well.
 
@@ -29,9 +29,11 @@ Runs an unusually strict code quality audit of the current branch's changes, foc
 
 ## When to reach for it
 
-- **Invocation mode.** You type `/nuke-review`; the agent will not reach for it on its own.
+- **Invocation mode.** Type `/nuke-review`, or the agent reaches for it when a structural quality review fits the task.
 - **Trigger boundary.** Reach for this before merging a branch whose structure you want challenged hard, or when a PR "works" but leaves the codebase messier. For design-pattern soundness specifically, use [review-design-patterns](./review-design-patterns.md); for comments, [review-comments](./review-comments.md).
 
 ## Approval bar
+
+This is a separate tool, outside the transpose/review suite. Its approval does not supply or replace a design-pattern or modern-TypeScript `SOUND` verdict.
 
 The skill does not approve on "behavior seems correct". Presumptive blockers: a file crossing 1000 lines because of the PR, new special-case branches in an existing flow, feature checks scattered across shared code, unnecessary wrappers or casts, a duplicated helper where a canonical one exists, and incidental complexity that a visible code-judo move would delete. Findings come out ordered by structural impact, few and high-conviction rather than a list of nits.

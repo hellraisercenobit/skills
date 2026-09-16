@@ -6,7 +6,7 @@ and independent judgment. Each pair owns a different dimension; all complete pai
 
 | Pair | Domain | Protocol status |
 | --- | --- | --- |
-| [transpose-design-pattern](engineering/transpose-design-pattern.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Existing precedent, linked to the common contract; existing record schema preserved |
+| [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Existing precedent, linked to the common contract; existing record schema preserved |
 | [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented companion protocol; see [smoke validation](../tests/README.md) for evidence and limits |
 
 `nuke-review`, `transpose-comments` and `review-comments` are separate tools, outside the

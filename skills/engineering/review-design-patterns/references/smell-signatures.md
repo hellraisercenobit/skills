@@ -5,7 +5,7 @@ the **steelman** that might legitimately excuse it, and what **confirms** it as 
 steelman fails. The *rules* live in the shared catalog and the per-framework guide - this file does not restate
 them, it tells you how to spot and pressure-test a breach.
 
-- Rule source: [`../../transpose-design-pattern/references/pattern-catalog.md`](../../transpose-design-pattern/references/pattern-catalog.md) (_Avoid_ clauses, _Core Principles_).
+- Rule source: [`../../transpose-design-patterns/references/pattern-catalog.md`](../../transpose-design-patterns/references/pattern-catalog.md) (_Avoid_ clauses, _Core Principles_).
 - Correct wiring: the project's `transpose-<framework>.md` (_Decision Matrix_, _Anti-Patterns to Avoid_).
 
 A finding is only real when the **signature** is present **and** the **steelman** does not hold. Default to
@@ -31,7 +31,7 @@ signature below matches.
 - **Signature:** a central `switch`/object literal edited by hand every time a plugin is added; an enum of plugin keys kept in sync manually; a global "get me anything by string" locator.
 - **Steelman:** the set of entries is compile-time-known and closed (e.g. two app-owned exporters) → a typed `satisfies Record<K, T>` table is fine and is *not* the service-locator smell; when that table is the whole realization, the catalog names it Strategy, not Registry (catalog _Strategy or Registry_). Registration centralized in one composition-root module is acceptable.
 - **Confirm when:** entries are external/dynamic yet enumerated by hand; adding a plugin forces edits in unrelated modules; lookups are untyped string fetches scattered across the code (service locator).
-- **Framework:** Angular = DI lookup over `multi` providers *is* the registry (transpose-angular → Registry). PHP = `#[AutowireLocator]` / indexed `#[AutowireIterator]` over one tag (transpose-php → Registry); a locator scoped to one tag is *not* the service-locator smell - injecting the application container or a static `Container::get()` facade is.
+- **Framework:** Angular = DI lookup over `multi` providers *is* the registry (transpose-angular → Registry). PHP = `#[AutowireLocator]` / indexed `#[AutowireIterator]` over one tag (transpose-php → Registry); a locator scoped to one tag is *not* the service-locator smell. Broad application-container or static-facade access is a candidate finding; steelman a confined legacy bridge using the guide's interface binding, visibility and caller-level substitution test.
 
 ## Factory
 
@@ -67,7 +67,7 @@ signature below matches.
 
 - **Catalog → Singleton → Avoid:** global mutable state; hidden shared state.
 - **Signature:** module-level `let` mutated across the app; a service exposing a writable signal / the whole store object; shared state mutated through paths the type system doesn't guard. PHP: `static` properties, `$GLOBALS`, a stateful service without `ResetInterface` (invisible under PHP-FPM, a cross-request leak under a worker runtime).
-- **Steelman:** a root-provided service with private state and a **readonly/computed** public surface is the *correct* shape, not a smell. Minimal, explicitly-shared app state is fine. In PHP, a stateless shared service, or a memo behind `ResetInterface` with a read-only surface, is the correct shape (transpose-php → Singleton / shared state).
+- **Steelman:** a root-provided service with private state and a **readonly/computed** public surface is the *correct* shape, not a smell. Minimal, explicitly-shared app state is fine. In PHP, stateless services are fine; a memo requires evidence that its lifetime matches the unit of work. `ResetInterface` alone does not prove reset between iterations of a multi-tenant loop. A cache owned per iteration or an explicit reset on every boundary can satisfy the guide.
 - **Confirm when:** state is module-global and mutable; writable signals or the raw store are exposed; consumers mutate shared state directly. Fix: keep state private, expose readonly/computed (framework guide → Singleton / shared state).
 
 ## None - no named pattern
@@ -95,6 +95,21 @@ These are not single patterns but principles the catalog enforces everywhere. Sa
   state is mutated in place.
 - **Explicitness over magic** - magic strings, implicit effects, dynamic behavior without a contract.
   *Confirm when:* behavior keys are untyped strings, or effects fire from hidden global state.
+- **Derived-value ownership** - a read-only derived field persists through an alternate write path,
+  or a memo key omits a fallback dependency. *Steelman:* materialized values have an explicit refresh
+  contract; intentional negative caches define scope and invalidation. *Confirm when:* changing the
+  omitted input returns stale data, or a raw stored record contains a field the read model alone owns.
+- **Replacement-set ownership** - callers duplicate builders for the same replace-all context and
+  supply different keys. *Steelman:* the callers represent distinct contexts with different contracts.
+  *Confirm when:* an alternate caller silently drops a required attribute or header.
+- **PHP scoped reads** - a fallback hides a row filtered out by the active tenant, or an opt-out lacks
+  target authorization or scope restoration. *Steelman:* the read is intentionally scoped, or an
+  authorized cross-scope operation restores the prior filter state. *Confirm when:* an out-of-scope
+  fixture or a subsequent scoped read demonstrates the wrong result. Use the PHP guide's boundary tests.
+- **PHP test and docblock integrity** - a declaration separates a method from its docblock, or a test
+  repeats the production derivation. *Steelman:* input-field assertions can test a real mapping;
+  container/persistence integration tests need their runtime. *Confirm when:* the docblock attaches to
+  the wrong element or a targeted behavioral mutation survives the test.
 - **Framework-specific anti-patterns** - business logic in components/templates/effects, `BehaviorSubject`
   stores for UI state, `@HostListener`/`@HostBinding` in new Angular code, calling `HttpClient` from a
   component; in PHP, business logic in controllers / ORM models / Twig, `new \DateTime()` inside a service, a

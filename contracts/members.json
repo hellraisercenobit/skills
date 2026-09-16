@@ -3,7 +3,7 @@
   "members": [
     {
       "dimension": "design",
-      "transpose": "skills/engineering/transpose-design-pattern",
+      "transpose": "skills/engineering/transpose-design-patterns",
       "review": "skills/engineering/review-design-patterns",
       "agent": "agents/design-pattern-reviewer.md",
       "status": "precedent"

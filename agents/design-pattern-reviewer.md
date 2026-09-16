@@ -1,6 +1,6 @@
 ---
 name: design-pattern-reviewer
-description: Fresh, read-only reviewer for design-pattern audits. Runs the review-design-patterns skill on code it did not write - blind matrix first, then the recorded decision, then the code - and attests only a SOUND verdict. Use after a transpose-design-pattern implementation, with the brief that skill prescribes.
+description: Fresh, read-only reviewer for design-pattern audits. Runs the review-design-patterns skill on code it did not write - blind matrix first, then the recorded decision, then the code - and attests only a SOUND verdict. Use after a transpose-design-patterns implementation, with the brief that skill prescribes.
 tools: Read, Grep, Glob, Bash, Skill
 model: inherit
 ---

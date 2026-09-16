@@ -1,6 +1,6 @@
 ---
 name: review-design-patterns
-description: Independently audit design-pattern decisions against the shared pattern catalog - re-derive each site blind and freeze the expected design, then compare it with the recorded decision and the actual code, and put every finding through a steelman gate - so each pattern is confirmed sound or flagged with evidence. USE WHEN reviewing existing code, a diff, or a PR for pattern soundness and anti-patterns (switch-on-type-tag, DTO leaking to UI, Command folded into a store, missing Strategy/Registry, a lazy none), when a transpose-design-pattern task hands its code to a fresh reviewer, or when challenging a not-yet-built design proposal. Companion to transpose-design-pattern. EXAMPLES - "review the design patterns in this lib", "is this Strategy correct?", "audit this PR's architecture", "did I apply Registry right?".
+description: Independently audit design-pattern decisions against the shared pattern catalog - re-derive each site blind and freeze the expected design, then compare it with the recorded decision and the actual code, and put every finding through a steelman gate - so each pattern is confirmed sound or flagged with evidence. USE WHEN reviewing existing code, a diff, or a PR for pattern soundness and anti-patterns (switch-on-type-tag, DTO leaking to UI, Command folded into a store, missing Strategy/Registry, a lazy none), when a transpose-design-patterns task hands its code to a fresh reviewer, or when challenging a not-yet-built design proposal. Companion to transpose-design-patterns. EXAMPLES - "review the design patterns in this lib", "is this Strategy correct?", "audit this PR's architecture", "did I apply Registry right?".
 license: MIT
 author: Guillaume Mongin (@hellraisercenobit)
 ---
@@ -8,7 +8,7 @@ author: Guillaume Mongin (@hellraisercenobit)
 # Review Design Patterns
 
 An **independent**, adversarial audit of the design-pattern decisions in any codebase. It is the mirror of
-`transpose-design-pattern`: that skill decides a pattern (or `none`) and records it; this one judges whether
+`transpose-design-patterns`: that skill decides a pattern (or `none`) and records it; this one judges whether
 the code that exists realizes the right design - and is willing to say it does not.
 
 The review is worthless if it is not **independent**. Two failures kill it equally: rubber-stamping the
@@ -27,26 +27,26 @@ it ships.
   what you find.
 - **If you wrote it, you are not independent.** When auditing code you authored earlier in this session,
   dispatch the audit to a fresh reviewer - the `design-pattern-reviewer` agent when the harness defines
-  one, else a fresh subagent (the `Agent` tool) - with the brief `transpose-design-pattern` prescribes. The
+  one, else a fresh subagent (the `Agent` tool) - with the brief `transpose-design-patterns` prescribes. The
   fresh reviewer never authored anything in scope, so it runs this skill itself and does not dispatch
   again. This is the strongest realization of independence; the blind re-derivation below is the floor.
 
 ## Shared standard - read, do not duplicate
 
-This skill owns no catalog. It judges against the bundled sources of its companion, `transpose-design-pattern`:
+This skill owns no catalog. It judges against the bundled sources of its companion, `transpose-design-patterns`:
 
-- **Shared procedure:** resolve `/transpose-design-pattern` and read its `references/suite-contract.md` (contract 1.0.0). Apply its dependency, read-only, neutral-context, composition and state-expiry guarantees alongside this domain protocol. Missing required references mean incomplete execution, never `SOUND`.
-- **Catalog (the rules):** [`../transpose-design-pattern/references/pattern-catalog.md`](../transpose-design-pattern/references/pattern-catalog.md)
+- **Shared procedure:** resolve `/transpose-design-patterns` and read its `references/suite-contract.md` (contract 1.0.0). Apply its dependency, read-only, neutral-context, composition and state-expiry guarantees alongside this domain protocol. Missing required references mean incomplete execution, never `SOUND`.
+- **Catalog (the rules):** [`../transpose-design-patterns/references/pattern-catalog.md`](../transpose-design-patterns/references/pattern-catalog.md)
   - the _Structural forces_ table (with the _Extension-cost test_) and each entry's _Invariants_ are the
   **positive** checklist (what must be observable when the design is right); each entry's **Avoid** clause
   is the **negative** one (your violation checklist); the _Core Principles_ and the table's _Decision_ column
   settle which pattern a force points at, `None` included.
-- **Record shape:** [`../transpose-design-pattern/references/design-decision-record.schema.json`](../transpose-design-pattern/references/design-decision-record.schema.json)
+- **Record shape:** [`../transpose-design-patterns/references/design-decision-record.schema.json`](../transpose-design-patterns/references/design-decision-record.schema.json)
   - what a design decision record contains, so you know what to compare against in step 4.
 - **Transposition (per framework):** the `transpose-<framework>.md` guide for the project's framework - its
   _Decision Matrix_ and _Anti-Patterns to Avoid_ tell you what *correct* wiring looks like. Resolve the
   framework and pick the guide from the table in
-  [`../transpose-design-pattern/SKILL.md`](../transpose-design-pattern/SKILL.md). No guide for the stack:
+  [`../transpose-design-patterns/SKILL.md`](../transpose-design-patterns/SKILL.md). No guide for the stack:
   judge on the catalog alone.
 - **Detection layer (this skill):** [`references/smell-signatures.md`](references/smell-signatures.md) - per
   pattern, how a violation *looks in code*, the steelman that might excuse it, and what confirms it as real.
@@ -122,7 +122,7 @@ A catalog gap has no severity: it is not a finding (see _Catalog gaps_).
 
 ## Verdict
 
-- **SOUND** - zero confirmed findings. The only verdict that completes a `transpose-design-pattern` task.
+- **SOUND** - zero confirmed findings. The only verdict that completes a `transpose-design-patterns` task.
 - **SMELLS** - confirmed findings, none of them a blocker.
 - **VIOLATIONS** - at least one blocker.
 

@@ -1,6 +1,6 @@
 # Design Pattern Catalog - framework-agnostic (reference idioms in TypeScript)
 
-Self-contained catalog for the `transpose-design-pattern` skill. Framework-agnostic on purpose:
+Self-contained catalog for the `transpose-design-patterns` skill. Framework-agnostic on purpose:
 select the pattern here, then apply the wiring from the matching `transpose-<framework>.md` guide.
 
 ---
@@ -62,6 +62,28 @@ The domain layer holds business types and rules only. Two rules every framework 
   own layers, never in the domain.
 - **Split ports by concern (ISP)** - never bundle a domain rule + an IO/output port + UI-copy strings in
   one interface; separate them.
+
+### 10. A Derived Value Has One Owner
+
+A value computed from others - a resolved theme, a permission summary, a cached lookup - has one
+owner for its derivation and lifecycle:
+
+- **Read-only derived fields stay out of persistence.** When a field exists only in the read model,
+  its owner defines both its derivation and its exclusion from writes; **every** write path uses that
+  boundary. Overwriting a stored field on read can hide an accidental persisted copy. Deliberately
+  materialized derived values instead need an explicit refresh/invalidation contract.
+- **A memo key carries every input the value depends on**, fallback paths included. A key built from
+  the nominal input alone collapses when that input is absent while the value silently derives from
+  another one. Skip caching a no-work branch unless negative caching is intentional and has a
+  defined scope and invalidation policy.
+
+### 11. One Owner for a Set an API Replaces
+
+When a collaborator **replaces** a set rather than merging into it - targeting attributes, a context
+bag, a header map - callers providing the same logical context must agree on the complete set.
+Omitting a key can silently change behavior. Give that context one named builder used by each such
+caller. Distinct contexts can have distinct builders; a comment asking duplicated builders to stay
+in step does not enforce their agreement.
 
 ---
 
@@ -259,4 +281,3 @@ readonly items: readonly Item[];
 // Prefer pure functions
 export const userFromDto = (dto: UserDto): User => ({ /* ... */ });
 ```
-

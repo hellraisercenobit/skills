@@ -4,7 +4,7 @@ tools:
   - claude-code
   - cursor
   - github-copilot
-description: "Extremely strict maintainability review of a branch: abstraction quality, files pushed past 1k lines, spaghetti-condition growth, and code-judo simplifications that delete complexity. User-invoked. Fork of Cursor's thermo-nuclear-code-quality-review (cursor-team-kit, MIT), restructured for agents."
+description: "Extremely strict maintainability review of a branch or diff. Use for structural quality gates, substantial pre-merge reviews or code that has become harder to maintain. Model- or user-invoked, outside the transpose/review suite. Fork of Cursor's thermo-nuclear-code-quality-review (cursor-team-kit, MIT), restructured for agents."
 label: "Nuke Review"
 author: "Cursor (upstream); adapted by Guillaume Mongin (@hellraisercenobit)"
 license: "MIT"

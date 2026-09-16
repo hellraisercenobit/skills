@@ -1,7 +1,6 @@
 ---
 name: nuke-review
-description: Run an extremely strict maintainability review for abstraction quality, giant files, and spaghetti-condition growth.
-disable-model-invocation: true
+description: "Run an extremely strict maintainability review of a branch or diff for abstraction quality, giant files, spaghetti-condition growth and simpler designs. Use when a delivery workflow requires a structural quality review, before merging substantial code changes, or when working code has become harder to maintain. Separate from the transpose/review suite; this review does not replace its domain verdicts."
 license: MIT
 author: Cursor (upstream, MIT); adapted by Guillaume Mongin (@hellraisercenobit)
 ---

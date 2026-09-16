@@ -21,7 +21,7 @@ Independently audits design-pattern decisions against the shared catalog: re-der
 ## When to reach for it
 
 - **Invocation mode.** Type `/review-design-patterns`, or the agent reaches for it automatically when a task fits.
-- **Trigger boundary.** Reach for this when reviewing code, a diff, or a PR for pattern soundness / anti-patterns, when a `transpose-design-pattern` task hands its code over, or when challenging a not-yet-built design. To *choose and apply* a pattern before coding, use [transpose-design-pattern](./transpose-design-pattern.md).
+- **Trigger boundary.** Reach for this when reviewing code, a diff, or a PR for pattern soundness / anti-patterns, when a `transpose-design-patterns` task hands its code over, or when challenging a not-yet-built design. To *choose and apply* a pattern before coding, use [transpose-design-patterns](./transpose-design-patterns.md).
 
 ## Prerequisites
 
@@ -37,4 +37,4 @@ For every pattern-shaped site the reviewer writes one row - forces, expected pat
 
 ## Companion
 
-Judges against the catalog and guides owned by [transpose-design-pattern](./transpose-design-pattern.md); detection signatures live in `references/smell-signatures.md`.
+Judges against the catalog and guides owned by [transpose-design-patterns](./transpose-design-patterns.md); detection signatures live in `references/smell-signatures.md`.
