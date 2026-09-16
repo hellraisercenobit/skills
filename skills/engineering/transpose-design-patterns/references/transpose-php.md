@@ -351,10 +351,11 @@ needs:
 - **A memo that must exist** (a per-run cache) - the service implements **`ResetInterface`**; the
   framework autoconfigures it on `kernel.reset` and worker runtimes clear it between requests / messages.
 - **Inside one process that walks several tenants** (a cron, a batch command, an export that loops over
-  accounts) - `ResetInterface` alone does **not** reset a service between iterations of your own loop.
-  The container reset lifecycle is separate from that loop. The lifetime that matters is the **unit of work**, and here the unit of
-  work is the iteration, not the request. Give the cache to the caller - a small object built per unit and
-  passed in - so its lifetime is visible at the call site instead of being a property nobody scopes.
+  tenants) - `ResetInterface` alone does **not** reset a service between iterations of your own loop.
+  The container reset lifecycle is separate from that loop. The lifetime that matters is the
+  **unit of work**, and here that is the iteration, not the request. Give the cache to the caller - a
+  small object built per unit and passed in - so its lifetime is visible at the call site instead of
+  being a property nobody scopes.
   An existing explicit reset at every iteration boundary can also satisfy this lifetime. Verify error
   paths and two tenants in one process. See Symfony's [service reset lifecycle](https://symfony.com/doc/6.4/messenger.html#stateless-worker).
 
@@ -438,8 +439,8 @@ handlers.
 
 ### Reads under an ambient scope
 
-An ORM that scopes reads to the current tenant, account or user - a legacy `_restrictToAccount`
-flag, a Doctrine filter, a global scope - can hide an existing row. A fallback can conceal that the
+An ORM that scopes reads to the current tenant or user - a Doctrine filter, a global scope, a
+restriction flag on a legacy base model - can hide an existing row. A fallback can conceal that the
 lookup ran under the wrong scope. Verify the actual query and identity-map behavior.
 
 Two obligations, and the second is the one reviews catch:
