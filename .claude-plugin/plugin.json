@@ -1,7 +1,7 @@
 {
   "name": "hellraisercenobit-skills",
-  "version": "0.4.2",
-  "description": "Personal agent skills by Guillaume Mongin \u2014 versioned and composable.",
+  "version": "0.5.0",
+  "description": "Personal agent skills by Guillaume Mongin — versioned and composable.",
   "author": {
     "name": "Guillaume Mongin",
     "url": "https://github.com/hellraisercenobit"

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- [#13](https://github.com/hellraisercenobit/skills/pull/13) [`84dbde6`](https://github.com/hellraisercenobit/skills/commit/84dbde6b811b6a2ff599ec41da0869b8e91c817b) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add transpose-testing-patterns and review-testing-patterns as the third suite dimension, with a runner-neutral testing catalog, a Vitest adapter, TypeScript and TDD evidence guidance, an independent reviewer and executable qualification fixtures. Extend installation, strategy and delivery documentation for the six companions.
+
 ## 0.4.2
 
 ### Patch Changes
