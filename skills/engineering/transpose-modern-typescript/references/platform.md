@@ -125,3 +125,23 @@ encoding and trust boundaries are explicit; no broad safety claim from API choic
 **Sources:** [Web Crypto](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
 [textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent).
 Check algorithm and secure-context support, not only the crypto global.
+## MT-25 - A wrapper around a platform capability needs a reason beyond its name
+
+**Intent/use:** a helper that forwards to a platform or language capability, adding no
+behavior, gives the reader one more indirection and one more thing to keep in step. Admit such
+a wrapper only for a reason that outlives the rename: domain semantics the capability does not
+carry, a compatibility policy the project owns in one place, instrumentation, lifecycle control
+the caller must not manage, or a stable project boundary a future migration crosses once.
+**Alternatives/trade-offs:** call the capability directly; a named domain function that
+computes something is not a wrapper; a thin adapter at a real boundary is one of the reasons
+above and records which one. When the reason is compatibility or instrumentation, the record
+names what the wrapper decides that its callers must not.
+**Avoid:** a function whose body is a single forwarding call with the arguments unchanged and
+no reason on record, a wrapper whose only argument is discoverability or house style, a
+project alias for a global, and a wrapper introduced together with the transposition that
+replaced the code it was meant to hide.
+**Invariants:** the record names the admitted reason for every retained or added wrapper, and
+what it would take to remove it; a wrapper with no admitted reason is removed by the change,
+not documented.
+**Sources:** [Web APIs](https://developer.mozilla.org/en-US/docs/Web/API),
+[Node API](https://nodejs.org/api/), the project's own compatibility record.

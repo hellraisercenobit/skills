@@ -13,15 +13,24 @@ refactor. A direct test, an existing factory or no new abstraction can be the be
 
 ## Resolve first
 
-Read [contract 1.0.0](references/suite-contract.md), [catalog 1.0.0](references/catalog.md)
+Read [contract 1.1.0](references/suite-contract.md), [catalog 1.0.0](references/catalog.md)
 and [record guidance](references/record.md). Resolve /review-testing-patterns and the
-[schema 1.0.0](references/decision-record.schema.json). For Vitest, read the
-[adapter 1.0.0](references/transpose-vitest.md) and check the installed capabilities.
+[schema 2.0.0](references/decision-record.schema.json). For Vitest, read the
+[adapter 1.0.0](references/transpose-vitest.md) and check the installed capabilities. The
+shared shapes sit beside the contract: [declaration](references/declaration.schema.json),
+[decision envelope](references/decision-envelope.schema.json),
+[evidence append](references/evidence-append.schema.json),
+[journal event](references/journal-event.schema.json) and [dispute](references/dispute.schema.json).
 Missing/conflicting required references leave execution incomplete. Other runners permit
 catalog analysis only; do not claim qualified transposition or silently migrate them.
 
 ## Procedure
 
+0. **Declare.** Pipe a [declaration](references/declaration.schema.json) to
+   `ai-engineering-gate declare --dimension testing-patterns --stdin` before any record: applicability
+   and its reason, the requester's own wording, the factual constraints, the base and the protected
+   paths. `non-applicable` with its reason is a complete answer, and the reviewer's brief is rendered
+   from this document alone.
 1. **Frame.** Establish raw need, scope/base, public contracts, actual runner/compiler,
    configuration and runtimes. Include relevant tests, production, helpers and new files.
    Select TDD, characterization, existing coverage or audit mode honestly.
@@ -32,25 +41,36 @@ catalog analysis only; do not claim qualified transposition or silently migrate 
    [TDD](references/tdd.md) and [TypeScript](references/typescript.md) where applicable.
    Testing owns observation; use /transpose-design-patterns for a real architectural
    response and /transpose-modern-typescript for substantial language/platform choices.
-3. **Record before writing.** Validate a record outside the repository before the first
-   affected test, helper, configuration or production write. Preserve revisions. `none`
-   means no specialized pattern helps; `retain` is an independent action. Group coherent
-   scenarios without hiding their identity. Gate support for `testing-patterns` must be
-   inspected; never submit its record as `design`.
-4. **Execute vertical slices.** Follow the TDD guide when claiming TDD. Observe the intended
-   failure, freeze the oracle through GREEN and name pressure before refactoring. Keep
-   tool output and reinspectable states in a separate append-only journal. Run runtime,
-   compilation and relevant consumer-type checks separately. Match required scenarios
-   to tests actually run; disclose skips, expected failures and retries.
-5. **Dispatch fresh review.** Use `testing-pattern-reviewer` or a fresh general subagent
-   without inherited conversation. Send the shared neutral brief: raw request, exact
-   scope/base, factual constraints, record/evidence paths. No builder rationale, expected
-   verdict or harness oracle. It runs /review-testing-patterns itself in read-only mode.
-   Without an independent context, report incomplete execution.
-6. **Close the loop.** The builder fixes findings, revises decisions before changed
-   strategy, and dispatches a new fresh reviewer. Preserve prior reports. Complete only
-   with current SOUND for every applicable dimension, passing checks and no dispute.
-   Covered edits or changed records/references expire affected verdicts.
+3. **Record before writing.** File it with
+   `ai-engineering-gate record --dimension testing-patterns --stdin` before the first affected test,
+   helper, configuration or production write. Every site whose action applies a test change names its
+   `oracle` - kind, independence and the statement itself - and the `plausibleDefect` the test
+   discriminates; a `retain` action is the only exemption. Name in `plans` what the record will produce,
+   with the `test` and `production` roles, which is what makes a replay possible later. `none` means no
+   specialized pattern helps; `retain` is an independent action. Group coherent scenarios without hiding
+   their identity.
+4. **Execute vertical slices.** Follow the TDD guide when claiming TDD. Observe the intended failure,
+   freeze the oracle through GREEN and name pressure before refactoring. File each cycle as a
+   [journal event](references/journal-event.schema.json) through
+   `ai-engineering-gate evidence append --dimension testing-patterns --stdin`: the phase, the command,
+   the exit code, the raw output and, for a red, its cause and its `failureClass`. The gate stamps every
+   append with the content hashes of the planned test and production artifacts, which is what turns a
+   claimed red into an inspectable one. Run runtime, compilation and relevant consumer-type checks
+   separately. Match required scenarios to tests actually run; disclose skips, expected failures and
+   retries.
+5. **Dispatch fresh review.** Run `ai-engineering-gate status --full` for the dispatch plan and the
+   neutral brief. Use `testing-pattern-reviewer` or a fresh general subagent without inherited
+   conversation. Send the brief as printed - raw request, exact scope and base, factual constraints,
+   record and evidence paths - and no builder rationale, expected verdict or harness oracle. It runs
+   /review-testing-patterns itself in read-only mode. Without an independent context, report incomplete
+   execution.
+6. **Close the loop.** Corrections are batched across dimensions, then all applicable reviews reopen
+   together on one state. A missing red is an evidence finding whose remedy is a replay the gate runs
+   itself - `ai-engineering-gate replay --dimension testing-patterns --record <ref> --scenario <name>
+   --command <command>` - never a transcript you supply. A finding you contest goes to
+   `ai-engineering-gate dispute --dimension testing-patterns --stdin` with counter-evidence, and only
+   the user arbitrates it. Prior reports are preserved. Complete when `ai-engineering-gate can-stop`
+   exits 0; covered edits or changed records and references expire affected verdicts.
 
 ## Deliverable
 

@@ -499,7 +499,7 @@ Use independently specified expected values for derived results; copying the pro
 the assertion can reproduce the same defect. A direct field-mapping assertion against an input object
 can be valid, but fixed literal fixtures make fallback and tenant distinctions easier to inspect. Test a
 pure function without booting the kernel or opening a transaction; keep integration tests for real
-container and persistence seams. See `/tdd`; check that a targeted mutation breaks the assertion.
+container and persistence seams. Test strategy and the TDD loop belong to `transpose-testing-patterns`; check that a targeted mutation breaks the assertion.
 
 ### Beyond PHP 8.2 (when the project floor moves)
 

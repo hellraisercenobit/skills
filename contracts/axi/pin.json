@@ -1,0 +1,36 @@
+{
+  "upstream": "https://github.com/kunchenguid/axi",
+  "revision": "b7dbc1324ce637f08835ce5c45783a24287511f2",
+  "path": ".agents/skills/axi/SKILL.md",
+  "text": "contracts/axi/axi-standard.md",
+  "textHash": "sha256:2f5a6b3dd6f84bb3ee56d814ac6dde00c3c2b54fd0b0554129c2680a655948c4",
+  "qualifiedOn": "2026-09-18",
+  "complianceLevel": "partial, self-assessed against the pinned text",
+  "assessment": "This repository asserts the surface properties below against the pinned text by running the gate. It is self-assessment, not an upstream certification, and it carries no AXI runtime dependency. A new upstream revision requires re-qualification: the pin, the text and this assessment move together, or the claim does not move at all.",
+  "adopted": [
+    "2 - minimal default schemas: the compact status is one row per dimension with its state, not its evidence",
+    "3 - content truncation: reasons, missing evidence and the dispatch plan sit behind `--full`",
+    "4 - pre-computed aggregates: the compact status carries the round, the completion codes and the next action, so the caller needs no follow-up to know where the task stands",
+    "5 - definitive empty states: a repository with no marker prints nothing and allows, and a dimension with nothing to do says so",
+    "6 - structured errors and exit codes: 0 allowed, 2 denied by policy, 1 gate failure; a refusal carries its code, its reason and its cause; unknown flags fail loud; no command prompts",
+    "7 - ambient context: the plugin's SessionStart hook injects the compact status, and the installer covers the routes a plugin does not",
+    "8 - content first: no argument prints the live state of the task, never the manual",
+    "9 - contextual disclosure: every answer ends on the next command to run, with placeholders rather than guessed values",
+    "10 - consistent help: `--help` lists every command, flag and exit code in one screen"
+  ],
+  "notAdopted": [
+    "1 - TOON output: the gate's machine surface is JSON validated against `contracts/schemas/gate-output.schema.json`, because the contract pins that surface for reviewers, harness hooks and CI alike, and a second serialization would be a second thing to keep true. The compact surface stays a table plus a `next` line, which is what the suite contract describes."
+  ],
+  "surfaceAssertions": [
+    "no-argument output is live state",
+    "compact status names one state per dimension",
+    "compact status names the next action",
+    "reasons are disclosed only behind --full",
+    "json output is versioned and schema-valid",
+    "an unknown flag fails loud on stderr",
+    "a refusal is structured on stdout",
+    "exit codes are 0, 2 and 1 as documented",
+    "help lists every command and exit code",
+    "an unmarked repository is silent and allows"
+  ]
+}

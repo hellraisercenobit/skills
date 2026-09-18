@@ -72,3 +72,26 @@ runtime mutation/freeze claims verified separately; public types remain understa
 **Sources/support:** [object types](https://www.typescriptlang.org/docs/handbook/2/objects.html),
 [template literals](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html),
 [utility types](https://www.typescriptlang.org/docs/handbook/utility-types.html).
+
+## MT-24 - Keep the type information the change already carries
+
+**Intent/use:** a transposition that keeps a call's runtime behavior can still lose what the
+compiler knew about it. Compare the type before and after: a literal or template-literal type
+widened to `string`, a discriminated union collapsed to its base object, a tuple flattened to
+an array, a `readonly` dropped, a generic parameter erased, an inferred key set replaced by
+`string`, or an assertion standing in for a narrowing the compiler could have done.
+**Alternatives/trade-offs:** losing type information can be the right call - a simpler public
+type, a boundary that must accept unvalidated input, a native API whose declarations are
+looser than the helper it replaces. Then it is a named trade-off with the guarantee it costs,
+not an unmentioned side effect. `satisfies` often keeps the narrow type while checking the
+wide contract; an overload or a generic can carry a relation a widened signature drops.
+**Avoid:** an `as` that restores by assertion what the change widened, a signature whose
+callers now need their own casts, exhaustiveness that stops being checked because the
+discriminant is gone, and a record that claims the contract is unchanged when a consumer's
+compile-time guarantee is gone.
+**Invariants:** the record names each type-information change and the guarantee it trades;
+consumer-facing narrowing that survives is verified by the compiler, on consumer code where
+one exists, not asserted in prose.
+**Sources/support:** [satisfies](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator),
+[narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html),
+[type assertions](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-assertions).

@@ -15,7 +15,7 @@ it; it references **no project files**, so it works in any repository.
 
 ## Bundled sources (this skill owns them - read, do not paraphrase from memory)
 
-- **Shared procedure:** [suite contract 1.0.0](references/suite-contract.md) - read once per execution for C01-C12, neutral context, composition, state expiry and portable/gate limits. Domain decisions and the existing record schema below remain unchanged.
+- **Shared procedure:** [suite contract 1.1.0](references/suite-contract.md) - read once per execution for C01-C12, the declaration, the three fingerprints, neutral context, composition, state expiry and portable/gate limits. The shared schemas it refers to sit beside it: [declaration](references/declaration.schema.json), [decision envelope](references/decision-envelope.schema.json), [evidence append](references/evidence-append.schema.json) and [dispute](references/dispute.schema.json).
 - **Catalog (framework-agnostic):** [`references/pattern-catalog.md`](references/pattern-catalog.md) -
   the _Structural forces_ table (force → decision) with the _Extension-cost test_, one entry per pattern
   (_Use when / Best practices / Avoid / Invariants_), the `None` entry.
@@ -43,10 +43,17 @@ it; it references **no project files**, so it works in any repository.
 
 Run **every** step before writing or changing implementation code. Do not jump straight to coding.
 
+0. **Declare the dimension.** Before any record, say whether design patterns apply to this change and on
+   which paths: pipe a [declaration](references/declaration.schema.json) to
+   `ai-engineering-gate declare --dimension design-patterns --stdin`. It carries the requester's own wording,
+   the factual constraints, the comparison base and the protected scope - never your rationale, because the
+   reviewer's brief is rendered from it. Declaring `non-applicable` with the reason is a complete answer:
+   skipping the dimension is a recorded decision, not silence. _Done when:_ the declaration is accepted.
 1. **Detect the structural forces.** Walk the eight forces of the catalog's _Structural forces_ table
-   against the change. Name each force present with the site that carries it: a file, the planned symbol,
-   or the requirement that states it (a planned third variant lives in the ticket, not in the code).
-   _Done when:_ every force has a yes with its site or a no with its reason - all eight go in the record.
+   against the change. Answer each one with a **value from its set** plus the site that carries it: a file,
+   the planned symbol, or the requirement that states it (a planned third variant lives in the ticket, not
+   in the code). _Done when:_ all eight forces have a value and a site - a value, never prose, because that
+   is what the reviewer compares.
 2. **Run the extension-cost test.** For each variation axis (the discriminator that selects a variant:
    a type tag, a key, a config value), the catalog's two questions in order: _is the set closed by
    declaration, and does it stay closed?_ - a closed set is a legitimate `none` even though the branch is
@@ -67,19 +74,23 @@ Run **every** step before writing or changing implementation code. Do not jump s
    `transposition: null`, and the catalog's _Best practices_ are the wiring. For `none` there is no guide
    section either: the catalog's `None` _Best practices_ are the wiring, and `transposition` is `null`.
 5. **Record the decision.** Write one design decision record per pattern-shaped site in the change
-   (shape below, schema in `references/`), **before the first implementation write**. A force that is
-   present but absorbed by the chosen pattern is recorded as `yes - absorbed by <pattern>: <site>`. Put
-   the record outside the repository - your scratchpad when the harness gives one, else `mktemp` - and
-   keep its path: the reviewer opens it after its blind pass. When `ai-engineering-gate` is on the PATH,
-   also pipe the record in: `ai-engineering-gate record --dimension design --stdin`. The gate checks shape
-   and catalog membership against the bundled schema, never semantics; a refused record is fixed, not
-   bypassed. Without the gate, check the record against the schema yourself (ajv, or a hand check of
-   every constraint): the reviewer compares against it as written.
-6. **Implement per the transposition.** In your summary state the chain _forces → pattern (or `none`) →
-   framework section followed_, **and for each pattern name the concrete artifact** (file + symbol) that
-   realizes it. Verify the artifact is **distinct from unrelated layers** - e.g. a Command/use-case is its
-   own injectable or exported function, **not** a method merged into a store/facade - and that every
-   invariant in the record is observable in the code.
+   (shape below, schema in `references/`), **before the first implementation write**, and file it:
+   `ai-engineering-gate record --dimension design-patterns --stdin`. The gate stores it outside the
+   repository, hashes every path it `cites` and refuses a citation that does not exist, so a claim about
+   the current code cannot outlive the code. A force absorbed by the chosen pattern keeps its own value and
+   says so in its `site`. What the record commits to produce goes in `plans`; the reviewer is never
+   dispatched to notice a file that was never written. The gate checks shape, catalog membership and
+   referential integrity, never semantics; a refused record is fixed, not bypassed. Without the gate, check
+   the record against the schema yourself (ajv, or a hand check of every constraint) and keep its path: the
+   reviewer compares against it as written.
+6. **Implement per the transposition.** The first write inside the declared scope is allowed only once the
+   record is on file - `ai-engineering-gate can-write --path <path>` answers it, and a PreToolUse hook asks
+   for you. In your summary state the chain _forces → pattern (or `none`) → framework section followed_,
+   **and for each pattern name the concrete artifact** (file + symbol) that realizes it. Verify the artifact
+   is **distinct from unrelated layers** - e.g. a Command/use-case is its own injectable or exported
+   function, **not** a method merged into a store/facade - and that every invariant in the record is
+   observable in the code. File each planned artifact through
+   `ai-engineering-gate evidence append --dimension design-patterns --stdin` as you produce it.
 
 ## Framework transposition - step 4
 
@@ -96,17 +107,35 @@ as stated, never from this example.
 
 ```json
 {
-  "dimension": "design",
+  "dimension": "design-patterns",
+  "schemaVersion": "1.0.0",
+  "catalogVersion": "1.0.0",
+  "contractVersions": ["1.0.0", "1.1.0"],
   "need": "quote shipping rates from a second carrier; the sales team wants to add carriers by market",
+  "scope": ["src/shipping/"],
+  "base": "origin/main",
+  "revision": { "number": 1, "previous": null, "reason": "first decision for this change" },
+  "cites": [
+    {
+      "path": "src/shipping/rate.service.ts",
+      "checkedAt": "2026-09-18",
+      "claim": "RateService.quote holds one body per carrier and both callers repeat the carrier branch",
+      "covers": ["variability", "extension"]
+    }
+  ],
+  "plans": [
+    { "path": "src/shipping/rate.strategy.ts", "role": "implementation" },
+    { "path": "src/shipping/rate.strategies.ts", "role": "implementation" }
+  ],
   "forces": [
-    "variability: yes - src/shipping/rate.service.ts RateService.quote holds one body per carrier",
-    "extension: yes - the ticket names a second carrier now and carriers per market later",
-    "creation policy: no - each carrier client is a plain constructor call with no runtime decision",
-    "boundary mismatch: yes - absorbed by strategy: the carrier's weight unit stays inside its strategy",
-    "reusable action: no - quote has no caller outside RateService",
-    "composition: no - one behavior per carrier, nothing is combined",
-    "shared lifecycle / state: no - the service and the clients hold configuration only",
-    "cross-cutting behavior: no - no logging, retry or metrics requested"
+    { "force": "variability", "value": "interchangeable-open", "site": "RateService.quote holds one body per carrier" },
+    { "force": "extension", "value": "many-sites", "site": "the ticket names a second carrier now and carriers per market later" },
+    { "force": "creation-policy", "value": "absent", "site": "each carrier client is a plain constructor call with no runtime decision" },
+    { "force": "boundary-mismatch", "value": "shape-and-semantics-differ", "site": "absorbed by strategy: each carrier's weight unit stays inside its own strategy" },
+    { "force": "reusable-action", "value": "absent", "site": "quote has no caller outside RateService" },
+    { "force": "composition", "value": "absent", "site": "one behavior per carrier, nothing is combined" },
+    { "force": "shared-lifecycle", "value": "per-consumer", "site": "the service and the clients hold configuration only" },
+    { "force": "cross-cutting-behavior", "value": "absent", "site": "no logging, retry or metrics requested" }
   ],
   "alternatives": [
     "none, the current if/else on the carrier code - the set is not closed by declaration and a second market reopens it",
@@ -135,6 +164,11 @@ as stated, never from this example.
 }
 ```
 
+- Each `forces` entry answers with a value from that force's set in the catalog's _Structural forces_ table,
+  plus the site that carries it. All eight are present; every force at its `absent` value is a legitimate
+  `none`.
+- `cites` are the artifacts and sources the claims rest on, each with the date you checked it and what it
+  `covers` - a force name, a symbol, a finding. `plans` are the artifacts this record commits to produce.
 - `decision.pattern` is one of `strategy`, `registry`, `factory`, `command`, `adapter`, `composition`,
   `singleton`, `none`. A facade over a store records as `singleton`; UI state (signals) is framework
   wiring, not a record.
@@ -150,35 +184,34 @@ as stated, never from this example.
 
 After implementation and the project's deterministic checks (tests, lint, typecheck):
 
-1. **Dispatch a fresh reviewer.** Use the `design-pattern-reviewer` agent when the harness defines one;
-   otherwise a fresh general subagent. Send the brief below and nothing else: **not** the pattern name, not
-   your rationale, not your force analysis, not the record's content. The brief carries the record's path;
-   the reviewer opens it only after its blind matrix is frozen. This is a protocol rule, not a lock - the
-   reviewer's transcript shows when the file is opened.
-2. **The reviewer runs `review-design-patterns`:** expected design frozen first, then the record, then the
-   code, compared three ways.
-3. **Findings: fix, then dispatch a fresh review.** A new dispatch, not a continued conversation with the
-   same reviewer.
-4. **A finding you contest is neither fixed nor dismissed.** Hand both positions to the user; the decision
-   is theirs.
-5. **Complete only on `SOUND`** for the code as it stands. Any later change to code in scope voids the
-   verdict.
+1. **Ask what is left.** `ai-engineering-gate status --full` names the next action and, once every applicable
+   dimension has its records and its planned evidence, prints the dispatch plan: which reviewer to launch and
+   the neutral brief to send it, rendered from the declaration alone.
+2. **Dispatch every reviewer in the plan in one turn.** Use the `design-pattern-reviewer` agent when the
+   harness defines one; otherwise a fresh general subagent. Send the brief the plan printed and nothing else:
+   **not** the pattern name, not your rationale, not your force analysis, not the record's content. The brief
+   carries the record's path; the reviewer opens it only after its blind matrix is frozen. The gate refuses a
+   review to your own identity, so this is enforced, not only asked.
+3. **The reviewer runs `review-design-patterns`:** expected design frozen first, then the record, then the
+   code, compared three ways. It opens its own window and files its own envelope.
+4. **Findings: correct or dispute, then dispatch a fresh review.** Corrections are batched - address every
+   pending finding of every dimension, then reopen all applicable reviews together on one state. An evidence
+   finding is closed by its remedy; a judgment finding by a record revision that `addresses` it. A new
+   dispatch, never a continued conversation with the same reviewer.
+5. **A finding you contest is neither fixed nor dismissed.** File
+   `ai-engineering-gate dispute --dimension design-patterns --stdin` with a pointer to counter-evidence, then
+   hand it to the user: only a command the user types can write the arbitration.
+6. **Complete only when `ai-engineering-gate can-stop` exits 0.** Any later change to code in scope moves the
+   source fingerprint and voids the verdict, which the status reports as `stale-source`.
 
-### Reviewer brief (send verbatim, fill the brackets only)
-
-```
-You are the fresh design-pattern reviewer for this change. Run the `review-design-patterns` skill yourself; do not dispatch again.
-Scope: <changed files or directories> - diff against <base ref, e.g. the merge-base commit>, plus uncommitted changes. Establish it with `git diff`, never with `git log`.
-Framework: <angular | react | vue | vanilla | quarkus | php>, or "<stack> - no guide, catalog only".
-Task context: <the requirement as the requester stated it, in one sentence - no pattern name, no force analysis>.
-Design decision record(s): <absolute path(s)>. Check the path exists; open the content only when the skill's step 4 says to, after your blind matrix is frozen.
-Do not modify any file. Report in the skill's format and end on one verdict.
-```
+Without the gate, dispatch the reviewer yourself with a brief carrying exactly what the plan would have
+carried: the skill to run, the read-only rule, the scope and base, the requester's wording, the factual
+constraints, the record paths and the undeclared changes. Nothing of your rationale.
 
 ## Enforcement rules
 
-- Steps 1-5 are **non-negotiable** before implementation code in pattern-shaped work. A record - pattern or
-  `none` - is the proof the evaluation happened.
+- Steps 0-5 are **non-negotiable** before implementation code in pattern-shaped work. A declaration is the
+  proof the dimension was considered, and a record - pattern or `none` - the proof the evaluation happened.
 - Never invent a pattern absent from the catalog. Never use `switch` / `constructor.name` / magic strings
   **as the extension mechanism** where the catalog marks them _Avoid_; the exhaustive branch over a closed
   set that the catalog's `None` entry prescribes is not that.

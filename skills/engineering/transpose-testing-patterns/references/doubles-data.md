@@ -4,6 +4,15 @@ Applies TP-03/04/08/09/10/11. First ask whether the real collaborator is cheap,
 deterministic and part of the behavior. If so, a sociable test often preserves more meaning.
 Isolate a concrete boundary or diagnostic problem, not every object in a constructor.
 
+**The principle: the least synthetic collaborator that keeps the test deterministic, fast
+enough and focused on the behavior.** Least synthetic means closest to what runs in
+production - the real object, then a fake with the real contract, then a spy, then a mock with
+expectations. It is a direction, not a ranking to apply mechanically: the three conditions
+decide, and a real collaborator that makes the test slow, flaky or about something else loses
+to a double. Automatic mocking of every constructor argument answers none of the three
+conditions and replaces the forces with a habit. Nothing here overrides the axes: the level, the
+seam, the double and the data are separate decisions, and a test pyramid is not one of them.
+
 | Need | Candidate | Cost or alternative |
 | --- | --- | --- |
 | Controlled input | Stub function or typed literal | Never stub the policy being claimed as tested |

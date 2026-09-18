@@ -16,8 +16,8 @@ Renamed from `transpose-design-pattern`. Existing installations must follow the 
 
 ## What it does
 
-This pair follows the [shared suite contract](../skill-suite.md). The design catalog,
-framework decisions and existing record schema remain domain-specific.
+This pair follows the [shared suite contract](../skill-suite.md). The design catalog and
+framework decisions stay domain-specific; the record schema is versioned with the pair.
 
 Decides the design pattern for a code change - or an explicit `none` - from a built-in framework-agnostic catalog, transposes it to the target framework (Angular, React, Vue, Vanilla TS, Quarkus, PHP/Symfony), and records the decision **before** writing implementation code. After implementation it hands the code to a fresh reviewer that re-derives the design blind. The defining constraint: the decision is the deliverable, not the pattern. A `none` carries the same burden of proof as a Strategy, and the task is not done until a fresh review says `SOUND`.
 
@@ -33,7 +33,11 @@ legacy service substitution, docblock placement and meaningful test boundaries. 
 also covers derived-value ownership and callers of APIs that replace a complete set. The reviewer
 uses matching signatures and considers legitimate exceptions before raising a finding.
 
-The procedure ends, before the first write, on one JSON document: the need, the structural forces found (with the site that carries each), the alternatives considered, the pattern or `none` with its reason, the framework transposition (or `null` when no guide covers the stack), the planned artifacts, and the invariants the code must make observable. It lives outside the repository. When the harness provides an `ai-engineering-gate` command, the record is piped to it; otherwise it sits in the summary and in a file the reviewer opens after its blind pass.
+The procedure ends, before the first write, on a declaration piped to
+`ai-engineering-gate declare --dimension design-patterns --stdin`, then a JSON decision record
+piped to `record`. The record carries the need, the eight structural forces answered with
+enumerated values, the alternatives, the pattern or `none`, the citations and the planned
+artifacts. The gate stores it outside the repository.
 
 ## The fresh reviewer
 

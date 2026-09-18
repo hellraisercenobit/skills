@@ -1,15 +1,16 @@
 This is the maintainer guide for composing and extending the transpose/review suite.
-Start with the [README](../README.md#how-the-suite-works) for the strategy, workflow diagram,
-value beyond project rules and step-by-step setup. [Contract 1.0.0](../contracts/suite-contract.md)
-is the authoritative execution protocol; this guide explains how to maintain pairs that follow it.
+Start with the [README](../README.md#how-the-suite-works) for the strategy, [CLI workflow](../README.md#the-workflow-and-the-cli),
+[environments](../README.md#how-it-fits-the-environment) (local hooks, no-mistakes, direct PR + CI) and setup.
+[Contract 1.1.0](../contracts/suite-contract.md)
+is the authoritative execution protocol; this guide explains how to maintain pairs that follow it. Adding a dimension never adds a hook: SessionStart, PreToolUse and Stop stay generic, and optional PostToolUse / SubagentStop never decide validity.
 
 ## Members and responsibilities
 
 | Pair | Domain | Protocol status |
 | --- | --- | --- |
-| [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Existing precedent, linked to the common contract; existing record schema preserved |
-| [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented companion protocol; see [smoke validation](../tests/README.md) for evidence and limits |
-| [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Vitest adapter; [qualification](../tests/testing-patterns/README.md) |
+| [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Implemented; schema 1.0.0 with enumerated forces |
+| [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented; catalog 1.1.0, schema 2.0.0 |
+| [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Implemented; Vitest adapter, schema 2.0.0 |
 
 The [member manifest](../contracts/members.json) is the registry. `nuke-review`,
 `transpose-comments` and `review-comments` are outside it; installing them alongside the
@@ -47,20 +48,22 @@ shared file invalidates all covering verdicts, including a prose-only edit. No v
 averaging: every applicable dimension needs current SOUND and successful checks.
 
 An external execution index can list scopes, hashes, reference versions, record paths,
-checks and responses. Do not add fields to the existing closed design schema. No generic
+checks and responses. The design schema is versioned like the other two. No generic
 orchestration engine is required. Repeating conflicts between domain requirements go to
 the user after identifying their incompatible invariants.
 
 ## Gate and portable mode
 
-A compatible gate validates record shape/catalog membership and binds a reviewer attestation
-to a state it fingerprints itself. It does not judge semantics. Inspect its real CLI first:
-support for `modern-typescript` or `testing-patterns` has not been assumed or implemented in an external gate.
+`ai-engineering-gate` is the suite's own gate. It validates record shape against the
+envelope and the dimension schema, stores evidence, computes the three fingerprints and
+binds a reviewer attestation to the state of the reviewer's window. It does not judge
+semantics. A new dimension is a registry member plus that qualification; the gate does
+not hard-code `modern-typescript` or `testing-patterns`.
 
-Without a required gate, validated records, checks and independent state-bound reports allow
-portable completion. They provide no automatic enforcement. If the project requires gate
-attestation and the dimension is unsupported or the gate absent, that workflow remains
-incomplete. Never substitute the design dimension or silently bypass a rejection.
+A repository without the marker is portable mode: validated records, checks and independent
+state-bound reports, with no automatic enforcement. Opt in with `.ai-engineering-suite.json`.
+Load only the references the applicable axes need; a local TS idiom does not pull the
+design catalog.
 
 ## Maintain and extend
 
@@ -77,15 +80,16 @@ and reference resolution. Never maintain these copies by hand.
    irrelevant fields from another dimension. Pin versions/hashes for each execution.
 4. Implement C01-C12 using the bundled contract, neutral brief and read-only review wrapper.
    Declare compatible versions. Missing required guides block; explicitly optional ones do not.
-5. Qualify portable behavior and real gate integration separately.
+5. Qualify both subsets on [the smoke page](../tests/README.md): D through the gate seam in CI, J through the documented live fixtures. Change the manifest status to `qualified` in the same change.
 6. Register members, metadata, plugin/index/docs, agent fallback and a changeset; regenerate
-   contract bundles and verify installed companions resolve their references.
+   contract bundles and verify installed companions resolve their references. The gate discovers
+   members from the registry, never from a hardcoded list.
 7. Run small complete fixtures, including retain, a detected defect followed by correction
    and fresh review, missing companion and overlap/invalidation with another dimension.
 8. Describe observed evidence and limits before claiming conformity. Version incompatible
    contract changes explicitly and document each member's required migration.
 
-Read [the glossary](../CONTEXT.md) for dimension, record, frozen matrix, verdict and attestation.
+Read [the glossary](../CONTEXT.md) for marker, declaration, fingerprint, envelope, gate, verdict and attestation.
 
 ## Add a testing runner adapter
 

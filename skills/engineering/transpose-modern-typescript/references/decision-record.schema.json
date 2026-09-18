@@ -1,18 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-modern-typescript/references/decision-record.schema.json",
-  "title": "Modern TypeScript decision record 1.0.0",
-  "description": "Shape and catalog membership only. Validation does not establish compatibility, correctness or decision timing.",
+  "title": "Modern TypeScript decision record 2.0.0",
+  "description": "Shape and catalog membership only, on the suite's common decision envelope. Validation does not establish compatibility, correctness or decision timing.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "dimension",
     "schemaVersion",
     "catalogVersion",
-    "contractVersion",
+    "contractVersions",
     "need",
     "scope",
+    "base",
     "revision",
+    "cites",
+    "plans",
     "inventory",
     "profile",
     "sites"
@@ -22,13 +25,21 @@
       "const": "modern-typescript"
     },
     "schemaVersion": {
-      "const": "1.0.0"
+      "const": "2.0.0"
     },
     "catalogVersion": {
-      "const": "1.0.0"
+      "const": "1.1.0"
     },
-    "contractVersion": {
-      "const": "1.0.0"
+    "contractVersions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "1.0.0",
+          "1.1.0"
+        ]
+      }
     },
     "need": {
       "type": "string",
@@ -40,6 +51,42 @@
       "items": {
         "type": "string",
         "minLength": 1
+      }
+    },
+    "base": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cites": {
+      "description": "Artifacts and evidence sources that exist when the record is validated. A dangling path refuses the record.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      }
+    },
+    "plans": {
+      "description": "Artifacts this record commits to produce, with this dimension's roles.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "role"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "implementation",
+              "check-output",
+              "consumer-types"
+            ]
+          }
+        }
       }
     },
     "revision": {
@@ -65,6 +112,26 @@
         "reason": {
           "type": "string",
           "minLength": 1
+        },
+        "changed": {
+          "description": "The cited paths this revision changed. Enforcement verifies their hashes differ from the previous revision's snapshot.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "addresses": {
+          "description": "Finding identifiers this revision closes.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "allOf": [
@@ -225,6 +292,7 @@
           "ruleIds",
           "alternatives",
           "decision",
+          "consumption",
           "benefits",
           "artifacts",
           "invariants"
@@ -372,6 +440,12 @@
               }
             ]
           },
+          "semanticDelta": {
+            "$ref": "#/$defs/semanticDelta"
+          },
+          "consumption": {
+            "$ref": "#/$defs/consumption"
+          },
           "benefits": {
             "type": "array",
             "minItems": 1,
@@ -435,11 +509,84 @@
               "minLength": 1
             }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "decision": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "const": "apply"
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                }
+              },
+              "required": [
+                "decision"
+              ]
+            },
+            "then": {
+              "required": [
+                "semanticDelta"
+              ],
+              "properties": {
+                "semanticDelta": {
+                  "$ref": "#/$defs/semanticDelta"
+                }
+              }
+            }
+          }
+        ]
       }
     }
   },
   "$defs": {
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "checkedAt",
+        "claim",
+        "covers"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "covers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "searched": {
+          "description": "Paths consulted and not found, for a claim of unknown about a checkable fact.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "inventoryAxis": {
       "type": "object",
       "additionalProperties": false,
@@ -511,7 +658,172 @@
         "MT-20",
         "MT-21",
         "MT-22",
-        "MT-23"
+        "MT-23",
+        "MT-24",
+        "MT-25"
+      ]
+    },
+    "semanticDelta": {
+      "description": "Required when the decision's action is `apply`: what observably survives the change and what deliberately does not. MT-24 covers the static half of the same question.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected",
+        "preserved"
+      ],
+      "properties": {
+        "expected": {
+          "enum": [
+            "none",
+            "intended"
+          ]
+        },
+        "preserved": {
+          "description": "The observable properties this change keeps. Name every one considered; an empty list means none of them applies and the reason says so.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "ordering",
+              "duplicate-behavior",
+              "key-semantics",
+              "laziness",
+              "error-behavior",
+              "mutation-behavior"
+            ]
+          }
+        },
+        "intended": {
+          "description": "The changes this decision means to make. Required and non-empty when `expected` is `intended`.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "property",
+              "change",
+              "reason"
+            ],
+            "properties": {
+              "property": {
+                "enum": [
+                  "ordering",
+                  "duplicate-behavior",
+                  "key-semantics",
+                  "laziness",
+                  "error-behavior",
+                  "mutation-behavior",
+                  "type-information"
+                ]
+              },
+              "change": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "expected": {
+                "const": "intended"
+              }
+            },
+            "required": [
+              "expected"
+            ]
+          },
+          "then": {
+            "required": [
+              "intended"
+            ],
+            "properties": {
+              "intended": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "consumption": {
+      "description": "How this site consumes its sequence. Declared applicable with its values, or excluded with a reason, so eager materialization of an unbounded sequence is never a silent omission.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "applicable",
+        "reason"
+      ],
+      "properties": {
+        "applicable": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "enum": [
+            "eager",
+            "lazy",
+            "partial"
+          ]
+        },
+        "cardinality": {
+          "enum": [
+            "bounded",
+            "potentially-unbounded"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "applicable": {
+                "const": true
+              }
+            },
+            "required": [
+              "applicable"
+            ]
+          },
+          "then": {
+            "required": [
+              "mode",
+              "cardinality"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "eager",
+                  "lazy",
+                  "partial"
+                ]
+              },
+              "cardinality": {
+                "enum": [
+                  "bounded",
+                  "potentially-unbounded"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "mode": false,
+              "cardinality": false
+            }
+          }
+        }
       ]
     }
   }

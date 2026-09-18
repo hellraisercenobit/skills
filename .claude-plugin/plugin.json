@@ -33,5 +33,9 @@
     "./agents/design-pattern-reviewer.md",
     "./agents/modern-typescript-reviewer.md",
     "./agents/testing-pattern-reviewer.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json",
+    "./hooks/hooks.optional.json"
   ]
 }

@@ -1,4 +1,4 @@
-# Modern TypeScript catalog 1.0.0
+# Modern TypeScript catalog 1.1.0
 
 One normative source per rule; the files below are owned by transpose-modern-typescript.
 The record schema enumerates these stable IDs. Review signatures only point here.
@@ -20,6 +20,8 @@ mechanism while preserving the complete contract. Current code is always an alte
 | DOM observation, rendering, workers, storage, security | [Platform](platform.md), MT-13..16 |
 | Inference, states, helpers, boundaries, mutability | [Types and abstractions](types.md), MT-17..21 |
 | Imports, runtime targets or any uncertain feature | [Compatibility](compatibility.md), MT-22..23 |
+| A replacement that may widen or erase a static guarantee | [Types and abstractions](types.md), MT-24 |
+| A helper that forwards to a platform or language capability | [Platform](platform.md), MT-25 |
 
 ## Decision discipline
 

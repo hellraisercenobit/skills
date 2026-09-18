@@ -1,1 +1,7 @@
 node_modules
+
+# Staged by `npm run stage:gate` so the npm package is a distribution root of its own.
+packages/ai-engineering-gate/contracts
+packages/ai-engineering-gate/skills
+packages/ai-engineering-gate/agents
+packages/ai-engineering-gate/README.md

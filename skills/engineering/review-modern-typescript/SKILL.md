@@ -17,13 +17,16 @@ leads, never standalone rules or findings.
 Resolve the installed /transpose-modern-typescript through the harness skill locations.
 Read its `references/suite-contract.md`, `catalog.md`, `compatibility.md` and
 `decision-record.schema.json`, then applicable families only. This reviewer requires
-contract/catalog/schema 1.0.0. Missing or conflicting references mean incomplete execution,
-without verdict. Do not download substitutes, reconstruct rules from memory or depend on
-the maintainer's checkout.
+contract 1.1.0, catalog 1.1.0 and record schema 2.0.0. Missing or conflicting references
+mean incomplete execution, without verdict. Do not download substitutes, reconstruct rules
+from memory or depend on the maintainer's checkout.
 
 For transposition, require a fresh context, neutral brief and accessible records. Check
 paths exist without opening contents. A contaminated brief requires a new neutral dispatch
 before completion. A standalone audit needs no historical record.
+
+Open the window before step 1: `ai-engineering-gate begin --dimension modern-typescript` freezes
+the state the verdict binds to, captures who you are and refuses the builder of the task.
 
 ## Blind audit, then comparison
 
@@ -49,10 +52,16 @@ before completion. A standalone audit needs no historical record.
    Otherwise cite exact rule and evidence, refute the defense and propose a scoped fix.
    Demonstrated simplification can be Minor; age, missing fashionable syntax or taste
    cannot. No applicable rule means a catalog gap without severity or verdict impact.
-6. **Report.** Only the reviewer attests SOUND through a verified supported gate interface.
-   Do not assume `modern-typescript` support. A required unsupported gate leaves its workflow
-   incomplete. Edit neither code, records, fixtures nor catalogs; supported attestation
-   is the only protocol exception. The builder fixes; a new fresh reviewer reassesses.
+   Apply the contract's severity clause for Blocker, Major and Minor; do not restate it.
+6. **Report.** File through the window you opened, never beside it. Pipe a
+   [review envelope](../transpose-modern-typescript/references/review-envelope.schema.json) to
+   `ai-engineering-gate attest --dimension modern-typescript --stdin` for SOUND, and to
+   `ai-engineering-gate report --dimension modern-typescript --stdin` otherwise. Type each finding:
+   `judgment` carries the correction, `evidence` carries a remedy the builder can execute.
+   Put no fingerprint in the envelope - the gate computes all three and accepts none. A refusal
+   of `state-moved` means the code moved while you read it: the review is void, say so and stop.
+   Edit neither code, records, fixtures nor catalogs; filing the envelope is the only exception.
+   The builder corrects or disputes; a fresh reviewer reassesses.
 
 ## Report
 
@@ -65,6 +74,8 @@ before completion. A standalone audit needs no historical record.
 - One verdict: SOUND (complete, zero findings), SMELLS (findings, no Blocker), or VIOLATIONS
   (a Blocker). Missing prerequisites are incomplete execution, not a fourth quality verdict.
 
-SOUND expires on audited file or pinned reference changes. Portable evidence is not an
-automatic gate lock. Completion needs every applicable dimension on the same final state,
-passing checks and resolved disputes.
+SOUND expires on audited file or pinned reference changes: the gate recomputes the source,
+reference and decision fingerprints and reports `stale-source`, `stale-reference` or
+`stale-decision` rather than keeping a verdict alive. Portable evidence is not an automatic
+gate lock. Completion needs every applicable dimension on the same final state, passing checks
+and resolved disputes; `ai-engineering-gate can-stop` is what answers that question.

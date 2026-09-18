@@ -32,5 +32,6 @@ unobserved concurrency, environment mismatch and unsupported process claims. It 
 no files and does not delegate. The builder fixes; a new reviewer checks the result.
 
 Use the suite's SOUND, SMELLS and VIOLATIONS verdicts. Missing prerequisites mean incomplete
-execution. Edits to covered sources, records or references expire the report. See the
-[suite guide](../skill-suite.md) for composition and portable/gate limits.
+execution. File them through `ai-engineering-gate attest` or `report` after `begin`. Edits to
+covered sources, records or references expire the report. See the
+[suite guide](../skill-suite.md) for composition and the gate.

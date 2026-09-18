@@ -24,6 +24,13 @@ second catalog. Search results require contextual inspection.
 | External cast or dishonest predicate | MT-20 | Independently validated boundary with localized proof |
 | readonly claimed to freeze, type puzzles | MT-21 | Runtime freeze, useful derived contract, editor/compiler cost |
 | API or import justified only by TS lib | MT-22, MT-23 | Actual transpiler, loader, runtime and consumers |
+| Widened signature, dropped `readonly`, collapsed union or tuple, new caller-side casts | MT-24 | Simpler public type, boundary accepting unvalidated input, looser native declarations |
+| Single forwarding call, project alias for a global, wrapper added with the transposition it hides | MT-25 | Domain semantics, one-place compatibility policy, instrumentation, lifecycle the caller must not manage, migration boundary |
 
 Read data flow and lifetime too, not only old syntax. Useful loops, helpers, classes, enums
 and explicit branches can be SOUND.
+
+Two leads are not searchable and are read from the diff instead. MT-24 is found by comparing what
+the compiler knew at each touched signature before and after the change, so hover the symbol or
+compile a consumer rather than grepping. MT-25 is found by reading a helper's body: one forwarding
+call with the arguments unchanged is the shape, and the record must name the reason it survives.

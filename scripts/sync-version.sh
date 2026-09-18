@@ -22,5 +22,12 @@ for (const entry of marketplace.plugins) {
 }
 write(".claude-plugin/marketplace.json", marketplace);
 
-console.log(`synced version ${version} to plugin.json and marketplace.json`);
+// The gate reports this version and the attestations record it, so a CI runner can require the same
+// gate that attested. It must never drift from the plugin's.
+const gate = "packages/ai-engineering-gate/package.json";
+const gatePackage = read(gate);
+gatePackage.version = version;
+write(gate, gatePackage);
+
+console.log(`synced version ${version} to plugin.json, marketplace.json and the gate package`);
 JS

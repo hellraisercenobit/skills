@@ -1,18 +1,38 @@
 {
-  "contractVersion": "1.0.0",
+  "contractVersion": "1.1.0",
   "members": [
     {
-      "dimension": "design",
+      "dimension": "design-patterns",
       "transpose": "skills/engineering/transpose-design-patterns",
       "review": "skills/engineering/review-design-patterns",
       "agent": "agents/design-pattern-reviewer.md",
-      "status": "precedent"
+      "decisionSchema": "skills/engineering/transpose-design-patterns/references/design-decision-record.schema.json",
+      "evidenceSchemas": {},
+      "referenceBundle": [
+        "skills/engineering/transpose-design-patterns/references",
+        "skills/engineering/review-design-patterns/references"
+      ],
+      "contractVersions": [
+        "1.0.0",
+        "1.1.0"
+      ],
+      "status": "implemented"
     },
     {
       "dimension": "modern-typescript",
       "transpose": "skills/engineering/transpose-modern-typescript",
       "review": "skills/engineering/review-modern-typescript",
       "agent": "agents/modern-typescript-reviewer.md",
+      "decisionSchema": "skills/engineering/transpose-modern-typescript/references/decision-record.schema.json",
+      "evidenceSchemas": {},
+      "referenceBundle": [
+        "skills/engineering/transpose-modern-typescript/references",
+        "skills/engineering/review-modern-typescript/references"
+      ],
+      "contractVersions": [
+        "1.0.0",
+        "1.1.0"
+      ],
       "status": "implemented"
     },
     {
@@ -20,6 +40,18 @@
       "transpose": "skills/engineering/transpose-testing-patterns",
       "review": "skills/engineering/review-testing-patterns",
       "agent": "agents/testing-pattern-reviewer.md",
+      "decisionSchema": "skills/engineering/transpose-testing-patterns/references/decision-record.schema.json",
+      "evidenceSchemas": {
+        "journal-event": "skills/engineering/transpose-testing-patterns/references/journal-event.schema.json"
+      },
+      "referenceBundle": [
+        "skills/engineering/transpose-testing-patterns/references",
+        "skills/engineering/review-testing-patterns/references"
+      ],
+      "contractVersions": [
+        "1.0.0",
+        "1.1.0"
+      ],
       "status": "implemented"
     }
   ]

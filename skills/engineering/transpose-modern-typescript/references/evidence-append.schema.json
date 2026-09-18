@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/evidence-append.schema.json",
+  "title": "Evidence append 1.0.0",
+  "description": "Append-only. Journal events, check outputs, snapshots and any artifact a record planned are filed through `evidence append`, never written into the gate's index by hand. The gate stamps every append with the content hashes of the record's planned artifacts, by role, so an event proves the state of test and production artifacts at the moment it was filed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "dimension",
+    "record",
+    "kind",
+    "payload"
+  ],
+  "properties": {
+    "document": {
+      "const": "evidence-append"
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "dimension": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record": {
+      "description": "The decision record this evidence belongs to.",
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "description": "A kind the member's evidence schemas name, which then validates the payload, or one of the generic kinds.",
+      "type": "string",
+      "minLength": 1
+    },
+    "produces": {
+      "description": "The planned artifact this append produces or extends. A planned artifact is satisfied by a file in the worktree or by an append that names it here.",
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": {
+      "description": "Opaque to the envelope. Validated against the member's evidence schema when its kind names one."
+    },
+    "filedAt": {
+      "description": "Stamped by the gate when the append is stored.",
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactHashes": {
+      "description": "Stamped by the gate: the content hash of every artifact the record planned, grouped by role, at the moment of the append.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "builder": {
+      "description": "Stamped by the gate: the identity it captured for the caller.",
+      "type": "object"
+    },
+    "replayed": {
+      "description": "Stamped by the gate: `true` only when the gate itself ran the scenario through `replay`.",
+      "type": "boolean"
+    }
+  }
+}

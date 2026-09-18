@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/dispute.schema.json",
+  "title": "Dispute 1.0.0",
+  "description": "The builder's second and only other response to a finding, beside addressing it. It contests one finding with a pointer to counter-evidence that already exists; a dispute without such a pointer is refused. It goes to the user and its only exit is an arbitration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "dimension",
+    "report",
+    "finding",
+    "counterEvidence",
+    "position"
+  ],
+  "properties": {
+    "document": {
+      "const": "dispute"
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "dimension": {
+      "type": "string",
+      "minLength": 1
+    },
+    "report": {
+      "description": "The identifier of the report that carries the contested finding.",
+      "type": "string",
+      "minLength": 1
+    },
+    "finding": {
+      "description": "The contested finding's identifier.",
+      "type": "string",
+      "minLength": 1
+    },
+    "counterEvidence": {
+      "description": "Pointers to artifacts that exist now. Each path is checked; a dangling pointer refuses the dispute.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "claim"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "position": {
+      "description": "The builder's position in one sentence.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

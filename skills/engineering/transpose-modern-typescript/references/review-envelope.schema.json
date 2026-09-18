@@ -1,0 +1,378 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/review-envelope.schema.json",
+  "title": "Review envelope 1.0.0",
+  "description": "Emitted by a review beside its prose report and piped to `attest` for `SOUND` or to `report` for `SMELLS` and `VIOLATIONS`. It carries no fingerprint: the gate alone adds the state a verdict binds to.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "dimension",
+    "contractVersion",
+    "verdict",
+    "records",
+    "checks",
+    "reviewer",
+    "findings",
+    "challengedSurvived"
+  ],
+  "properties": {
+    "document": {
+      "const": "review-envelope"
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "dimension": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contractVersion": {
+      "description": "The contract version this review ran under.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "verdict": {
+      "enum": [
+        "SOUND",
+        "SMELLS",
+        "VIOLATIONS"
+      ]
+    },
+    "records": {
+      "description": "The record identifiers or paths the review examined.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "checks": {
+      "description": "The deterministic checks the reviewer saw executed. Enforcement validates their presence, never their result.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "command",
+          "outcome",
+          "guarantee"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outcome": {
+            "type": "string",
+            "minLength": 1
+          },
+          "guarantee": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "independence",
+        "identity"
+      ],
+      "properties": {
+        "independence": {
+          "description": "The reviewer's own claim about its brief: a fresh context with no builder history or rationale, or the exposure it must state.",
+          "type": "string",
+          "minLength": 1
+        },
+        "identity": {
+          "description": "The reviewer's declared identity. Enforcement compares it with the identity the harness reported and never takes it as proof.",
+          "type": "string",
+          "minLength": 1
+        },
+        "agentType": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "challengedSurvived": {
+      "description": "Candidates whose strongest defense held, and the defense.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "gaps": {
+      "description": "Catalog gaps, reported without severity or verdict impact.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "severity",
+        "location",
+        "rule",
+        "expected",
+        "recorded",
+        "actual",
+        "impact",
+        "defense",
+        "refutation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "`evidence` when an artifact is not on file, `judgment` when a decision is wrong against the catalog.",
+          "enum": [
+            "evidence",
+            "judgment"
+          ]
+        },
+        "severity": {
+          "description": "The contract's severity clause owns these tiers.",
+          "enum": [
+            "Blocker",
+            "Major",
+            "Minor"
+          ]
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defense": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refutation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "correction": {
+          "description": "The proposed correction C08 requires. Required for a judgment finding.",
+          "type": "string",
+          "minLength": 1
+        },
+        "remedy": {
+          "description": "Required for an evidence finding: an action the builder can execute.",
+          "$ref": "#/$defs/remedy"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "evidence"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "remedy"
+            ],
+            "properties": {
+              "remedy": {
+                "$ref": "#/$defs/remedy"
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "correction"
+            ],
+            "properties": {
+              "correction": {
+                "description": "The proposed correction C08 requires. Required for a judgment finding.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "remedy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "produce",
+            "rerun",
+            "replay",
+            "dispute"
+          ]
+        },
+        "artifact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "produce"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "artifact"
+            ],
+            "properties": {
+              "artifact": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "rerun"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "command"
+            ],
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "replay"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "scenario",
+              "command"
+            ],
+            "properties": {
+              "scenario": {
+                "type": "string",
+                "minLength": 1
+              },
+              "command": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "SOUND"
+          }
+        },
+        "required": [
+          "verdict"
+        ]
+      },
+      "then": {
+        "properties": {
+          "findings": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "findings": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/marker.schema.json",
+  "title": "Suite marker 1.0.0",
+  "description": "Committed at the repository root as `.ai-engineering-suite.json`. Its presence is the project's opt-in and the only signal enforcement reads: without it every gate command allows and prints nothing that blocks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "markerVersion",
+    "dimensions"
+  ],
+  "properties": {
+    "markerVersion": {
+      "const": "1.0.0"
+    },
+    "dimensions": {
+      "description": "`all` registers every member of the manifest; a list registers exactly those dimension identifiers.",
+      "oneOf": [
+        {
+          "const": "all"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "evidenceRoot": {
+      "description": "Overrides the default evidence root. `~` expands to the user's home directory. A relative path resolves against the repository root, which the change set then excludes.",
+      "type": "string",
+      "minLength": 1
+    },
+    "exportDirectory": {
+      "description": "Repository-relative directory `export` writes to. Excluded from the change set and from every fingerprint.",
+      "type": "string",
+      "minLength": 1
+    },
+    "ignore": {
+      "description": "Repository-relative glob patterns removed from the change set. `*` matches within one segment, `**` across segments.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "base": {
+      "description": "Default comparison base when a declaration names none.",
+      "type": "string",
+      "minLength": 1
+    },
+    "conflictRoundCap": {
+      "description": "Consecutive cross-dimension conflict rounds before `can-review` is refused with `arbitration-required`.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "roundCap": {
+      "description": "Total review rounds for one task before completion ends with `round-cap-reached`.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "allowReplay": {
+      "description": "`false` forbids the gate-executed replay remedy, leaving a rerun of a full cycle as the only remedy for chronology-bound evidence.",
+      "type": "boolean"
+    },
+    "requireVerifiedIdentity": {
+      "description": "`true` refuses an attestation stored `identity-unverified`, for harnesses that provide agent identifiers.",
+      "type": "boolean"
+    }
+  }
+}
