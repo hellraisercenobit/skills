@@ -49,7 +49,7 @@
   "profile": {
     "language": "typescript",
     "runner": "vitest 5.0.1",
-    "compiler": "typescript 7.0.2 tsc",
+    "compiler": "typescript 7.0.2 tsc, target ES2022",
     "declarations": "ES2024 and installed Node declarations",
     "build": "Vitest/Vite ESM transform",
     "configuration": [

@@ -23,8 +23,8 @@ then steelman before confirming. Do not count words, mocks, classes or lines as 
 | RED is import failure or changed oracle | TP-07 | Labelled setup or restarted cycle with preserved observations |
 | TDD inferred from final files or commit messages | TP-07 | Retrospective quality audit with no chronology claim |
 | Green run has missing required scenarios, skips or retries | TP-16 | Explicit non-required limitation, not claimed proof |
-| Spec uses syntax the frozen compiler/`target` cannot parse (`satisfies`, `using`) | MT-23 | Compiler profile actually supports that syntax |
-| Spec uses a runner API from a different adapter (`vi.fn` on Karma/Jasmine) | adapter-family | Detected adapter family actually owns that API |
+| Spec uses syntax the frozen compiler cannot parse (`satisfies`, `using`) | TP-12 | Compiler version actually supports that syntax |
+| Spec uses a runner API from a different adapter (`vi.fn` on Karma/Jasmine) | TP-14 | Detected adapter family actually owns that API |
 
 An experiment must preserve the audited tree. Ask the builder to run a scoped isolated
 probe when evidence is unavailable. Do not inject a defect or rewrite a test yourself.

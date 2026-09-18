@@ -16,8 +16,9 @@ and verify the intended diagnostic without the directive in an isolated probe; a
 missing import can otherwise satisfy the directive. Do not run invalid static-only calls
 as runtime tests. An unused directive must fail the checker.
 
-Prefer typed factories and structural doubles, using `satisfies` when the compiler profile
-supports it. Avoid `any`, `as unknown as` or suppressions used to conceal an invalid contract.
+Prefer typed factories and structural doubles. Do not reach for `satisfies` unless the
+installed compiler already supports it and a typed factory is not enough. Avoid
+`any`, `as unknown as` or suppressions used to conceal an invalid contract.
 Construct malformed inputs at `unknown`, where validation belongs. A brand does not validate an
 external string and `readonly` does not freeze or defensively copy an object.
 

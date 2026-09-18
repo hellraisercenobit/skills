@@ -41,9 +41,11 @@ the state the verdict binds to, captures who you are and refuses the builder of 
    mechanisms. Read context; a search hit is not evidence.
 3. **Freeze.** Emit the immutable expected matrix in your response **before opening any
    record**: site, constraints, rule IDs, acceptable alternatives, support prerequisites
-   and invariants. Include sites needing no specialized choice. Freeze acceptable outcomes,
-   not exact syntax. Changed verified premises require reframing and a fresh reviewer,
-   retaining the old matrix.
+   and invariants. Support prerequisites name the four MT-23 layers: parser/compiler
+   syntax (installed TypeScript version + target), lib/types, emit/bundler, actual runtime.
+   A missing required layer is incomplete execution. Include sites needing no specialized
+   choice. Freeze acceptable outcomes, not exact syntax. Changed verified premises require
+   reframing and a fresh reviewer, retaining the old matrix.
 4. **Compare.** Now open records and check evidence. Check schema, catalog membership,
    profiles, alternatives, revisions and invariants. Compare expected / recorded / actual
    at every site. Independently verify support claims. A recorded or actual idiom that fails

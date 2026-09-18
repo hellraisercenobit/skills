@@ -1,16 +1,16 @@
-const INCOMPATIBLE_MODERNIZATION = { id: 'incompatible-modernization', rule: 'MT-23' };
-const TARGET_MISMATCH = { id: 'target-mismatch', rule: 'MT-23' };
-const WRONG_RUNNER_API = { id: 'wrong-runner-api', rule: 'adapter-family' };
+const INCOMPATIBLE_MODERNIZATION = { id: 'incompatible-modernization', rule: 'TP-12' };
+const TARGET_MISMATCH = { id: 'target-mismatch', rule: 'TP-16' };
+const WRONG_RUNNER_API = { id: 'wrong-runner-api', rule: 'TP-14' };
 
 export function assessTestingProfile(input) {
-  if (emitsTypeScript(input.language) && !hasResolvedProfile(input)) {
+  if (needsCompilerProfile(input) && !hasResolvedProfile(input)) {
     return { status: 'incomplete', findings: [] };
   }
   const findings = [];
   if (declaredTargetMismatchesDerived(input)) {
     findings.push(TARGET_MISMATCH);
   }
-  if (input.actual?.syntax?.includes('satisfies')) {
+  if (syntaxExceedsCompiler(input)) {
     findings.push(INCOMPATIBLE_MODERNIZATION);
   }
   if (usesWrongRunnerApi(input)) {
@@ -19,12 +19,16 @@ export function assessTestingProfile(input) {
   return { status: 'complete', findings };
 }
 
-function emitsTypeScript(language) {
-  return language === 'typescript' || language === 'javascript';
+function needsCompilerProfile(input) {
+  return input.language === 'typescript' || input.emittedByTsc === true;
 }
 
 function hasResolvedProfile(input) {
-  return hasEsTarget(input) && hasLibLayer(input) && knownLayer(input.emit) && knownLayer(input.runtime);
+  return hasEsTarget(input)
+    && knownLayer(input.compiler?.version)
+    && hasLibLayer(input)
+    && knownLayer(input.emit)
+    && knownLayer(input.runtime);
 }
 
 function hasEsTarget(input) {
@@ -32,10 +36,7 @@ function hasEsTarget(input) {
 }
 
 function hasLibLayer(input) {
-  if (Array.isArray(input.compiler?.lib) && input.compiler.lib.length > 0) {
-    return true;
-  }
-  return (input.constraints ?? []).some(item => /\blib\b/i.test(item) && /\bes\d+/i.test(item));
+  return Array.isArray(input.compiler?.lib) && input.compiler.lib.length > 0;
 }
 
 function knownLayer(value) {
@@ -46,6 +47,21 @@ function declaredTargetMismatchesDerived(input) {
   const declared = constraintEsTarget(input.constraints);
   const derived = normalizeEsTarget(input.compiler?.target);
   return Boolean(declared && derived && declared !== derived);
+}
+
+function syntaxExceedsCompiler(input) {
+  const version = typescriptVersion(input.compiler?.version);
+  if (version === undefined) {
+    return false;
+  }
+  const syntax = input.actual?.syntax ?? [];
+  if (syntax.includes('satisfies') && version < 4.9) {
+    return true;
+  }
+  if (syntax.includes('using') && version < 5.2) {
+    return true;
+  }
+  return false;
 }
 
 function usesWrongRunnerApi(input) {
@@ -76,4 +92,12 @@ function normalizeEsTarget(value) {
   }
   const match = String(value).match(/ES\d+/i);
   return match ? match[0].toUpperCase() : undefined;
+}
+
+function typescriptVersion(value) {
+  const match = String(value ?? '').match(/(\d+)\.(\d+)/);
+  if (!match) {
+    return undefined;
+  }
+  return Number(match[1]) + Number(match[2]) / 10;
 }

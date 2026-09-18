@@ -21,8 +21,8 @@ reviewer requires contract 1.1.0, catalog 1.0.0 and record schema 2.0.0. Apply
 `assessTestingProfile` from `references/compiler-profile.mjs`. Missing or conflicting
 references mean incomplete execution, without verdict; do not download substitutes or invent
 rules. A Vitest adapter compatible with 1.0.0 qualifies Vitest transposition. Other runners
-still receive catalog recale, including compiler profile and wrong-runner APIs; SOUND does
-not require Vitest.
+still receive catalog recale, including compiler profile and wrong-runner APIs. SOUND
+for a qualified Vitest transposition still needs the Vitest adapter.
 
 A transposition requires a fresh context and neutral brief. Check record paths exist but
 do not open them before freezing. Contamination requires a new dispatch. Standalone audits
@@ -85,7 +85,7 @@ Use exactly SOUND (complete audit, no findings), SMELLS (findings without Blocke
 VIOLATIONS (a Blocker). Apply the contract's severity clause for Blocker, Major and Minor;
 do not restate it. Missing prerequisites or an unknown required compiler/runtime layer are
 incomplete execution, not a fourth verdict. Findings from `assessTestingProfile` prevent
-SOUND. SOUND does not require Vitest. A proposal verdict does not qualify runtime behavior.
+SOUND. A proposal verdict does not qualify runtime behavior.
 
 File through the window you opened. Pipe a
 [review envelope](../transpose-testing-patterns/references/review-envelope.schema.json) to

@@ -21,15 +21,21 @@ observed TDD when appropriate, then requests a fresh read-only review under C01-
 
 ## Prerequisites
 
-Install both companions from the same revision and provide a fresh reviewer context. The
-first runner adapter is Vitest. Other runners permit catalog analysis, not a qualified
-transposition. Existing compatible versions can remain in use.
+Install both companions from the same revision and provide a fresh reviewer context.
 
 ## Choose by behavior
 
 Direct examples, state, interaction, contract, property and characterization tests are
-alternatives with different guarantees. A factory, typed `vi.fn` or useful hook can be
-retained. Builders and ports require a concrete benefit; no specialized pattern is a valid choice.
+alternatives with different guarantees. A factory or useful hook can be retained. Doubles
+follow the detected runner. Builders and ports require a concrete benefit; no specialized
+pattern is a valid choice.
+
+## Compiler profile
+
+When tests are TypeScript, put the ES/compiler target in declaration constraints. A
+tsconfig path is not a substitute. The first runner adapter is Vitest. Other runners
+permit catalog analysis, not a qualified transposition. Existing compatible versions can
+remain in use.
 
 ## Evidence and delivery
 

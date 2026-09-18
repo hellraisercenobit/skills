@@ -22,9 +22,9 @@ a fresh independent review. Keeping a useful helper or simple loop can be the ri
 
 ## Prerequisites
 
-Install the review companion at a compatible version. Provide project targets or let the
-agent derive them from configuration; unresolved targets block dependent adoption. A fresh
-review context is required for completion.
+Install the review companion at a compatible version. Put the ES/compiler target in
+declaration constraints; a tsconfig path is not a substitute. Unresolved targets block
+dependent adoption. A fresh review context is required for completion.
 
 ## Breadth and trade-offs
 

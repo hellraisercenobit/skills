@@ -21,8 +21,9 @@ confirms a finding only after its strongest defense fails. It edits no files.
 
 ## Prerequisites
 
-The installed transpose companion owns the required catalog/schema/contract. Missing or
-incompatible references make the audit incomplete. Standalone code needs no historical
+Install the transpose companion and matching references. The freeze must name the four
+MT-23 layers (compiler version + target, lib, emit, runtime); a missing layer is
+incomplete execution. Standalone code needs no historical
 record; transposition completion does. Work the reviewer authored needs a fresh context.
 
 ## Evidence before verdict
