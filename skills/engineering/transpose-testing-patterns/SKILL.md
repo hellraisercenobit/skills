@@ -1,6 +1,6 @@
 ---
 name: transpose-testing-patterns
-description: "Choose and record a testing strategy before writing tests or affected implementation, then guide observable RED/GREEN/refactor and independent review. Use for behavior changes, regression tests, test doubles, testability seams, static TypeScript contracts or unreliable tests. Runner-neutral catalog with a qualified Vitest adapter and an implemented Karma + jasmine-core + Angular TestBed adapter. Companion to review-testing-patterns. Excludes prose-only and formatting-only changes."
+description: "Choose and record a testing strategy before writing tests or affected implementation, then guide observable RED/GREEN/refactor and independent review. Use for behavior changes, regression tests, test doubles, testability seams, static TypeScript contracts or unreliable tests. Runner-neutral catalog with a qualified Vitest adapter, an implemented Karma + jasmine-core + Angular TestBed adapter and an implemented Codeception adapter. Companion to review-testing-patterns. Excludes prose-only and formatting-only changes."
 license: MIT
 metadata:
   author: Guillaume Mongin (@hellraisercenobit)
@@ -23,8 +23,9 @@ not uniquely require Vitest.
 
 | Family | Detect | Adapter |
 | --- | --- | --- |
-| `vitest` | `vitest` in npm packages, without Karma + Angular TestBed | [adapter 1.0.0](references/transpose-vitest.md) |
+| `vitest` | `vitest` in npm packages, without Karma + Angular TestBed or Codeception | [adapter 1.0.0](references/transpose-vitest.md) |
 | `karma-jasmine-angular` | `karma` + `jasmine-core` + `@angular/core`, karma config and Angular project | [adapter 1.0.0](references/transpose-karma-jasmine-angular.md) |
+| `codeception` | `codeception/codeception` in composer packages | [adapter 1.0.0](references/transpose-codeception.md) |
 | `unknown` | missing required signals | catalog analysis only |
 
 Check installed capabilities on the selected adapter. The shared shapes sit beside the
@@ -33,7 +34,8 @@ contract: [declaration](references/declaration.schema.json),
 [evidence append](references/evidence-append.schema.json),
 [journal event](references/journal-event.schema.json) and [dispute](references/dispute.schema.json).
 Missing/conflicting required references leave execution incomplete. Other runners permit
-catalog analysis only; do not claim qualified transposition or silently migrate them.
+catalog analysis only; do not claim qualified transposition or silently migrate them to
+Vitest.
 
 ## Procedure
 

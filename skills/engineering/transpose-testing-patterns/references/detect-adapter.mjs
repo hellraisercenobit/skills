@@ -9,6 +9,12 @@ export function inspectProject(root) {
     Object.assign(evidence.npmPackages, pkg.dependencies ?? {}, pkg.devDependencies ?? {});
     evidence.npmScripts = pkg.scripts;
   }
+  const composerPath = join(root, 'composer.json');
+  if (existsSync(composerPath)) {
+    const composer = JSON.parse(readFileSync(composerPath, 'utf8'));
+    Object.assign(evidence.composerPackages, composer.require ?? {}, composer['require-dev'] ?? {});
+  }
+  evidence.hasCodeceptionConfig = existsSync(join(root, 'codeception.yml'));
   evidence.hasKarmaConfig = ['karma.conf.js', 'karma.conf.ts'].some(name => existsSync(join(root, name)));
   evidence.hasAngularProject = existsSync(join(root, 'angular.json'))
     || Boolean(evidence.npmPackages['@angular/core']);
@@ -16,6 +22,24 @@ export function inspectProject(root) {
 }
 
 export function detectTestingAdapter(evidence) {
+  const codeceptionVersion = evidence?.composerPackages?.['codeception/codeception'];
+  if (codeceptionVersion) {
+    const major = packageMajor(codeceptionVersion);
+    const known = major === 4 || major === 5;
+    const profile = { runner: 'codeception', version: codeceptionVersion };
+    if (evidence.hasCodeceptionConfig !== undefined) {
+      profile.hasConfig = evidence.hasCodeceptionConfig;
+    }
+    if (!known) {
+      profile.unknowns = ['codeception-major'];
+    }
+    return {
+      family: 'codeception',
+      adapter: 'transpose-codeception.md',
+      complete: known,
+      profile,
+    };
+  }
   const npmPackages = evidence.npmPackages ?? {};
   if (
     evidence.hasKarmaConfig &&

@@ -42,6 +42,7 @@
         "name": {
           "enum": [
             "vitest",
+            "codeception",
             "karma-jasmine-angular"
           ]
         },
@@ -160,7 +161,8 @@
         "language": {
           "enum": [
             "typescript",
-            "javascript"
+            "javascript",
+            "php"
           ]
         },
         "runner": {

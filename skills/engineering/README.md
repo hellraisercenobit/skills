@@ -13,7 +13,7 @@ Model- or user-reachable (rich trigger phrasing in `description`).
 
 See the [suite guide](../../docs/skill-suite.md) for the common contract, composition and contributor procedure.
 
-- **[transpose-testing-patterns](./transpose-testing-patterns/SKILL.md)** - Choose test form, seam, oracle and doubles before writing; guide observed TDD with the detected runner adapter (Vitest or Karma + jasmine-core + Angular TestBed) and TypeScript checks.
+- **[transpose-testing-patterns](./transpose-testing-patterns/SKILL.md)** - Choose test form, seam, oracle and doubles before writing; guide observed TDD with the detected runner adapter (Vitest, Karma + jasmine-core + Angular TestBed, or Codeception) and TypeScript checks.
 - **[review-testing-patterns](./review-testing-patterns/SKILL.md)** - Independent read-only audit of test quality, static/runtime guarantees and process evidence.
 
 - **[transpose-modern-typescript](./transpose-modern-typescript/SKILL.md)** - Decide and implement modern supported TS/JS idioms, types, collections, lifetime and native APIs, with records before code and independent review.

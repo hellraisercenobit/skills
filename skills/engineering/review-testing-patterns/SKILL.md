@@ -20,11 +20,14 @@ maintainer checkout. Read its `references/suite-contract.md`, `catalog.md`,
 reviewer requires contract 1.1.0, catalog 1.0.0, record schema 2.0.0 and the adapter for
 the detected family, compatible with 1.0.0. Vitest loads
 `references/transpose-vitest.md`. Karma + jasmine-core + Angular TestBed loads
-`references/transpose-karma-jasmine-angular.md`. SOUND on that family requires the
+`references/transpose-karma-jasmine-angular.md`. Codeception loads
+`references/transpose-codeception.md`. SOUND on Karma + Angular TestBed requires the
 adapter and a qualification pin under `tests/testing-patterns/karma-jasmine-angular/`;
-ChromeHeadless execution is optional. Missing or conflicting references mean incomplete
-execution, without verdict; do not download substitutes or invent rules. Other runners
-allow catalog-only analysis, not qualified transposition completion.
+ChromeHeadless execution is optional. SOUND on Codeception requires that adapter and a
+qualification pin under `tests/testing-patterns/codeception/`; Docker execution of
+`codecept` is optional. Missing or conflicting references mean incomplete execution, without
+verdict; do not download substitutes or invent rules. Other runners allow catalog-only
+analysis, not qualified transposition completion.
 
 A transposition requires a fresh context and neutral brief. Check record paths exist but
 do not open them before freezing. Contamination requires a new dispatch. Standalone audits
