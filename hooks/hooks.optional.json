@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" release --hook --harness claude-code",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

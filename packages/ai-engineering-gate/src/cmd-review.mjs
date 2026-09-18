@@ -1,3 +1,4 @@
+import { accept, refuse } from './answer.mjs';
 import { fingerprintsOf, memberOf } from './context.mjs';
 import { captureIdentity, isBuilderIdentity, storedIdentity } from './identity.mjs';
 import { blockingCause, dimensionState, findingStatus, suiteState } from './state.mjs';
@@ -6,9 +7,6 @@ import {
   writeVerdict, writeWindow,
 } from './store.mjs';
 import { ignoredFingerprints, sharedErrors } from './validate.mjs';
-
-const refuse = (code, reason, details = [], cause = null) => ({ ok: false, code, reason, details, ...(cause ? { cause } : {}) });
-const accept = (text, payload = {}) => ({ ok: true, text, payload });
 
 function reviewReadiness(context, dimension) {
   const view = suiteState(context);

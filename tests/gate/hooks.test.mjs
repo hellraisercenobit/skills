@@ -203,6 +203,44 @@ test('a marker that requires a verified identity refuses an unverifiable verdict
   assert.match(refused.stdout, /requires a verified agent identity/);
 });
 
+test('Codex gets Codex shapes: a permission decision, a follow-up message and no session context', () => {
+  const app = project();
+  app.gate(['declare', '--dimension', 'design-patterns', '--stdin'], pipe(declaration('design-patterns')));
+
+  const denied = app.gate(['can-write', '--hook', '--harness', 'codex'], event({
+    hook_event_name: 'preToolUse',
+    conversation_id: 'session-builder',
+    tool_name: 'Write',
+    tool_input: { file_path: 'src/price-order.ts', content: 'x' },
+  }));
+  assert.equal(denied.code, 0);
+  const permission = denied.json();
+  assert.equal(permission.permission, 'deny');
+  assert.match(permission.agent_message, /no validated decision record/);
+  assert.equal(permission.hookSpecificOutput, undefined);
+
+  const shell = app.gate(['can-write', '--hook', '--harness', 'codex'], event({
+    hook_event_name: 'beforeShellExecution',
+    conversation_id: 'session-builder',
+    command: 'sed -i "" s/total/net/ src/price-order.ts',
+  }));
+  assert.equal(shell.json().permission, 'deny');
+
+  const stop = app.gate(['can-stop', '--hook', '--harness', 'codex'], event({
+    hook_event_name: 'stop',
+    conversation_id: 'session-builder',
+  }));
+  assert.match(stop.json().followup_message, /design-patterns/);
+  assert.equal(stop.json().decision, undefined);
+
+  const session = app.gate(['status', '--hook', '--harness', 'codex'], event({
+    hook_event_name: 'sessionStart',
+    conversation_id: 'session-builder',
+  }));
+  assert.equal(session.code, 0);
+  assert.equal(session.stdout, '');
+});
+
 test('a gate failure under a hook blocks instead of approving', () => {
   const app = makeProject({ marker: MARKER(['invented-dimension']), files: { 'src/price-order.ts': SOURCE } });
   const answer = app.gate(['can-stop', '--hook', '--harness', 'claude-code'], event({

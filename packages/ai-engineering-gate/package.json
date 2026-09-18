@@ -1,6 +1,6 @@
 {
   "name": "@hellraisercenobit/ai-engineering-gate",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "description": "Generic enforcement for the transpose/review engineering suite - registry, evidence, fingerprints, verdicts",
   "keywords": [
     "agent",
@@ -27,11 +27,11 @@
     "ai-engineering-gate": "bin/ai-engineering-gate.mjs"
   },
   "exports": {
-    ".": "./src/main.mjs"
+    ".": "./dist/ai-engineering-gate.mjs"
   },
   "files": [
     "bin",
-    "src",
+    "dist",
     "contracts",
     "skills",
     "agents",

@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 
+import { accept, refuse } from './answer.mjs';
 import { memberOf } from './context.mjs';
 import { hashFile } from './hash.mjs';
 import { captureIdentity, stampBuilder, storedIdentity } from './identity.mjs';
@@ -13,9 +14,6 @@ import {
   citationSnapshot, danglingCitations, danglingCounterEvidence, evidenceErrors, ignoredFingerprints,
   recordErrors, revisionChangeErrors, sharedErrors, unsourcedUnknowns,
 } from './validate.mjs';
-
-const refuse = (code, reason, details = []) => ({ ok: false, code, reason, details });
-const accept = (text, payload = {}) => ({ ok: true, text, payload });
 
 function requireDimension(context, dimension) {
   memberOf(context, dimension);

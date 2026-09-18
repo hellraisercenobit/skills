@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" status --hook --harness claude-code",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" can-write --hook --harness claude-code",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" can-review --hook --harness claude-code",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" can-stop --hook --harness claude-code",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

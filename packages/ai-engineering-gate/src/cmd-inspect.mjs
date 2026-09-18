@@ -1,14 +1,12 @@
 import { isAbsolute, resolve } from 'node:path';
 
+import { accept, refuse } from './answer.mjs';
 import { coveringDimensions } from './changeset.mjs';
 import { declarations, fingerprintsOf } from './context.mjs';
 import { dispatchPlan } from './plan.mjs';
 import { isInside, matchesPattern, toRepoRelative } from './repo.mjs';
 import { suiteState } from './state.mjs';
 import { arbitrations, currentRecords, readWindow } from './store.mjs';
-
-const refuse = (code, reason, details = []) => ({ ok: false, code, reason, details });
-const accept = (text, payload = {}) => ({ ok: true, text, payload });
 
 export function suiteView(context) {
   const view = suiteState(context);

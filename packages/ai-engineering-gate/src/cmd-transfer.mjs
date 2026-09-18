@@ -3,14 +3,12 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symli
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+import { accept, refuse } from './answer.mjs';
 import { stampAppend } from './cmd-write.mjs';
 import { captureIdentity } from './identity.mjs';
 import { git } from './repo.mjs';
 import { appendEvidence, readRecord, verdicts } from './store.mjs';
 import { suiteView } from './cmd-inspect.mjs';
-
-const refuse = (code, reason, details = []) => ({ ok: false, code, reason, details });
-const accept = (text, payload = {}) => ({ ok: true, text, payload });
 
 // The export directory carries the task's documents into the repository so a CI runner can recompute
 // the fingerprints from a clean checkout. It is excluded from the change set and never fingerprinted.

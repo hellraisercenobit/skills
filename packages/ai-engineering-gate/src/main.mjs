@@ -179,11 +179,12 @@ function refusalText(result) {
 function runHook(context, args) {
   const event = readHookEvent();
   const agent = hookAgent(event);
+  const harness = context.harness;
   if (args.name === 'status') {
     const view = suiteView(context);
     const text = renderStatus(context, view, { full: false });
-    const context_ = `Engineering suite gate: ${context.gateCommand}\n${text}`;
-    return { stdout: JSON.stringify(sessionContext(context_)), exitCode: 0 };
+    const answer = sessionContext(`Engineering suite gate: ${context.gateCommand}\n${text}`, harness);
+    return { ...(answer ? { stdout: JSON.stringify(answer) } : {}), exitCode: 0 };
   }
   if (args.name === 'can-write') {
     if (DISPATCH_TOOLS.test(agent.toolName ?? '')) return { exitCode: 0 };
@@ -193,20 +194,20 @@ function runHook(context, args) {
     if (paths.length === 0 && !command) return { exitCode: 0 };
     const result = commandCanWrite(context, { ...args, paths, command });
     if (result.ok) return { exitCode: 0 };
-    return { stdout: JSON.stringify(toolDeny(refusalText(result))), exitCode: 0 };
+    return { stdout: JSON.stringify(toolDeny(refusalText(result), harness)), exitCode: 0 };
   }
   if (args.name === 'can-review') {
     const reviewer = reviewerFor(context, agent.toolInput);
     if (!reviewer) return { exitCode: 0 };
     const result = commandCanReview(context, { ...args, dimension: reviewer });
     if (result.ok) return { exitCode: 0 };
-    return { stdout: JSON.stringify(toolDeny(refusalText(result))), exitCode: 0 };
+    return { stdout: JSON.stringify(toolDeny(refusalText(result), harness)), exitCode: 0 };
   }
   if (args.name === 'can-stop') {
     if (agent.reentrant) return { exitCode: 0 };
     const view = suiteView(context);
     if (view.completion.complete) return { exitCode: 0 };
-    return { stdout: JSON.stringify(stopBlock(renderStatus(context, view, { full: true }))), exitCode: 0 };
+    return { stdout: JSON.stringify(stopBlock(renderStatus(context, view, { full: true }), harness)), exitCode: 0 };
   }
   if (args.name === 'release') {
     const reviewer = reviewerFor(context, { subagent_type: agent.agentType }) ?? args.dimension;
