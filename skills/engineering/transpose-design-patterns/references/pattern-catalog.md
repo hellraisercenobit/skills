@@ -1,7 +1,8 @@
-# Design Pattern Catalog - framework-agnostic (reference idioms in TypeScript)
+# Design Pattern Catalog 1.0.0 - framework-agnostic (reference idioms in TypeScript)
 
 Self-contained catalog for the `transpose-design-patterns` skill. Framework-agnostic on purpose:
 select the pattern here, then apply the wiring from the matching `transpose-<framework>.md` guide.
+A decision record declares this catalog version.
 
 ---
 
@@ -88,25 +89,48 @@ asking duplicated builders to stay in step does not enforce their agreement.
 ## Structural forces
 
 A pattern is justified by a force in the change, never by taste. Walk all eight before you decide,
-and name each force present with the site that carries it. No force present is a legitimate `none`.
+and answer each one with a value from its set below plus the site that carries it. Every force at its
+`absent` value is a legitimate `none`. Values, not prose, are what a reviewer compares: an answer of
+"several behaviors" that jumps straight to Strategy is exactly what the value set prevents.
 
-| Force | What it looks like in the change | Decision |
-| --- | --- | --- |
-| Variability | several interchangeable implementations of one responsibility, selected by a discriminator (not two copies of the same body - that is a reusable action) | Strategy |
-| Extension | new implementations are expected without editing consumers | Strategy or Registry (tie-breaker below) |
-| Creation policy | construction depends on runtime or business rules | Factory |
-| Boundary mismatch | an external DTO / API shape differs from the domain shape | Adapter / DTO Mapping |
-| Reusable action | an operation has meaning independent of its caller and of its state container (a transition that only changes a store's own state is a store action, not a Command) | Command |
-| Composition | several independent behaviors combine into one | Composition |
-| Shared lifecycle / state | application-wide identity or lifecycle is required | Singleton / shared state (a facade over a store records as `singleton`) |
-| Cross-cutting behavior | logging, metrics, auth, caching, retry, tracing around many operations | Composition (decorator / interceptor), per the framework guide |
-| No force, or a set closed by declaration | the variant set is closed and compiler-checked (extension-cost test, question 1) | None - exhaustive branch on a discriminated union |
+| Force | Value | What it looks like in the change | Decision |
+| --- | --- | --- | --- |
+| `variability` | `absent` | one responsibility, one body | - |
+| | `duplicated-body` | two copies of the same body, no discriminator | Command, not Strategy - see `reusable-action` |
+| | `interchangeable-closed` | several interchangeable implementations of one responsibility, selected by a discriminator the compiler closes | Strategy |
+| | `interchangeable-open` | the same, with the discriminator open to config, plugins or runtime | Strategy or Registry (tie-breaker below) |
+| `extension` | `no-variant-expected` | no plausible next variant | - |
+| | `declaration-only` | the next variant costs the declaration and its exhaustive branch, nothing else (extension-cost test, question 1) | None - exhaustive branch on a discriminated union |
+| | `one-site` | the next variant costs one orchestration edit | - |
+| | `many-sites` | the next variant costs more than one orchestration edit | Strategy or Registry (tie-breaker below) |
+| `creation-policy` | `absent` | consumers construct directly, always the same way | - |
+| | `runtime-input` | construction depends on a runtime value | Factory |
+| | `business-rule` | construction depends on a business rule | Factory |
+| `boundary-mismatch` | `absent` | one shape crosses the boundary unchanged | - |
+| | `shape-differs` | an external DTO / API shape differs from the domain shape | Adapter / DTO Mapping |
+| | `shape-and-semantics-differ` | the shapes differ and so do units, nullability or error meaning | Adapter / DTO Mapping |
+| `reusable-action` | `absent` | no operation stands on its own | - |
+| | `state-container-bound` | the operation only changes its own store's state | - (a store action, not a Command) |
+| | `caller-independent` | the operation has meaning independent of its caller and of its state container | Command |
+| `composition` | `absent` | one behavior | - |
+| | `sequential-steps` | several steps of one behavior, in fixed order | - |
+| | `independent-behaviors` | several independent behaviors combine into one | Composition |
+| `shared-lifecycle` | `absent` | no identity or lifecycle is shared | - |
+| | `per-consumer` | each consumer owns its instance and its lifecycle | - |
+| | `application-wide` | application-wide identity or lifecycle is required | Singleton / shared state (a facade over a store records as `application-wide`) |
+| `cross-cutting-behavior` | `absent` | no concern wraps the operations | - |
+| | `one-operation` | a concern wraps a single operation | - |
+| | `many-operations` | logging, metrics, auth, caching, retry or tracing wraps many operations | Composition (decorator / interceptor), per the framework guide |
 
 UI state (signals, per the front-end guides) is framework wiring, not a design decision: it takes no record.
 
 **Strategy or Registry.** Both answer the extension force. Strategy when the variants are compile-time
 known and typed - a `satisfies Record<K, S>` table gives the completeness check. Registry when variants
 arrive from plugins, config or runtime, or self-register.
+
+**The extension question.** _If one plausible variant is added next, what existing code must change?_
+Answer it by naming the files and symbols, and let the count pick the `extension` value. The question is
+answered, never asserted: "open to extension" without that list is not an answer.
 
 **Extension-cost test.** A _variation axis_ is the discriminator that selects a variant: a type tag, a
 key, a config value. For each axis, two questions in this order:
@@ -120,8 +144,8 @@ key, a config value. For each axis, two questions in this order:
    not count. More than one orchestration edit points at a pattern from the table. Never choose the
    inline branch because it is shorter; count the next plausible variant, not the current one.
 
-A force without a variant axis (creation policy, boundary mismatch, reusable action, shared state,
-composition, cross-cutting behavior) takes the same count on the next change of its kind: the next
+A force without a variant axis (`creation-policy`, `boundary-mismatch`, `reusable-action`,
+`shared-lifecycle`, `composition`, `cross-cutting-behavior`) takes the same count on the next change of its kind: the next
 environment, the next API field, the next caller, the next consumer, the next concern to stack. Today's
 cost against the cost with the decision is the `extensionCost` the reviewer re-counts.
 

@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/gate-output.schema.json",
+  "title": "Gate JSON output 1.0.0",
+  "description": "The stable machine surface of `ai-engineering-gate --json`. A pipeline driver or a CI step routes on `completion.codes` and reads `dimensions[].state`; it never parses prose. The enumerations below are the contract: adding a value is a minor bump, removing or renaming one is a major bump.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outputVersion",
+    "command",
+    "gateVersion",
+    "marked",
+    "ok"
+  ],
+  "properties": {
+    "outputVersion": {
+      "const": "1.0.0"
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gateVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "marked": {
+      "description": "`false` in a repository that carries no suite marker. The gate then decides nothing and blocks nothing.",
+      "type": "boolean"
+    },
+    "ok": {
+      "description": "`true` when the command allowed or validated, `false` when it denied by policy.",
+      "type": "boolean"
+    },
+    "task": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "repository": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidenceRoot": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "gateCommand": {
+      "description": "The exact command line to invoke this gate, for skills to quote.",
+      "type": "string",
+      "minLength": 1
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "state"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "$ref": "#/$defs/state"
+          },
+          "applicability": {
+            "enum": [
+              "applicable",
+              "non-applicable"
+            ]
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/completionCode"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/warning"
+            }
+          },
+          "missingEvidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "openFindings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "fingerprints": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "codes"
+      ],
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/completionCode"
+          }
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "refusal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "reason"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/refusalCode"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cause": {
+          "description": "The completion code that caused a `not-review-ready` refusal.",
+          "$ref": "#/$defs/completionCode"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    },
+    "undeclaredChanges": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "plan": {
+      "description": "The dispatch plan, present only when a round is ready. The gate never spawns an agent; it prints what to launch.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "agent",
+          "skill",
+          "fingerprints",
+          "brief"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "skill": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fingerprints": {
+            "type": "object"
+          },
+          "brief": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "document": {
+      "description": "The identifier and path of a document a writing command stored.",
+      "type": "object"
+    },
+    "error": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "state": {
+      "enum": [
+        "undeclared",
+        "non-applicable",
+        "declared",
+        "recorded",
+        "in-review",
+        "reported",
+        "disputed",
+        "attested",
+        "stale"
+      ]
+    },
+    "completionCode": {
+      "enum": [
+        "missing-declaration",
+        "missing-reason",
+        "missing-record",
+        "missing-evidence",
+        "missing-review",
+        "non-sound-review",
+        "remedies-pending",
+        "unresolved-dispute",
+        "arbitration-required",
+        "round-cap-reached",
+        "stale-source",
+        "stale-reference",
+        "stale-decision",
+        "review-in-flight",
+        "gate-failure"
+      ]
+    },
+    "refusalCode": {
+      "enum": [
+        "invalid-document",
+        "dangling-reference",
+        "unknown-without-source",
+        "revision-without-change",
+        "declaration-locked",
+        "finding-without-remedy",
+        "no-window",
+        "state-moved",
+        "identity-refused",
+        "agent-arbitration-refused",
+        "replay-forbidden",
+        "dispute-without-evidence",
+        "not-review-ready",
+        "review-in-flight"
+      ]
+    },
+    "warning": {
+      "enum": [
+        "duplicate-evidence",
+        "cross-dimension-conflict",
+        "undeclared-change",
+        "scope-wider-than-declaration",
+        "reference-mismatch",
+        "fingerprint-ignored",
+        "identity-unverified"
+      ]
+    }
+  }
+}

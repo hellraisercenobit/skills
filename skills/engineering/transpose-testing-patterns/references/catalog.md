@@ -182,6 +182,29 @@ retain a named pattern. Both require comparison with alternatives and explicit l
   Require demonstrated coupling or missed guarantee, not line-count/style preferences.
 - **Sources:** [Test Desiderata](https://kentbeck.github.io/TestDesiderata/), [expect](https://vitest.dev/api/expect).
 
+Every site whose action applies a test change names its oracle with a value from each set below and
+the oracle statement itself. Only a `retain` action is exempt; a `none` choice that adds direct tests
+is not. A decision is incomplete until its oracle exists.
+
+| Oracle kind | Where the expected value comes from |
+| --- | --- |
+| `specification` | a written requirement, public contract or standard outside this change |
+| `invariant` | a property that must hold for every input, not one example |
+| `domain-example` | a case a domain expert or an existing document supplies |
+| `independent-calculation` | a second computation that does not share the implementation's path |
+| `boundary` | the defined behavior at a limit, an empty set or an error edge |
+
+| Independence | Meaning |
+| --- | --- |
+| `independent` | the expected value is derived without executing or transcribing the implementation |
+| `dependent` | the expected value comes from the implementation, with the reason it must |
+
+A `dependent` oracle needs its reason, and a reviewer weighs whether that reason survives: a test whose
+expectation is copied from the code it tests reproduces the same defect. Beside the oracle, the site
+names the **plausible defect** it discriminates - a realistic wrong behavior, not an uncovered line -
+and how the test tells the two apart. "What bug does this catch" is the question; "what path does this
+run" is not an answer.
+
 ## TP-16 - Executed evidence
 
 - **Intent/use:** a suite or workflow claims successful validation.

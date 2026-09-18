@@ -1,13 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-design-patterns/references/design-decision-record.schema.json",
-  "title": "Design decision record",
-  "description": "One record per pattern-shaped site, written by transpose-design-patterns before the first implementation write and read by review-design-patterns after its blind matrix is frozen. A gate validates shape and catalog membership against this file, never semantics.",
+  "title": "Design decision record 1.0.0",
+  "description": "One record per pattern-shaped site, written by transpose-design-patterns before the first implementation write and read by review-design-patterns after its blind matrix is frozen. It carries the suite's common decision envelope; the gate validates shape, catalog membership and referential integrity, never semantics.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "dimension",
+    "schemaVersion",
+    "catalogVersion",
+    "contractVersions",
     "need",
+    "scope",
+    "base",
+    "revision",
+    "cites",
+    "plans",
     "forces",
     "alternatives",
     "decision",
@@ -17,22 +25,147 @@
   ],
   "properties": {
     "dimension": {
-      "const": "design"
+      "const": "design-patterns"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "catalogVersion": {
+      "const": "1.0.0"
+    },
+    "contractVersions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "1.0.0",
+          "1.1.0"
+        ]
+      }
     },
     "need": {
       "type": "string",
       "minLength": 1
     },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "base": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "$ref": "#/$defs/revision"
+    },
+    "cites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      }
+    },
+    "plans": {
+      "description": "Artifacts this record commits to produce. This dimension's only role is `implementation`.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "role"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "const": "implementation"
+          }
+        }
+      }
+    },
     "forces": {
-      "description": "All eight catalog forces, in the catalog's order: `<force>: yes - <site or requirement>` or `<force>: no - <reason>`.",
+      "description": "All eight catalog forces, each answered with a value from its own set plus the site that carries it. Values, not prose: the reviewer compares them.",
       "type": "array",
       "minItems": 8,
       "maxItems": 8,
+      "uniqueItems": true,
       "items": {
-        "type": "string",
-        "pattern": "^(variability|extension|creation policy|boundary mismatch|reusable action|composition|shared lifecycle / state|cross-cutting behavior): (yes|no)\\b"
+        "oneOf": [
+          {
+            "$ref": "#/$defs/forceVariability"
+          },
+          {
+            "$ref": "#/$defs/forceExtension"
+          },
+          {
+            "$ref": "#/$defs/forceCreationPolicy"
+          },
+          {
+            "$ref": "#/$defs/forceBoundaryMismatch"
+          },
+          {
+            "$ref": "#/$defs/forceReusableAction"
+          },
+          {
+            "$ref": "#/$defs/forceComposition"
+          },
+          {
+            "$ref": "#/$defs/forceSharedLifecycle"
+          },
+          {
+            "$ref": "#/$defs/forceCrossCutting"
+          }
+        ]
       },
-      "uniqueItems": true
+      "allOf": [
+        {
+          "contains": {
+            "$ref": "#/$defs/named/variability"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/extension"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/creation-policy"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/boundary-mismatch"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/reusable-action"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/composition"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/shared-lifecycle"
+          }
+        },
+        {
+          "contains": {
+            "$ref": "#/$defs/named/cross-cutting-behavior"
+          }
+        }
+      ]
     },
     "alternatives": {
       "description": "Each alternative considered and why it lost. The current shape of the code is always one of them.",
@@ -70,7 +203,7 @@
           "minLength": 1
         },
         "extensionCost": {
-          "description": "The extension-cost test as counted: edit sites the next variant costs today, and with the decision.",
+          "description": "The catalog's extension question answered: if one plausible variant is added next, which existing files and symbols must change, today and with this decision.",
           "type": "string",
           "minLength": 1
         },
@@ -134,6 +267,411 @@
         "type": "string",
         "minLength": 1
       }
+    }
+  },
+  "$defs": {
+    "site": {
+      "description": "The site or requirement that carries the force, or why it is absent.",
+      "type": "string",
+      "minLength": 1
+    },
+    "forceVariability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "variability"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "duplicated-body",
+            "interchangeable-closed",
+            "interchangeable-open"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "extension"
+        },
+        "value": {
+          "enum": [
+            "no-variant-expected",
+            "declaration-only",
+            "one-site",
+            "many-sites"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceCreationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "creation-policy"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "runtime-input",
+            "business-rule"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceBoundaryMismatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "boundary-mismatch"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "shape-differs",
+            "shape-and-semantics-differ"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceReusableAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "reusable-action"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "state-container-bound",
+            "caller-independent"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceComposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "composition"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "sequential-steps",
+            "independent-behaviors"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceSharedLifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "shared-lifecycle"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "per-consumer",
+            "application-wide"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "forceCrossCutting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "force",
+        "value",
+        "site"
+      ],
+      "properties": {
+        "force": {
+          "const": "cross-cutting-behavior"
+        },
+        "value": {
+          "enum": [
+            "absent",
+            "one-operation",
+            "many-operations"
+          ]
+        },
+        "site": {
+          "$ref": "#/$defs/site"
+        }
+      }
+    },
+    "named": {
+      "variability": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "variability"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "extension": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "extension"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "creation-policy": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "creation-policy"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "boundary-mismatch": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "boundary-mismatch"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "reusable-action": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "reusable-action"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "composition": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "composition"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "shared-lifecycle": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "shared-lifecycle"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      },
+      "cross-cutting-behavior": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "const": "cross-cutting-behavior"
+          }
+        },
+        "required": [
+          "force"
+        ]
+      }
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "checkedAt",
+        "claim",
+        "covers"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "covers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "searched": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "previous",
+        "reason"
+      ],
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "previous": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "changed": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "addresses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "number": {
+                "type": "integer",
+                "minimum": 2
+              }
+            },
+            "required": [
+              "number"
+            ]
+          },
+          "then": {
+            "properties": {
+              "previous": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "previous": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     }
   },
   "allOf": [

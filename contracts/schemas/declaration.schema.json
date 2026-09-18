@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/declaration.schema.json",
+  "title": "Dimension declaration 1.0.0",
+  "description": "One per registered dimension per task, written through `declare` before any decision record. It states whether the dimension applies, on which paths, for which request and under which constraints. A non-applicable dimension has a declaration and nothing else.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "dimension",
+    "applicability",
+    "reason",
+    "request",
+    "constraints",
+    "revision"
+  ],
+  "properties": {
+    "document": {
+      "const": "declaration"
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "dimension": {
+      "description": "A dimension identifier the member manifest registers.",
+      "type": "string",
+      "minLength": 1
+    },
+    "applicability": {
+      "enum": [
+        "applicable",
+        "non-applicable"
+      ]
+    },
+    "reason": {
+      "description": "Why the dimension applies, or why it does not. Never empty: skipping a dimension is a recorded decision.",
+      "type": "string",
+      "minLength": 1
+    },
+    "request": {
+      "description": "The requester's own wording, without builder choices or rationale. The neutral brief is rendered from it.",
+      "type": "string",
+      "minLength": 1
+    },
+    "constraints": {
+      "description": "Factual constraints only: project targets, public contracts, independent sources.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "base": {
+      "description": "The comparison base. Required when the dimension applies; the change set is the diff from its merge-base with HEAD.",
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paths"
+      ],
+      "properties": {
+        "paths": {
+          "description": "Repository-relative file paths or directory prefixes the dimension protects.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "configuration": {
+          "description": "Repository-relative configuration files the decisions depend on. They enter the source fingerprint.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "revision": {
+      "$ref": "#/$defs/revision"
+    }
+  },
+  "$defs": {
+    "revision": {
+      "description": "Same shape as a decision record's revision: revision 1 has no previous, a later one names it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "previous",
+        "reason"
+      ],
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "previous": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "number": {
+                "type": "integer",
+                "minimum": 2
+              }
+            },
+            "required": [
+              "number"
+            ]
+          },
+          "then": {
+            "properties": {
+              "previous": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "previous": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "applicability": {
+            "const": "applicable"
+          }
+        },
+        "required": [
+          "applicability"
+        ]
+      },
+      "then": {
+        "required": [
+          "scope",
+          "base"
+        ],
+        "properties": {
+          "scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "paths"
+            ],
+            "properties": {
+              "paths": {
+                "description": "Repository-relative file paths or directory prefixes the dimension protects.",
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "configuration": {
+                "description": "Repository-relative configuration files the decisions depend on. They enter the source fingerprint.",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "base": {
+            "description": "The comparison base. Required when the dimension applies; the change set is the diff from its merge-base with HEAD.",
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "scope": false,
+          "base": false
+        }
+      }
+    }
+  ]
+}

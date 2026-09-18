@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/skills/engineering/transpose-testing-patterns/references/journal-event.schema.json",
+  "title": "Testing patterns journal event 1.0.0",
+  "description": "One event of the append-only journal, filed through `evidence append --kind journal-event`. The event says what was run and what happened; the artifact hashes that make it provable are stamped by the gate, by role, and are not writable here. A replay is marked by the gate, never by the builder.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record",
+    "scenario",
+    "phase",
+    "command",
+    "exitCode",
+    "output"
+  ],
+  "properties": {
+    "record": {
+      "description": "The decision record this cycle belongs to.",
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario": {
+      "description": "The scenario identifier the record's sites map to.",
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "enum": [
+        "red",
+        "green",
+        "refactor"
+      ]
+    },
+    "command": {
+      "description": "The command as run, so it can be run again.",
+      "type": "string",
+      "minLength": 1
+    },
+    "exitCode": {
+      "type": "integer"
+    },
+    "cause": {
+      "description": "What the run reported, quoted from the tool. Required on a red event.",
+      "type": "string",
+      "minLength": 1
+    },
+    "failureClass": {
+      "description": "Required on a red event. `expected-behavior-missing` is the only class a TDD cycle's red is made of: the behavior is absent. `assertion-mismatch` says the behavior exists and disagrees. `setup-error` is setup work, not red.",
+      "enum": [
+        "expected-behavior-missing",
+        "assertion-mismatch",
+        "setup-error"
+      ]
+    },
+    "output": {
+      "description": "The captured output of the actual tool, as a path under the task's evidence or in the worktree.",
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "description": "An inspectable snapshot or a resolvable immutable ref for this phase.",
+      "type": "string",
+      "minLength": 1
+    },
+    "tests": {
+      "description": "Executed test identities for this scenario, so a claim of coverage maps to real tests.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "skipped": {
+      "description": "Skips, todos, expected failures and retries observed in this run.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "red"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "required": [
+          "cause",
+          "failureClass"
+        ],
+        "properties": {
+          "cause": {
+            "type": "string",
+            "minLength": 1
+          },
+          "failureClass": {
+            "enum": [
+              "expected-behavior-missing",
+              "assertion-mismatch",
+              "setup-error"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

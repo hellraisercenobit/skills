@@ -13,6 +13,16 @@ test('testing records accept direct and retained choices but reject invented or 
   const retained = structuredClone(example);
   retained.sites[0].decision.action = 'retain';
   assert.equal(validate(retained), true, JSON.stringify(validate.errors));
+  const dependent = structuredClone(example);
+  dependent.sites[0].oracle = {
+    ...dependent.sites[0].oracle, independence: 'dependent', reason: 'The legacy calculator is the only statement of the rule.',
+  };
+  assert.equal(validate(dependent), true, JSON.stringify(validate.errors));
+  const retainedWithoutOracle = structuredClone(example);
+  retainedWithoutOracle.sites[0].decision.action = 'retain';
+  delete retainedWithoutOracle.sites[0].oracle;
+  delete retainedWithoutOracle.sites[0].plausibleDefect;
+  assert.equal(validate(retainedWithoutOracle), true, JSON.stringify(validate.errors));
   const specialized = structuredClone(example);
   specialized.sites[0].decision.choice = 'specialized';
   specialized.sites[0].decision.patterns = ['TP-05'];
@@ -23,7 +33,18 @@ test('testing records accept direct and retained choices but reject invented or 
     r => { r.sites[0].decision.choice = 'specialized'; },
     r => { r.sites[0].alternatives = []; },
     r => { r.sites[0].alternatives[0].kind = 'alternative'; },
-    r => { r.sites[0].oracle = ''; },
+    r => { r.sites[0].oracle = 'Raw requirement supplies literal results.'; },
+    r => { delete r.sites[0].oracle; },
+    r => { delete r.sites[0].plausibleDefect; },
+    r => { r.sites[0].oracle.kind = 'vibes'; },
+    r => { r.sites[0].oracle.independence = 'dependent'; },
+    r => { r.sites[0].plausibleDefect = { description: 'off by one' }; },
+    r => { r.plans[0].role = 'fixture'; },
+    r => { delete r.plans; },
+    r => { delete r.cites; },
+    r => { r.cites[0].checkedAt = 'yesterday'; },
+    r => { r.contractVersions = ['0.9.0']; },
+    r => { r.schemaVersion = '1.0.0'; },
     r => { r.sites[0].invariants = []; },
     r => { delete r.inventory.execution; },
     r => { r.inventory.behavior.sites = []; },

@@ -1,0 +1,120 @@
+{
+  "dimension": "design-patterns",
+  "schemaVersion": "1.0.0",
+  "catalogVersion": "1.0.0",
+  "contractVersions": [
+    "1.0.0",
+    "1.1.0"
+  ],
+  "need": "Price an order for one of several tax regimes, with new regimes arriving from configuration.",
+  "scope": [
+    "src/pricing/"
+  ],
+  "base": "origin/main",
+  "revision": {
+    "number": 1,
+    "previous": null,
+    "reason": "Illustrative initial decision; replace all facts for a real execution."
+  },
+  "cites": [
+    {
+      "path": "src/pricing/price-order.ts",
+      "checkedAt": "2026-09-18",
+      "claim": "One function branches on a regime string read from configuration, and both callers repeat the branch.",
+      "covers": [
+        "src/pricing/price-order.ts:priceOrder"
+      ]
+    },
+    {
+      "path": "config/regimes.json",
+      "checkedAt": "2026-09-18",
+      "claim": "Regimes are listed in configuration, so the variant set is not closed by declaration.",
+      "covers": [
+        "extension",
+        "variability"
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "path": "src/pricing/tax-regime.ts",
+      "role": "implementation"
+    },
+    {
+      "path": "src/pricing/price-order.ts",
+      "role": "implementation"
+    }
+  ],
+  "forces": [
+    {
+      "force": "variability",
+      "value": "interchangeable-open",
+      "site": "src/pricing/price-order.ts branches on a regime key that config supplies."
+    },
+    {
+      "force": "extension",
+      "value": "many-sites",
+      "site": "The next regime edits priceOrder's branch, its two callers and the regime union."
+    },
+    {
+      "force": "creation-policy",
+      "value": "absent",
+      "site": "Regime objects are plain data; nothing decides how to construct them."
+    },
+    {
+      "force": "boundary-mismatch",
+      "value": "absent",
+      "site": "The configuration shape and the domain shape are the same record."
+    },
+    {
+      "force": "reusable-action",
+      "value": "absent",
+      "site": "Pricing has no operation that stands on its own away from the order."
+    },
+    {
+      "force": "composition",
+      "value": "sequential-steps",
+      "site": "Subtotal then tax then rounding, in one fixed order."
+    },
+    {
+      "force": "shared-lifecycle",
+      "value": "per-consumer",
+      "site": "Each request prices its own order; nothing is shared."
+    },
+    {
+      "force": "cross-cutting-behavior",
+      "value": "absent",
+      "site": "No concern wraps the pricing calls."
+    }
+  ],
+  "alternatives": [
+    "Current shape: a switch on the regime key inside priceOrder, repeated by both callers. Rejected because the set is open and the next regime costs four edits.",
+    "Registry: regimes self-register at load. Rejected because the regimes are known at build time and a registry hides which ones exist.",
+    "Strategy with a typed table: one regime module per regime, selected by a `satisfies Record<RegimeKey, TaxRegime>` table. Chosen."
+  ],
+  "decision": {
+    "pattern": "strategy",
+    "reason": "Interchangeable implementations of one responsibility, selected by a discriminator, with the table giving the compiler a completeness check.",
+    "extensionCost": "Today the next regime edits priceOrder's branch, both callers and the regime union: four sites. With the table it adds one module and one table entry, and the compiler reports the entry if it is missing.",
+    "reconsiderWhen": "Regimes start arriving at runtime from plugins, which makes this a Registry."
+  },
+  "framework": {
+    "name": "vanilla",
+    "transposition": "transpose-vanilla.md, Strategy: a module per variant and one `satisfies Record<K, S>` table at the composition root."
+  },
+  "artifacts": [
+    {
+      "file": "src/pricing/tax-regime.ts",
+      "symbol": "taxRegimes"
+    },
+    {
+      "file": "src/pricing/price-order.ts",
+      "symbol": "priceOrder"
+    }
+  ],
+  "invariants": [
+    "The table is typed with `satisfies Record<RegimeKey, TaxRegime>`, so a missing regime is a compile error.",
+    "priceOrder holds no regime branch: it looks the regime up and calls it.",
+    "Selection happens once, at the composition root; no caller repeats it."
+  ]
+}

@@ -1,17 +1,37 @@
 {
   "dimension": "modern-typescript",
-  "schemaVersion": "1.0.0",
-  "catalogVersion": "1.0.0",
-  "contractVersion": "1.0.0",
+  "schemaVersion": "2.0.0",
+  "catalogVersion": "1.1.0",
+  "contractVersions": [
+    "1.0.0",
+    "1.1.0"
+  ],
   "need": "Group already validated rows by their string category without changing order.",
   "scope": [
     "src/group.ts"
   ],
+  "base": "origin/main",
   "revision": {
     "number": 1,
     "previous": null,
     "reason": "Illustrative initial decision; replace all facts for a real execution."
   },
+  "cites": [
+    {
+      "path": "src/group.ts",
+      "checkedAt": "2026-09-16",
+      "claim": "The manual grouping loop this record replaces, read before deciding.",
+      "covers": [
+        "src/group.ts:groupRows"
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "path": "src/group.ts",
+      "role": "implementation"
+    }
+  ],
   "inventory": {
     "idioms": {
       "applicable": true,
@@ -87,7 +107,8 @@
       "ruleIds": [
         "MT-05",
         "MT-19",
-        "MT-23"
+        "MT-23",
+        "MT-24"
       ],
       "alternatives": [
         {
@@ -129,8 +150,23 @@
       ],
       "invariants": [
         "Preserve row identity and order within each category.",
-        "Empty input produces no groups; __proto__ remains a data key."
-      ]
+        "Empty input produces no groups; __proto__ remains a data key.",
+        "The returned record keeps the literal key type the helper exposed (MT-24)."
+      ],
+      "semanticDelta": {
+        "expected": "none",
+        "preserved": [
+          "ordering",
+          "duplicate-behavior",
+          "key-semantics"
+        ]
+      },
+      "consumption": {
+        "applicable": true,
+        "reason": "The function walks the whole input once and returns every group.",
+        "mode": "eager",
+        "cardinality": "bounded"
+      }
     }
   ]
 }

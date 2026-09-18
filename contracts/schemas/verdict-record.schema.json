@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/verdict-record.schema.json",
+  "title": "Attestation and report 1.0.0",
+  "description": "Written by the gate and by nobody else, in its index. An attestation stores a `SOUND` review envelope, a report a `SMELLS` or `VIOLATIONS` one. Both bind the envelope to the three fingerprints of the reviewer's window and to the identity the gate captured.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "id",
+    "dimension",
+    "task",
+    "round",
+    "filedAt",
+    "gateVersion",
+    "fingerprints",
+    "identity",
+    "envelope"
+  ],
+  "properties": {
+    "document": {
+      "enum": [
+        "attestation",
+        "report"
+      ]
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dimension": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "filedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gateVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fingerprints": {
+      "$ref": "#/$defs/fingerprints"
+    },
+    "identity": {
+      "$ref": "#/$defs/identity"
+    },
+    "envelope": {
+      "description": "The review envelope as filed. Validated against the review envelope schema before it is stored.",
+      "type": "object"
+    },
+    "openFindings": {
+      "description": "Finding identifiers still pending on a report: neither addressed, disputed nor closed by arbitration.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "fingerprints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "reference",
+        "decision"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session",
+        "verified"
+      ],
+      "properties": {
+        "session": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "agent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "agentType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "harness": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "verified": {
+          "description": "`false` where the harness provides no agent identifier. The state says so and completion still passes unless the marker requires verified identity.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "document": {
+            "const": "attestation"
+          }
+        },
+        "required": [
+          "document"
+        ]
+      },
+      "then": {
+        "properties": {
+          "envelope": {
+            "type": "object",
+            "properties": {
+              "verdict": {
+                "const": "SOUND"
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "envelope": {
+            "type": "object",
+            "properties": {
+              "verdict": {
+                "enum": [
+                  "SMELLS",
+                  "VIOLATIONS"
+                ]
+              }
+            },
+            "required": [
+              "verdict"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
