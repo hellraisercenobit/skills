@@ -212,7 +212,7 @@ function runHook(context, args) {
   if (args.name === 'can-stop') {
     const result = commandCanStopHook(context, agent.reentrant);
     if (result.ok) return { exitCode: 0 };
-    // Stop is injected into the builder conversation; compact names the next action. The driver asks for --full.
+    // Keep Stop compact. A full status leaks the reviewer brief into the builder conversation.
     return { stdout: JSON.stringify(stopBlock(renderStatus(context, result.view, { full: false }), harness)), exitCode: 0 };
   }
   if (args.name === 'fingerprint') {

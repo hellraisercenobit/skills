@@ -137,8 +137,12 @@ test('Stop hook does not inject dispatch briefs into the builder conversation', 
   const reason = blocked.json().reason;
   assert.doesNotMatch(reason, /Original request:/);
   assert.doesNotMatch(reason, /dispatch plan/);
+  assert.doesNotMatch(reason, /named in the plan/);
   assert.match(reason, /status --full/);
+  assert.match(reason, /design-pattern-reviewer/);
   assert.ok(reason.length < request.length);
+  const json = app.gate(['can-stop', '--json']).json();
+  assert.ok(json.completion.next.some(line => line.includes('design-pattern-reviewer')));
 });
 
 test('Stop allows a complete task', () => {
