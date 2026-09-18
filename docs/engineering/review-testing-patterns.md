@@ -21,9 +21,11 @@ suspected defect before confirmation. A persuasive record cannot establish a mis
 
 ## Prerequisites
 
-Install the transpose companion and matching references. A handoff needs an independent
-context with the [neutral brief](../../contracts/suite-contract.md#neutral-brief). If the named
-`testing-pattern-reviewer` agent is unavailable, a fresh general session is the fallback.
+Install the transpose companion and matching references. Route the reviewer to the adapter
+for the detected family; SOUND does not uniquely require Vitest. A handoff needs an
+independent context with the [neutral brief](../../contracts/suite-contract.md#neutral-brief).
+If the named `testing-pattern-reviewer` agent is unavailable, a fresh general session is
+the fallback.
 
 ## Results
 

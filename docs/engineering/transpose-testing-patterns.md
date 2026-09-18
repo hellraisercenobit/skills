@@ -21,9 +21,12 @@ observed TDD when appropriate, then requests a fresh read-only review under C01-
 
 ## Prerequisites
 
-Install both companions from the same revision and provide a fresh reviewer context. The
-first runner adapter is Vitest. Other runners permit catalog analysis, not a qualified
-transposition. Existing compatible versions can remain in use.
+Install both companions from the same revision and provide a fresh reviewer context. Runner
+families are adaptive: Vitest, and Karma + jasmine-core + Angular TestBed. Reference
+profiles (Vitest 5 / Vitest 4, and the live Angular 10 / Karma 6.3 / jasmine 3.5 / TS 4.0
+stack) are test targets, not the adapter's supported-version list. Neighbouring majors
+that still use the same runner shape stay on that adapter. Unknown runners permit catalog
+analysis, not a qualified transposition. Existing compatible versions can remain in use.
 
 ## Choose by behavior
 
