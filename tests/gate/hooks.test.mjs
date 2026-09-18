@@ -100,7 +100,7 @@ test('PreToolUse gates the dispatch of a registered reviewer agent', () => {
   assert.equal(other.stdout, '');
 });
 
-test('Stop blocks an incomplete task with the full status and honours reentrance', () => {
+test('Stop blocks an incomplete task with the compact status and honours reentrance', () => {
   const app = project();
   const blocked = app.gate(['can-stop', '--hook', '--harness', 'claude-code'], event({
     hook_event_name: 'Stop',
@@ -109,7 +109,9 @@ test('Stop blocks an incomplete task with the full status and honours reentrance
   assert.equal(blocked.code, 0);
   const payload = blocked.json();
   assert.equal(payload.decision, 'block');
-  assert.match(payload.reason, /## design-patterns/);
+  assert.match(payload.reason, /next: missing-declaration/);
+  assert.match(payload.reason, /status --full/);
+  assert.doesNotMatch(payload.reason, /## /);
 
   const reentrant = app.gate(['can-stop', '--hook', '--harness', 'claude-code'], event({
     hook_event_name: 'Stop',
@@ -117,6 +119,30 @@ test('Stop blocks an incomplete task with the full status and honours reentrance
     stop_hook_active: true,
   }));
   assert.equal(reentrant.stdout, '');
+});
+
+test('Stop hook does not inject dispatch briefs into the builder conversation', () => {
+  const request = `Support one more tax regime. ${'x'.repeat(20_000)}`;
+  const app = project();
+  app.gate(['declare', '--dimension', 'design-patterns', '--stdin'], pipe(declaration('design-patterns', { request })));
+  app.gate(['record', '--dimension', 'design-patterns', '--stdin'], pipe(designRecord()));
+  app.write('src/tax-regime.ts', 'export const taxRegimes = {};\n');
+  const full = app.gate(['can-stop', '--full']);
+  assert.match(full.stdout, /Original request:/);
+  assert.match(full.stdout, /dispatch plan/);
+  const blocked = app.gate(['can-stop', '--hook', '--harness', 'claude-code'], event({
+    hook_event_name: 'Stop',
+    session_id: 'session-builder',
+  }));
+  const reason = blocked.json().reason;
+  assert.doesNotMatch(reason, /Original request:/);
+  assert.doesNotMatch(reason, /dispatch plan/);
+  assert.doesNotMatch(reason, /named in the plan/);
+  assert.match(reason, /status --full/);
+  assert.match(reason, /design-pattern-reviewer/);
+  assert.ok(reason.length < request.length);
+  const json = app.gate(['can-stop', '--json']).json();
+  assert.ok(json.completion.next.some(line => line.includes('design-pattern-reviewer')));
 });
 
 test('Stop allows a complete task', () => {

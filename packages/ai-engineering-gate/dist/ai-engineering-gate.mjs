@@ -995,12 +995,24 @@ function dimensionState(context, dimension) {
   };
 }
 
+function nextAction(context, states, code) {
+  if (code === 'missing-review') {
+    const agents = [...new Set(
+      states
+        .filter(state => state.codes.includes(code))
+        .map(state => memberAgentType(memberOf(context, state.dimension))),
+    )];
+    if (agents.length > 0) return `dispatch a review round: launch ${agents.join(', ')}`;
+  }
+  return NEXT_ACTION[code] ?? 'read the full status';
+}
+
 const NEXT_ACTION = {
   'missing-declaration': 'park for the author: declare the dimension applicable or non-applicable with its reason, request and constraints',
   'missing-reason': 'park for the author: re-declare the dimension with the reason it does not apply',
   'missing-record': 'park for the author: write a decision record before the first affected write',
   'missing-evidence': 'park for the author: file the planned artifacts through `evidence append`',
-  'missing-review': 'dispatch a review round: launch the reviewer named in the plan',
+  'missing-review': 'dispatch a review round: launch the registered reviewer',
   'non-sound-review': 'park for the author: address or dispute every finding of the report',
   'remedies-pending': 'dispatch a review round once the builder executes each remedy, or dispute it with counter-evidence',
   'unresolved-dispute': 'park for the user: run `arbitrate` locally; no agent writes an arbitration',
@@ -1025,7 +1037,7 @@ function completionOf(context, states) {
   return {
     complete: unique.length === 0,
     codes: unique,
-    next: unique.map(code => `${code}: ${NEXT_ACTION[code] ?? 'read the full status'}`),
+    next: unique.map(code => `${code}: ${nextAction(context, states, code)}`),
   };
 }
 
@@ -2623,7 +2635,8 @@ function runHook(context, args) {
   if (args.name === 'can-stop') {
     const result = commandCanStopHook(context, agent.reentrant);
     if (result.ok) return { exitCode: 0 };
-    return { stdout: JSON.stringify(stopBlock(renderStatus(context, result.view, { full: true }), harness)), exitCode: 0 };
+    // Keep Stop compact. A full status leaks the reviewer brief into the builder conversation.
+    return { stdout: JSON.stringify(stopBlock(renderStatus(context, result.view, { full: false }), harness)), exitCode: 0 };
   }
   if (args.name === 'fingerprint') {
     return { exitCode: 0 };

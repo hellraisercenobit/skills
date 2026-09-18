@@ -159,7 +159,7 @@ Pick **one** publication lock. Mixing "hooks said it was fine" with "CI was gree
 
 ### Local harness
 
-The Claude Code plugin installs the gate plus hooks: `SessionStart` (compact status), `PreToolUse` (`can-write` / `can-review`), `Stop` (`can-stop`), and the optional `PostToolUse` / `SubagentStop` (fingerprint refresh and `release`; they never deny). A skills.sh copy and Codex need [the installer](#connect-claude-code-and-codex-hooks). `Stop` is advisory in both harnesses.
+The Claude Code plugin installs the gate plus hooks: `SessionStart` (compact status), `PreToolUse` (`can-write` / `can-review`), `Stop` (compact `can-stop`; briefs stay behind `--full`), and the optional `PostToolUse` / `SubagentStop` (fingerprint refresh and `release`; they never deny). A skills.sh copy and Codex need [the installer](#connect-claude-code-and-codex-hooks). `Stop` is advisory in both harnesses.
 
 ### With no-mistakes
 
