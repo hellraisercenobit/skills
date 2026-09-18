@@ -32,7 +32,9 @@ Codeception is an adaptive adapter (`transpose-codeception.md`), not a Vitest su
 Its first reference profile is Codeception 5.x Unit tests that use MySQL through
 `UnitTester` transactions, with optional `@group` filters and the project's actual
 `codecept` invocation. That profile is a test target, not an adoption pin: Codeception 4.x
-and 5.1.x lockfiles select the same adapter. Docker/`codecept` replay is not a gate
+and 5.1.x lockfiles select the same adapter. The pin lives in
+`tests/testing-patterns/codeception/` (`composer.json` + `codeception.yml`). Docker/`codecept`
+replay is not a gate command; without that pin, Codeception SOUND is incomplete.
 command; the member stays `implemented` until J fixtures exist.
 
 For raw evidence, use Vitest's JSON reporter and a directory outside the checkout:

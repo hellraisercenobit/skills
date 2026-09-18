@@ -40,7 +40,10 @@
       ],
       "properties": {
         "name": {
-          "const": "vitest"
+          "enum": [
+            "vitest",
+            "codeception"
+          ]
         },
         "version": {
           "const": "1.0.0"
@@ -157,7 +160,8 @@
         "language": {
           "enum": [
             "typescript",
-            "javascript"
+            "javascript",
+            "php"
           ]
         },
         "runner": {

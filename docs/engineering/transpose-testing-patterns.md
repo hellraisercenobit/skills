@@ -21,17 +21,21 @@ observed TDD when appropriate, then requests a fresh read-only review under C01-
 
 ## Prerequisites
 
-Install both companions from the same revision and provide a fresh reviewer context. The
-first qualified runner adapter is Vitest. Codeception has an adaptive adapter selected from
-the lockfile; its 5.x Unit+MySQL path is a reference profile, not an adoption pin. Other
-runners permit catalog analysis, not a qualified transposition. Existing compatible
-versions can remain in use.
+Install both companions from the same revision and provide a fresh reviewer context.
 
 ## Choose by behavior
 
 Direct examples, state, interaction, contract, property and characterization tests are
-alternatives with different guarantees. A factory, typed `vi.fn` or useful hook can be
-retained. Builders and ports require a concrete benefit; no specialized pattern is a valid choice.
+alternatives with different guarantees. Doubles follow the detected adapter (`vi.fn` on
+Vitest, `Codeception\\Stub` on Codeception). A factory or useful hook can be retained.
+Builders and ports require a concrete benefit; no specialized pattern is a valid choice.
+
+## Runner adapters
+
+The first qualified runner adapter is Vitest. Codeception has an adaptive adapter selected
+from the lockfile; its 5.x Unit+MySQL path is a reference profile, not an adoption pin.
+Other runners permit catalog analysis, not a qualified transposition. Existing compatible
+versions can remain in use.
 
 ## Evidence and delivery
 

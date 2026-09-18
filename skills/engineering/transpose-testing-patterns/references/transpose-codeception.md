@@ -44,8 +44,8 @@ Map each TP family from **profile predicates**, not from a single frozen 5.0 col
 | TP-03/04/08/10 | `Codeception\\Stub` / PHPUnit doubles on the installed pair | Those doubles at the chosen seam. No Vitest generics. Module-mock hoisting unavailable |
 | TP-05 | A PHP property library is already in the lockfile | Use that library. Otherwise unavailable; do not add `fast-check` |
 | TP-07/16 | Detected invocation and, when configured, `@group` / CI filters | Recorded command = actual command. Absence of a group filter is not a finding |
-| TP-09 | Project helpers exist | Use `getDefaultAccountId`, `tests/resources/modelHelper`, or whatever exists. Do not invent them |
-| TP-11 | Existing entry exists | `loadMfb` / `getLegacyController` when present. Do not invent a port |
+| TP-09 | A project helper is present in the suite | Use that helper. If none exists, do not invent `getDefaultAccountId` or `modelHelper` |
+| TP-11 | An existing entry is present | Use that entry. If `loadMfb` / `getLegacyController` are absent, do not invent a port |
 | TP-12 | PHP | Unavailable. No `expectTypeOf` |
 | TP-13 | PHPUnit/Codeception teardown | Teardown hooks and, when present, DB transaction lifecycle. No JS fake timers |
 | TP-14 | Suite actor / DB | Environment from the suite. MySQL when the Unit tester uses it; otherwise the suite's actor. `Codeception\\Test\\Unit` does not automatically mean no I/O |

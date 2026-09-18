@@ -21,7 +21,9 @@ suspected defect before confirmation. A persuasive record cannot establish a mis
 
 ## Prerequisites
 
-Install the transpose companion and matching references. A handoff needs an independent
+Install the transpose companion and matching references. Route Vitest to the Vitest
+adapter and Codeception to the Codeception adapter; SOUND on Codeception also needs the
+qualification pin under `tests/testing-patterns/codeception/`. A handoff needs an independent
 context with the [neutral brief](../../contracts/suite-contract.md#neutral-brief). If the named
 `testing-pattern-reviewer` agent is unavailable, a fresh general session is the fallback.
 
