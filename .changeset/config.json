@@ -6,12 +6,7 @@
   ],
   "commit": false,
   "privatePackages": { "version": true, "tag": true },
-  "fixed": [
-    [
-      "hellraisercenobit-skills",
-      "@hellraisercenobit/ai-engineering-gate"
-    ]
-  ],
+  "fixed": [],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
