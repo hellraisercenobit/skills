@@ -1,0 +1,44 @@
+{
+  "name": "@hellraisercenobit/ai-engineering-gate",
+  "version": "1.0.0",
+  "description": "Generic enforcement for the transpose/review engineering suite - registry, evidence, fingerprints, verdicts",
+  "keywords": [
+    "agent",
+    "skills",
+    "code-review",
+    "tdd",
+    "design-patterns"
+  ],
+  "author": {
+    "name": "Guillaume Mongin",
+    "url": "https://github.com/hellraisercenobit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hellraisercenobit/skills",
+    "directory": "packages/ai-engineering-gate"
+  },
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.10"
+  },
+  "bin": {
+    "ai-engineering-gate": "bin/ai-engineering-gate.mjs"
+  },
+  "exports": {
+    ".": "./src/main.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "contracts",
+    "skills",
+    "agents",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "node ../../scripts/stage-gate-package.mjs",
+    "postpack": "node ../../scripts/stage-gate-package.mjs --clean"
+  }
+}

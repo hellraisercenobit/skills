@@ -52,6 +52,17 @@
       }
     },
     "base": {
+      "$ref": "#/$defs/base"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "revision": {
+      "$ref": "#/$defs/revision"
+    }
+  },
+  "$defs": {
+    "base": {
       "description": "The comparison base. Required when the dimension applies; the change set is the diff from its merge-base with HEAD.",
       "type": "string",
       "minLength": 1
@@ -84,11 +95,6 @@
         }
       }
     },
-    "revision": {
-      "$ref": "#/$defs/revision"
-    }
-  },
-  "$defs": {
     "revision": {
       "description": "Same shape as a decision record's revision: revision 1 has no previous, a later one names it.",
       "type": "object",
@@ -166,37 +172,10 @@
         ],
         "properties": {
           "scope": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "paths"
-            ],
-            "properties": {
-              "paths": {
-                "description": "Repository-relative file paths or directory prefixes the dimension protects.",
-                "type": "array",
-                "minItems": 1,
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "configuration": {
-                "description": "Repository-relative configuration files the decisions depend on. They enter the source fingerprint.",
-                "type": "array",
-                "uniqueItems": true,
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              }
-            }
+            "$ref": "#/$defs/scope"
           },
           "base": {
-            "description": "The comparison base. Required when the dimension applies; the change set is the diff from its merge-base with HEAD.",
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/base"
           }
         }
       },
