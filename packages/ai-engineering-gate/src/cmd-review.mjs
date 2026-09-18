@@ -149,7 +149,7 @@ function fileVerdict(context, args, document, kind) {
   const rounds = readRounds(context.paths);
   const round = (rounds.round ?? 0) + (rounds.filedOn === current.source ? 0 : 1);
   const previous = verdicts(context.paths, 'attestation', dimension).at(-1) ?? null;
-  const id = writeVerdict(context.paths, kind, dimension, {
+  const verdict = {
     document: kind,
     documentVersion: '1.0.0',
     dimension,
@@ -166,7 +166,14 @@ function fileVerdict(context, args, document, kind) {
     envelope: document,
     ...(kind === 'report' ? { openFindings: document.findings.map(finding => finding.id) } : {}),
     warnings,
-  });
+  };
+  // The gate holds itself to the same schema it holds every writer to, so a drift in what it stores
+  // fails here rather than reappearing as an unreadable index later.
+  const stored = sharedErrors(context, 'verdict-record', { ...verdict, id: 'pending' });
+  if (stored.length > 0) {
+    throw new Error(`the gate composed a ${kind} its own schema refuses: ${stored.join('; ')}`);
+  }
+  const id = writeVerdict(context.paths, kind, dimension, verdict);
   closeWindow(context.paths, dimension, 'filed');
 
   // A dimension that was SOUND and turns non-SOUND on a state produced by correcting another is a

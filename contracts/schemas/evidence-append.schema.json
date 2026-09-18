@@ -41,6 +41,32 @@
     },
     "payload": {
       "description": "Opaque to the envelope. Validated against the member's evidence schema when its kind names one."
+    },
+    "filedAt": {
+      "description": "Stamped by the gate when the append is stored.",
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactHashes": {
+      "description": "Stamped by the gate: the content hash of every artifact the record planned, grouped by role, at the moment of the append.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "builder": {
+      "description": "Stamped by the gate: the identity it captured for the caller.",
+      "type": "object"
+    },
+    "replayed": {
+      "description": "Stamped by the gate: `true` only when the gate itself ran the scenario through `replay`.",
+      "type": "boolean"
     }
   }
 }

@@ -154,8 +154,15 @@ function place(context, worktree, plans) {
   }
 }
 
+// Variables a caller's own runner uses to talk to its children. Inherited, they change the reporter
+// and the exit code of the scenario, so a replay run from inside a test suite would read green where
+// a shell reads red.
+const RUNNER_PRIVATE = ['NODE_TEST_CONTEXT', 'NODE_V8_COVERAGE', 'VITEST', 'VITEST_WORKER_ID', 'JEST_WORKER_ID'];
+
 function run(command, cwd) {
-  const result = spawnSync(command, { cwd, shell: true, encoding: 'utf8', timeout: 10 * 60 * 1000 });
+  const env = { ...process.env };
+  for (const name of RUNNER_PRIVATE) delete env[name];
+  const result = spawnSync(command, { cwd, env, shell: true, encoding: 'utf8', timeout: 10 * 60 * 1000 });
   return {
     code: result.status ?? 1,
     output: `$ ${command}\n${result.stdout ?? ''}${result.stderr ?? ''}`,

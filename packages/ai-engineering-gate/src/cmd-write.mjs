@@ -155,7 +155,12 @@ export function commandEvidenceAppend(context, args, document) {
 
   const identity = captureIdentity(context, 'evidence', dimension);
   stampBuilder(context, identity);
-  const path = appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, document, identity, false));
+  const stamped = stampAppend(context, dimension, record, document, identity, false);
+  const stampErrors = sharedErrors(context, 'evidence-append', stamped);
+  if (stampErrors.length > 0) {
+    throw new Error(`the gate stamped an append its own schema refuses: ${stampErrors.join('; ')}`);
+  }
+  const path = appendEvidence(context.paths, dimension, stamped);
   return accept(`appended ${document.kind} to ${dimension} ${record.reference}`, {
     document: { kind: 'evidence-append', dimension, path },
   });

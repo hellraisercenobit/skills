@@ -1,11 +1,17 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 export const GATE = join(repoRoot, 'packages/ai-engineering-gate/bin/ai-engineering-gate.mjs');
+export const gateCommand = `node ${GATE}`;
+
+const shippedExample = dimension => JSON.parse(readFileSync(
+  join(repoRoot, 'skills/engineering', `transpose-${dimension}`, 'references/record.example.json'),
+  'utf8',
+));
 
 const created = [];
 
@@ -151,6 +157,33 @@ export const designRecord = (overrides = {}) => ({
   invariants: ['The table is typed with satisfies Record<RegimeKey, TaxRegime>.'],
   ...overrides,
 });
+
+// Derived from the record the skill ships, so a schema change breaks the fixture rather than letting
+// a stale copy pass. Only what the fixture repository must own is overridden.
+export const testingRecord = (overrides = {}) => {
+  const example = shippedExample('testing-patterns');
+  return {
+    ...example,
+    scope: ['src'],
+    base: 'main',
+    cites: [{
+      path: 'src/price-order.ts',
+      checkedAt: '2026-09-18',
+      claim: 'The module has no regime charge yet, so the behavior is new rather than characterized.',
+      covers: ['pricing'],
+    }],
+    plans: [
+      { path: 'src/price-order.test.ts', role: 'test' },
+      { path: 'src/price-order.ts', role: 'production' },
+    ],
+    sites: example.sites.map(site => ({
+      ...site,
+      artifacts: ['src/price-order.ts', 'src/price-order.test.ts'],
+      evidence: ['journal/price-order.jsonl'],
+    })),
+    ...overrides,
+  };
+};
 
 export const reviewEnvelope = (dimension, overrides = {}) => ({
   document: 'review-envelope',
