@@ -4,10 +4,11 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { getPackages } from '@manypkg/get-packages';
+import { assembleReleasePlan } from '@changesets/assemble-release-plan';
+import { readConfig } from '@changesets/config';
 import { readChangesets } from '@changesets/read';
+import { getPackages } from '@manypkg/get-packages';
 
-const changesetBin = resolve('node_modules/@changesets/cli/bin.js');
 const syncScript = resolve('scripts/sync-version.sh');
 
 test('pending changesets only name npm workspace packages', async () => {
@@ -15,19 +16,17 @@ test('pending changesets only name npm workspace packages', async () => {
   const names = new Set(workspace.packages.map((pkg) => pkg.packageJson.name));
   assert.ok(names.has('@hellraisercenobit/ai-engineering-gate'));
   assert.equal(names.has('hellraisercenobit-skills'), false);
-  for (const changeset of await readChangesets(process.cwd())) {
-    for (const release of changeset.releases) {
-      assert.ok(names.has(release.name), `${changeset.id} names ${release.name} which is not a workspace package`);
-    }
+  const { config, errors, warnings } = await readConfig(process.cwd(), workspace);
+  assert.equal(errors, undefined, errors?.join('\n'));
+  assert.equal(
+    warnings.filter((warning) => warning.includes('does not match any package')).length,
+    0,
+    warnings.join('\n'),
+  );
+  const plan = assembleReleasePlan(await readChangesets(process.cwd()), workspace, config, undefined);
+  for (const release of plan.releases) {
+    assert.ok(names.has(release.name), `plan includes ${release.name} which is not a workspace package`);
   }
-});
-
-test('changeset status accepts the workspace', () => {
-  const result = spawnSync(process.execPath, [changesetBin, 'status'], { encoding: 'utf8' });
-  const output = `${result.stdout}${result.stderr}`;
-  assert.equal(result.status, 0, output);
-  assert.doesNotMatch(output, /which is not in the workspace/);
-  assert.doesNotMatch(output, /does not match any package in the project/);
 });
 
 test('version sync copies the gate version onto the plugin manifests', async () => {
