@@ -17,6 +17,42 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:contract
+      - run: npm run check:gate
+      - run: npm run check:axi
+      - run: npm run test:gate
+  # When the repository carries the marker, the change must arrive with exported evidence whose three
+  # fingerprints recompute from a clean checkout. Without the marker this job is a no-op.
+  engineering-suite:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: marker
+        run: |
+          base="origin/${{ github.event.pull_request.base.ref }}"
+          if git cat-file -e "$base:.ai-engineering-suite.json" 2>/dev/null; then on_base=yes; else on_base=no; fi
+          if [ -f .ai-engineering-suite.json ]; then on_head=yes; else on_head=no; fi
+          echo "on_base=$on_base" >> "$GITHUB_OUTPUT"
+          echo "on_head=$on_head" >> "$GITHUB_OUTPUT"
+      - name: The marker cannot be dropped to skip the gate
+        if: steps.marker.outputs.on_base == 'yes' && steps.marker.outputs.on_head == 'no'
+        run: |
+          echo "the marker exists on the base ref and not on this head; the suite gate cannot be opted out of in a change" >&2
+          exit 1
+      - name: Verify the exported evidence from a clean checkout
+        if: steps.marker.outputs.on_head == 'yes'
+        run: |
+          exported="$(node -e "console.log(JSON.parse(require('fs').readFileSync('.ai-engineering-suite.json','utf8')).exportDirectory ?? '.engineering-suite')")"
+          node packages/ai-engineering-gate/dist/ai-engineering-gate.mjs can-stop --full \
+            --from-export --evidence-root "$exported" \
+            --base "origin/${{ github.event.pull_request.base.ref }}"
   testing-patterns:
     runs-on: ubuntu-latest
     steps:

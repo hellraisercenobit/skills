@@ -19,9 +19,12 @@
     "directory": "packages/ai-engineering-gate"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "engines": {
-    "node": ">=20.10"
+    "node": ">=24"
   },
   "bin": {
     "ai-engineering-gate": "bin/ai-engineering-gate.mjs"

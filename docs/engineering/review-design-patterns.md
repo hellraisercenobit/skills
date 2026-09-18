@@ -33,7 +33,7 @@ For every pattern-shaped site the reviewer writes one row - forces, expected pat
 
 ## Verdicts and catalog gaps
 
-`SOUND` is zero confirmed findings and the only verdict that completes a task; `SMELLS` is findings without a blocker; `VIOLATIONS` is at least one blocker. Only `SOUND` is attested (to `ai-engineering-gate` when the harness provides it). A credible structural smell the catalog does not cover is reported apart, under _Catalog gaps_, with no severity and no effect on the verdict: it feeds the catalog instead of letting the reviewer invent a rule.
+`SOUND` is zero confirmed findings and the only verdict that completes a task; `SMELLS` is findings without a blocker; `VIOLATIONS` is at least one blocker. File SOUND through `ai-engineering-gate attest --dimension design-patterns --stdin` after `begin`; file the others through `report`. A credible structural smell the catalog does not cover is reported apart, under _Catalog gaps_, with no severity and no effect on the verdict: it feeds the catalog instead of letting the reviewer invent a rule.
 
 ## Companion
 

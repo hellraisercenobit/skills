@@ -61,7 +61,7 @@ test('a dimension that turns non-SOUND after an attestation is a cross-dimension
     ...pipe(reviewEnvelope('design-patterns', { verdict: 'VIOLATIONS', findings: [judgmentFinding()] })),
     ...reviewer,
   });
-  assert.equal(filed.code, 0);
+  assert.equal(filed.code, 0, filed.stdout + filed.stderr);
   assert.match(filed.stdout, /warn: .*cross-dimension-conflict/);
 
   const status = app.gate(['status', '--json']).json();
@@ -132,6 +132,22 @@ test('a clean checkout verifies the exported evidence and refuses a version drif
     { env: { AI_ENGINEERING_GATE_ROOT: app.root } },
   );
   assert.equal(drifted.code, 1);
+});
+
+test('a detached CI checkout reads the task from the export instead of guessing it', () => {
+  const app = attested({ ...MARKER(['design-patterns']), exportDirectory: '.engineering-suite' });
+  app.git('add', '-A');
+  app.git('commit', '-m', 'the change');
+  app.gate(['export']);
+  app.git('checkout', '--detach');
+
+  const exported = join(app.root, '.engineering-suite');
+  const verified = app.gate(['can-stop', '--from-export', '--evidence-root', exported, '--base', 'main', '--json']);
+  assert.equal(verified.code, 0, verified.stdout);
+  assert.equal(verified.json().task, 'REF-1');
+
+  const guessed = app.gate(['can-stop', '--evidence-root', exported, '--base', 'main', '--json']);
+  assert.equal(guessed.json().task, 'detached-head');
 });
 
 test('the export directory never moves the source fingerprint', () => {

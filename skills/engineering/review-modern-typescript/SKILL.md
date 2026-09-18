@@ -52,9 +52,7 @@ the state the verdict binds to, captures who you are and refuses the builder of 
    Otherwise cite exact rule and evidence, refute the defense and propose a scoped fix.
    Demonstrated simplification can be Minor; age, missing fashionable syntax or taste
    cannot. No applicable rule means a catalog gap without severity or verdict impact.
-   The contract owns the three severity tiers; here Blocker is a concrete correctness or
-   support failure, Major a demonstrated structural cost or missing guarantee, and Minor
-   evidenced idiomatic drift that survived its defense.
+   Apply the contract's severity clause for Blocker, Major and Minor; do not restate it.
 6. **Report.** File through the window you opened, never beside it. Pipe a
    [review envelope](../transpose-modern-typescript/references/review-envelope.schema.json) to
    `ai-engineering-gate attest --dimension modern-typescript --stdin` for SOUND, and to

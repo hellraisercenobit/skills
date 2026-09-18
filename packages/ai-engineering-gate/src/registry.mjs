@@ -11,17 +11,20 @@ const SHARED_SCHEMAS = [
 
 // The gate resolves its members and its reference bundles from its own distribution root - the
 // plugin root, the npm package or this checkout - and never from the target project, so a
-// reference fingerprint means the same thing wherever the gate runs.
+// reference fingerprint means the same thing wherever the gate runs. Walk to the outermost
+// `contracts/members.json` so a staged copy inside the package never shadows this checkout.
 export function findDistributionRoot() {
   const override = process.env.AI_ENGINEERING_GATE_ROOT;
   if (override) return override;
   let directory = dirname(fileURLToPath(import.meta.url));
+  let found = null;
   for (let depth = 0; depth < 12; depth += 1) {
-    if (existsSync(join(directory, 'contracts/members.json'))) return directory;
+    if (existsSync(join(directory, 'contracts/members.json'))) found = directory;
     const parent = dirname(directory);
     if (parent === directory) break;
     directory = parent;
   }
+  if (found) return found;
   throw new Error('cannot resolve the gate distribution root: contracts/members.json not found');
 }
 

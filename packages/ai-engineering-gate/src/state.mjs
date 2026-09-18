@@ -191,21 +191,21 @@ export function dimensionState(context, dimension) {
 }
 
 const NEXT_ACTION = {
-  'missing-declaration': 'declare the dimension applicable or non-applicable with its reason, request and constraints',
-  'missing-reason': 're-declare the dimension with the reason it does not apply',
-  'missing-record': 'write a decision record before the first affected write',
-  'missing-evidence': 'file the planned artifacts through `evidence append`',
-  'missing-review': 'dispatch the reviewer named in the plan',
-  'non-sound-review': 'address or dispute every finding of the report',
-  'remedies-pending': 'execute each remedy and append its artifact, or dispute it with counter-evidence',
-  'unresolved-dispute': 'ask the user to run `arbitrate`; no agent writes an arbitration',
-  'arbitration-required': 'ask the user to arbitrate the repeating cross-dimension conflict',
-  'round-cap-reached': 'ask the user to arbitrate: the task reached its total round cap',
-  'stale-source': 'the code moved since the verdict; run a new round of reviews',
-  'stale-reference': 'a catalog, schema or guide moved; run a new round of reviews',
-  'stale-decision': 'a declaration or record moved; run a new round of reviews',
-  'review-in-flight': 'wait for the open review to file or release',
-  'gate-failure': 'the gate itself failed; read the error and fix the setup',
+  'missing-declaration': 'park for the author: declare the dimension applicable or non-applicable with its reason, request and constraints',
+  'missing-reason': 'park for the author: re-declare the dimension with the reason it does not apply',
+  'missing-record': 'park for the author: write a decision record before the first affected write',
+  'missing-evidence': 'park for the author: file the planned artifacts through `evidence append`',
+  'missing-review': 'dispatch a review round: launch the reviewer named in the plan',
+  'non-sound-review': 'park for the author: address or dispute every finding of the report',
+  'remedies-pending': 'dispatch a review round once the builder executes each remedy, or dispute it with counter-evidence',
+  'unresolved-dispute': 'park for the user: run `arbitrate` locally; no agent writes an arbitration',
+  'arbitration-required': 'park for the user: arbitrate the repeating cross-dimension conflict',
+  'round-cap-reached': 'park for the user: the task reached its total round cap',
+  'stale-source': 'dispatch a review round: the code moved since the verdict',
+  'stale-reference': 'dispatch a review round: a catalog, schema or guide moved',
+  'stale-decision': 'dispatch a review round: a declaration or record moved',
+  'review-in-flight': 'park for the author: wait for the open review to file or release',
+  'gate-failure': 'park as infrastructure: the gate itself failed; read the error and fix the setup',
 };
 
 export function completionOf(context, states) {
@@ -250,7 +250,7 @@ export function reviewReady(states) {
 
 export function blockingCause(states) {
   const applicable = states.filter(one => one.applicability === 'applicable');
-  for (const code of ['missing-record', 'missing-evidence', 'remedies-pending', 'unresolved-dispute', 'review-in-flight']) {
+  for (const code of ['missing-record', 'missing-evidence', 'remedies-pending', 'unresolved-dispute']) {
     if (applicable.some(one => one.codes.includes(code))) return code;
   }
   return null;

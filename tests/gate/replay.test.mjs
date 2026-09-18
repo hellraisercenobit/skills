@@ -98,6 +98,6 @@ test('a replay needs a record whose plans name a test and a production role', ()
     'replay', '--dimension', 'testing-patterns', '--record', 'rec-001@1',
     '--scenario', 'free', '--command', 'node --test test/shipping.test.mjs',
   ]);
-  assert.equal(refused.code, 2);
+  assert.equal(refused.code, 2, refused.stdout + refused.stderr);
   assert.match(refused.stdout, /role test and of role production/);
 });

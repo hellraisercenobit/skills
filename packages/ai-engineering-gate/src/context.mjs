@@ -7,7 +7,7 @@ import {
   findDistributionRoot, gateVersion, loadRegistry, referenceFingerprint, registeredMembers,
 } from './registry.mjs';
 import { findRepoRoot, readMarker, resolveEvidenceRoot, resolveTaskKey } from './repo.mjs';
-import { currentRecords, readDeclaration, taskPaths } from './store.mjs';
+import { currentRecords, listDirectories, readDeclaration, taskPaths } from './store.mjs';
 
 // Everything a command reads, resolved once. `marked` is false in a repository that carries no
 // marker, and every command then allows and prints nothing that blocks.
@@ -39,7 +39,9 @@ export function buildContext(options) {
   });
   context.task = resolveTaskKey({
     flag: options.task,
-    env: process.env.AI_ENGINEERING_GATE_TASK,
+    // A CI checkout is a detached merge ref, so no branch names the task. One export carries one
+    // task, which is a fact the export itself states better than a pipeline variable could.
+    env: process.env.AI_ENGINEERING_GATE_TASK ?? (options.fromExport ? soleTask(context.evidenceRoot) : null),
     repoRoot,
   });
   context.paths = taskPaths(context.evidenceRoot, context.task);
@@ -48,6 +50,11 @@ export function buildContext(options) {
   context.allowReplay = marker.allowReplay !== false;
   context.requireVerifiedIdentity = marker.requireVerifiedIdentity === true;
   return context;
+}
+
+function soleTask(evidenceRoot) {
+  const tasks = listDirectories(evidenceRoot).filter(name => name !== 'index');
+  return tasks.length === 1 ? tasks[0] : null;
 }
 
 // The command line the gate prints for the next step. It names the entry point it is running from,

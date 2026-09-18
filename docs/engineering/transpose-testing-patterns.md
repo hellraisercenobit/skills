@@ -37,4 +37,5 @@ Keep decisions outside the checkout before writes. Preserve actual RED/GREEN out
 inspectable states separately, compile production and tests, and map required scenarios to
 executed tests. Historical coverage must not be presented as observed TDD.
 See the [central setup and delivery guide](../../README.md#1-install-the-suite) for Claude
-Code/Codex hooks, direct PRs and no-mistakes. Hooks are reminders, not proof of completion.
+Code/Codex hooks, direct PRs and no-mistakes. `ai-engineering-gate can-stop` is the lock;
+hooks are advisory.

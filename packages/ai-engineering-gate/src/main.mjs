@@ -1,3 +1,8 @@
+import { realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { refuse } from './answer.mjs';
 import {
   commandArbitrate, commandDeclare, commandDispute, commandEvidenceAppend, commandRecord,
 } from './cmd-write.mjs';
@@ -95,13 +100,21 @@ function parseArguments(argv) {
   return args;
 }
 
+function documentRefusal(reason) {
+  const error = new Error(reason);
+  error.refusal = refuse('invalid-document', reason);
+  throw error;
+}
+
 function readDocument(args) {
   const raw = readStdin();
-  if (!raw.trim()) throw new Error(`${args.name} reads its document on stdin; pipe it and pass --stdin`);
+  if (!raw.trim()) {
+    documentRefusal(`${args.name} reads its document on stdin; pipe it and pass --stdin`);
+  }
   try {
     return JSON.parse(raw);
   } catch (error) {
-    throw new Error(`the document on stdin is not JSON: ${error.message}`);
+    documentRefusal(`the document on stdin is not JSON: ${error.message}`);
   }
 }
 
@@ -256,7 +269,12 @@ export function main(argv) {
   }
   let context;
   try {
-    context = buildContext({ harness: args.harness, task: args.task, evidenceRoot: args.evidenceRoot });
+    context = buildContext({
+      harness: args.harness,
+      task: args.task,
+      evidenceRoot: args.evidenceRoot,
+      fromExport: args.fromExport,
+    });
   } catch (error) {
     process.stderr.write(`gate-failure: ${error.message}\n`);
     return args.hook ? 2 : 1;
@@ -287,6 +305,11 @@ export function main(argv) {
     if (text) process.stdout.write(`${text}\n`);
     return result.ok ? 0 : 2;
   } catch (error) {
+    if (error.refusal) {
+      const text = render(context, args, error.refusal);
+      if (text) process.stdout.write(`${text}\n`);
+      return 2;
+    }
     if (args.json) {
       process.stdout.write(`${JSON.stringify({
         outputVersion: '1.0.0',
@@ -303,3 +326,14 @@ export function main(argv) {
     return 1;
   }
 }
+
+function invokedAsCli() {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(resolve(process.argv[1]));
+  } catch {
+    return false;
+  }
+}
+
+if (invokedAsCli()) process.exitCode = main(process.argv.slice(2));

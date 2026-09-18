@@ -70,7 +70,7 @@ The completion rule is **passing applicable checks AND current `SOUND` in every 
 
 These are **protocol requirements**, not an automatic guarantee of bug-free code. Reviewers can miss defects, share model blind spots or work from incomplete catalogs. The repository's [smoke fixtures](./tests/README.md) exercise representative behaviors; they do not establish a measured quality gain over rules alone. The process is designed to reduce omissions, unsupported decisions and stale approvals while making its limits visible.
 
-Enforcement depends on the delivery setup. Portable records and independent reports provide reviewable evidence. The [session hooks](#connect-claude-code-and-codex-hooks) provide reminders. Blocking publication requires a trusted verifier or compatible gate that checks completeness, reviewer identity and current state. **This repository does not ship that verifier.** Its no-mistakes integration is instruction-based; generic CI success is not a suite verdict.
+Enforcement is `ai-engineering-gate`. The plugin ships it; the npm package is a byte-identical distribution root. A repository opts in with `.ai-engineering-suite.json` at the root. Without that marker the gate prints nothing and allows. The exit code of `can-stop` is the publication lock; generic CI success is not a suite verdict.
 
 ## How the suite scales
 
@@ -95,7 +95,8 @@ This README owns the human entry point: strategy, installation, project policy, 
 | [Engineering skill pages](./docs/engineering/README.md) | Each tool's purpose, triggers and domain-specific usage |
 | Each `transpose-*/references/` bundle | Authoritative domain catalog, decision schema and applicable guides |
 | [Smoke validation](./tests/README.md) | Reproduce deterministic checks and behavioral evaluations; understand their limits |
-| [Glossary](./CONTEXT.md) | Definitions of dimension, decision record, frozen matrix, verdict and attestation |
+| [Glossary](./CONTEXT.md) | Definitions of marker, declaration, fingerprint, envelope, gate, verdict and attestation |
+| [Gate](./docs/ai-engineering-gate.md) | Commands, fingerprints, hooks and the AXI self-assessment |
 
 ## 1. Install the suite
 
@@ -220,146 +221,63 @@ The [suite guide](./docs/skill-suite.md) explains composition, fingerprints and 
 
 ## 4. Integrate with a delivery pipeline
 
-The suite supplies instructions, catalogs and schemas. The pipeline supplies execution, evidence access and publication controls. A generic code-review success does not establish the suite's independent verdicts.
+Two routes, one gate. The commands, hooks and evidence are identical whether a delivery pipeline exists or not; only who dispatches the reviews and what consumes the exit code differ. `can-stop` is the lock. `--full` is the payload under no-mistakes. `--json` is the payload under CI.
+
+Commit `.ai-engineering-suite.json` at the project root to opt in. See [the gate page](./docs/ai-engineering-gate.md) for the marker shape and the command set.
 
 ### Connect Claude Code and Codex hooks
 
-Installing these skills does **not** install hooks. A skill describes a procedure; a hook runs a command at an agent event. Printing `/transpose-design-patterns` from a hook does not execute that skill. The runnable setup below adds a session reminder; the project policy in step 2 still owns the workflow. See [Claude Code's hook guide](https://code.claude.com/docs/en/hooks-guide).
+The Claude Code plugin installs the gate and three hooks in one step: `SessionStart` injects the compact status, `PreToolUse` asks `can-write` on edit and shell tools and `can-review` on reviewer dispatches, `Stop` asks `can-stop`. SubagentStop is optional and never decides validity.
 
-1. In the **target project**, create `.agent-hooks/suite-context.json` with:
+A skills.sh copy and Codex are not covered by the plugin. From a checkout of this repository:
 
-   ```json
-   {
-     "hookSpecificOutput": {
-       "hookEventName": "SessionStart",
-       "additionalContext": "Follow the project's transpose/review policy. Before applicable edits, use applicable transpose-design-patterns, transpose-modern-typescript and transpose-testing-patterns skills and record decisions. After checks, obtain their fresh read-only review-design-patterns, review-modern-typescript and review-testing-patterns reviews. Keep their verdicts separate and current. Respect read-only reviewer roles. nuke-review and the comments skills are outside the suite."
-     }
-   }
-   ```
+```sh
+npm run install:hooks
+```
 
-2. For **Claude Code**, merge this into `.claude/settings.json`, preserving existing settings and hook arrays:
+That installer writes only the suite's own entries, so running it twice changes nothing and removing it leaves every other hook intact. Codex is claimed in Codex's own vocabulary (`preToolUse`, `beforeShellExecution`, `subagentStart`, `stop`). Nothing injects context at Codex `sessionStart`; the installer reports that limit instead of wiring a hook that answers into the void.
 
-   ```json
-   {
-     "hooks": {
-       "SessionStart": [{
-         "matcher": "startup|resume|clear|compact",
-         "hooks": [{
-           "type": "command",
-           "command": "cat \"$CLAUDE_PROJECT_DIR/.agent-hooks/suite-context.json\"",
-           "timeout": 5
-         }]
-       }]
-     }
-   }
-   ```
+Smoke-test before a real task: `ai-engineering-gate status` in a marked repository prints one row per dimension; the same command in an unmarked repository prints nothing. Restart the harness, open a fresh session, and confirm the compact status is in context. Keep independent reviewers outside the builder's context; a hook cannot establish that independence by itself. Stop is advisory in both harnesses; the lock is the exit code a pipeline or CI consumes.
 
-   Restart, open `/hooks`, and confirm the command is registered. It returns structured context to the model. The [hook reference](https://code.claude.com/docs/en/hooks#sessionstart) defines the event and output format.
-
-3. For **Codex**, create or merge `.codex/hooks.json`:
-
-   ```json
-   {
-     "hooks": {
-       "SessionStart": [{
-         "matcher": "startup|resume|clear|compact",
-         "hooks": [{
-           "type": "command",
-           "command": "cat \"$(git rev-parse --show-toplevel)/.agent-hooks/suite-context.json\"",
-           "timeout": 5
-         }]
-       }]
-     }
-   }
-   ```
-
-   Start Codex in this Git project, trust its project configuration, then inspect and trust the hook through `/hooks`. New or changed definitions require review. Use either `hooks.json` or inline hooks per config layer to avoid duplicates. Current [Codex hook documentation](https://learn.chatgpt.com/docs/hooks) covers supported versions, events and trust. `codex features list` reports local hook support.
-
-4. Smoke-test the wiring before a real task. From the project root, run each configured command and parse its output:
-
-   ```sh
-   CLAUDE_PROJECT_DIR="$PWD" sh -c 'cat "$CLAUDE_PROJECT_DIR/.agent-hooks/suite-context.json"' | python3 -m json.tool
-   sh -c 'cat "$(git rev-parse --show-toplevel)/.agent-hooks/suite-context.json"' | python3 -m json.tool
-   ```
-
-   Then start a fresh session in each harness. Ask it to report the hook context and resolve the six skills without editing. Check the hook log if context is absent. Repeat from a subdirectory and from the worktree used for delivery. Commit the three configuration files so that new worktrees receive them. These POSIX examples need `cat`, Git and a shell; adapt the command for a Windows-only environment.
-
-The event determines what a **separately implemented verifier** could enforce:
-
-| Event | Purpose for this suite |
+| Event | What the gate answers |
 | --- | --- |
-| `SessionStart` | Reminder and discovery, as configured above |
-| `PreToolUse` | Validate prior records before covered writes; return a supported denial to block |
-| `PostToolUse` | Invalidate evidence after changes; it cannot undo the write |
-| `Stop` / publication check | Verify current independent verdicts; a turn ending alone does not prove completion |
+| `SessionStart` | Compact status plus the gate command line |
+| `PreToolUse` | `can-write` / `can-review`; a denial is `permissionDecision: deny` |
+| `Stop` | `can-stop`; incomplete work becomes a block or a follow-up message |
 
-Agent hooks receive JSON on stdin and return event-specific output. `PreToolUse` supports `permissionDecision: "deny"` in `hookSpecificOutput`; a reminder supplies no permission decision. Match actual tool names: Claude edits use `Edit`/`Write`, Codex patches use `apply_patch` (also matched by `Edit`/`Write`), and shell tools match `Bash`. Shell scripts, MCP writes and external edits need coverage too. See [Claude events](https://code.claude.com/docs/en/hooks#pretooluse) and [Codex tool coverage](https://learn.chatgpt.com/docs/hooks#tool-coverage).
-
-No verifier or automatic review launcher ships here. A real blocker needs validated records, trusted reviewer identity, scope and reference hashes, and invalidation after changes. File existence or a builder-written `SOUND` is insufficient. `ai-engineering-gate` is an optional external integration named by the design pair, **not** an alias for no-mistakes and not installed by this repository. Verify its supported dimensions before connecting it. Keep independent reviewers outside the builder's context; a generic prompt hook cannot establish that independence by itself.
+See [Claude events](https://code.claude.com/docs/en/hooks#pretooluse) and [Codex tool coverage](https://learn.chatgpt.com/docs/hooks#tool-coverage).
 
 ### With no-mistakes
 
-1. Install and authenticate [no-mistakes and a supported agent](https://kunchenguid.github.io/no-mistakes/start-here/installation/). Install the suite for that same agent and operating-system user; repeat discovery in its execution environment.
-2. Initialize once inside the target Git repository and check setup:
+1. Install and authenticate [no-mistakes and a supported agent](https://kunchenguid.github.io/no-mistakes/start-here/installation/). Install the suite for that same agent and operating-system user, so the plugin loads inside pipeline agents too.
+2. Initialize once inside the target Git repository: `no-mistakes init` then `no-mistakes doctor`.
+3. Merge the [repository config this project ships](./.no-mistakes.yaml) into `.no-mistakes.yaml`. It declares a repository gate after `lint` whose command is `ai-engineering-gate can-stop --full`, makes the review agent the dispatcher, revalidates CI repairs through the local gates, and protects the marker and the export directory from automatic commits. Those fields take effect from the **trusted default branch**. Until they land there, dispatch the reviewers by hand from `status --full`.
+4. Implement through transpose, commit on a feature branch, then hand a **fresh driver session** the original request. Driver context is not the neutral brief. The driver starts `no-mistakes axi run --intent "..."`.
+5. The driver never answers the suite gate and never writes an arbitration. Completions codes route as follows:
 
-   ```sh
-   no-mistakes init
-   no-mistakes doctor
-   ```
+| Codes | Driver action |
+| --- | --- |
+| `stale-source`, `stale-reference`, `stale-decision`, `missing-review`, `remedies-pending` | `--action fix` so the repair agent executes the printed plan |
+| `arbitration-required`, `round-cap-reached`, `unresolved-dispute` | park and quote the exact `arbitrate` command for the user to run locally |
+| `missing-declaration`, `missing-reason`, `missing-record`, `missing-evidence`, `non-sound-review`, `review-in-flight` | park with the list; that work belongs to the author |
+| `gate-failure` | park as infrastructure |
 
-   `init` creates a local bare gate repository, installs its `post-receive` Git hook and configures the `no-mistakes` remote. Confirm with `git remote -v`. This hook starts delivery validation when that gate receives a push; it is separate from the agent hooks above. Let no-mistakes own its generated hook. See [installation](https://kunchenguid.github.io/no-mistakes/start-here/installation/) and the installed `no-mistakes init --help`.
-
-3. Keep the project policy and validation commands in place. Merge this guidance into the existing `.no-mistakes.yaml`:
-
-   ```yaml
-   review:
-     path_instructions:
-       - path: "*"
-         instructions: |
-           For applicable design-patterns, modern-typescript and testing-patterns dimensions,
-           obtain separate fresh read-only suite reviews with neutral briefs.
-           Freeze expectations before records. Missing companions, contaminated
-           context or unavailable independent sessions leave the suite incomplete.
-           Preserve separate domain reports and the pipeline's required output.
-           Do not infer suite SOUND from the generic pipeline review verdict.
-   ci:
-     revalidate_repairs: true
-   ```
-
-   These fields take effect from the **trusted default branch**, not only the branch under review. `*` matches basenames at any depth. Merge with existing settings and check installed-version support in the [configuration reference](https://kunchenguid.github.io/no-mistakes/reference/repo-config/#reviewpath_instructions).
-
-4. Implement through transpose, then commit on a feature branch. Hand a **fresh driver session** the goal, scope/base, constraints, decisions/trade-offs and evidence paths. Driver context is not the neutral brief for a suite reviewer. The driver starts:
-
-   ```sh
-   no-mistakes axi
-   no-mistakes axi run --intent "Describe the original task, constraints and accepted trade-offs here"
-   ```
-
-5. The driver handles active gates through `no-mistakes axi respond`; the pipeline owns fixes. A validation-step agent must not start another pipeline or push. Corrections invalidate overlapping reports and require fresh review. Inspect `no-mistakes axi status` and `no-mistakes axi logs --step review`.
-
-The fresh driver starts the run after the branch is committed. Do not launch `axi run` from `PreToolUse`, `PostToolUse` or `Stop`: pipeline agents trigger agent events too, which can create nested runs. The session reminder preserves the reviewer's read-only role and starts no pipeline.
-
-This is an **instruction-based integration**, not a bundled adapter or per-dimension attestation API. Verify neutral reviewer context and matching final hashes after documentation, formatting or CI repairs. The YAML does not enforce that correspondence automatically. Machine-enforced attestation requires an explicit supported gate interface or trusted verifier; an unsupported dimension leaves that workflow incomplete. This repository does not implement that adapter.
-
-### With another pipeline or a manual workflow
-
-Use **frame -> record -> implement -> checks -> fresh reviews -> verify final state -> publish**. Transfer complete companion bundles and external evidence to the execution environment. Run dimensions independently on the same frozen state, with separate verdicts and the [neutral brief](./contracts/suite-contract.md#neutral-brief).
-
-The coordinator checks coverage, reference versions, source fingerprints, records and results before publication. A shared-file edit invalidates every covering review. Without an enforcement mechanism this is portable evidence, not an automatic lock. An automated verifier must reject missing, stale or non-SOUND evidence and must not trust builder-written verdicts. Keep CI deterministic; live model evaluations are separate development checks.
+Do not launch `axi run` from a harness hook: pipeline agents trigger those events too. Approving or skipping the suite gate belongs to the user alone.
 
 ### Direct GitHub PR, without no-mistakes
 
-Keep the same agent hooks and project policy. After implementation, run the target project's checks and obtain the applicable fresh independent reviews. Verify that the reviewed source and reference hashes still match after the final commit. Then publish the feature branch directly:
+The same hooks and the same dispatcher, locally. For publication, `ai-engineering-gate export` copies the task's documents into the marker's `exportDirectory`. It refuses a dirty worktree, so a clean checkout will recompute the same fingerprints. Commit the export with the change. CI runs `can-stop --from-export` from a clean checkout: the source fingerprint from the merge-base, the reference fingerprint from the gate bundle CI installs, the decision fingerprint from the exported records. The check fails when the marker exists on the base ref and not on the head. Make that check required on the target branch.
 
 ```sh
+ai-engineering-gate export
+git add .engineering-suite
+git commit -m "chore: export suite evidence"
 git push -u origin HEAD
 gh pr create --base main --fill
 gh pr checks --watch
 ```
 
-Replace `main` with the actual PR target. Confirm the expected CI checks appear; an empty check list is not a pass. No no-mistakes initialization or remote is needed for this route. In the PR body, include scope/base, checks run, applicable dimensions, reviewer verdicts and the reviewed revision. Provide reviewer-accessible evidence links; a path under your own home directory is not accessible to other reviewers. Refresh affected reviews after any repair.
-
-Use the repository's existing `pre-push` hook manager for fast deterministic checks if desired, and configure required CI checks on the target branch. Do not replace an existing hook or start a live LLM review from every push. Local hooks can be bypassed; the required CI checks and merge policy protect the direct-PR route. Neither passing tests nor the session reminder proves a suite verdict. If machine-enforced suite validation is required, add a trusted verifier to CI before claiming that guarantee.
+Replace `main` with the actual PR target. An empty check list is not a pass. Local hooks can be bypassed; the required CI check is the lock on this route.
 
 ## Updates and troubleshooting
 
@@ -392,8 +310,8 @@ Use `--global` instead of `--project` for personal installs. For the plugin, run
 | Duplicate names | Multiple installations; retain the intended revision |
 | Missing companion or schema | Reinstall the complete pair from the same revision |
 | Works locally, not in a gate | Agent user, sandbox permissions, worktree and evidence paths |
-| no-mistakes ignores guidance | Trusted default-branch settings and matched rules in the review log |
-| Code changed after SOUND | Invalidate overlapping reports and obtain fresh reviews |
+| no-mistakes ignores the suite gate | Trusted default-branch `.no-mistakes.yaml`, `gates` after lint, and `ai-engineering-gate` on the daemon PATH |
+| Code changed after SOUND | The source fingerprint moved; `can-stop` fails until a fresh review round |
 
 ## Other engineering tools - outside the suite
 
@@ -417,6 +335,6 @@ If these tools are used in the same workflow, finish their edits before final su
 | [`skills/in-progress/`](./skills/in-progress/) | Drafts | no |
 | [`skills/deprecated/`](./skills/deprecated/) | Retired | no |
 
-Start a skill from [the template](./skills/in-progress/_template/) and follow [AGENTS.md](./AGENTS.md). Suite membership also requires [contract qualification](./docs/skill-suite.md#maintain-and-extend). After changing the canonical contract, run `npm run sync:contract`, `npm test` and `npm run check:contract`. See [smoke validation](./tests/README.md) for the complete development evaluation.
+Start a skill from [the template](./skills/in-progress/_template/) and follow [AGENTS.md](./AGENTS.md). Suite membership also requires [contract qualification](./docs/skill-suite.md#maintain-and-extend). After changing the canonical contract, run `npm run sync:contract`, `npm test` and `npm run check:contract`. After changing the gate, run `npm run check:gate`, `npm run check:axi` and `npm run test:gate`. See [smoke validation](./tests/README.md) for the complete development evaluation.
 
-Add a changeset for a release-worthy change. Once changes reach `main`, the [release workflow](./.github/workflows/release.yml) opens or updates the version PR; merging it advances versioning and tagging. Do not edit generated changelogs or manifest versions by hand. A feature-branch push alone does not publish a version.
+Add a changeset for a release-worthy change. Once changes reach `main`, the [release workflow](./.github/workflows/release.yml) opens or updates the version PR; merging it advances versioning, tags and publishes `@hellraisercenobit/ai-engineering-gate`. Do not edit generated changelogs, manifest versions or the gate bundle by hand. A feature-branch push alone does not publish a version.

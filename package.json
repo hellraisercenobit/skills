@@ -12,12 +12,16 @@
     "url": "https://github.com/hellraisercenobit/skills"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "build:gate": "node scripts/build-gate-bundle.mjs",
     "changeset": "changeset",
+    "check:axi": "node scripts/check-axi-surface.mjs",
     "check:contract": "node scripts/sync-suite-contract.mjs --check",
     "check:gate": "node scripts/build-gate-bundle.mjs --check",
     "install:hooks": "node scripts/install-gate-hooks.mjs",

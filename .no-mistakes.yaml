@@ -1,0 +1,25 @@
+# Trusted from the default branch. A pushed branch cannot drop the suite gate, weaken the review
+# instructions, skip CI revalidation or publish the marker and the export directory automatically.
+review:
+  path_instructions:
+    - path: "*"
+      instructions: |
+        You are the dispatcher for the engineering suite, not a substitute for its reviewers.
+        Run `ai-engineering-gate status --full`. When it prints a dispatch plan, launch every
+        named reviewer agent in one turn with the printed brief, wait for their filings, and
+        report the suite verdicts apart from this pipeline review. Do not infer suite SOUND
+        from a generic review verdict. Freeze expectations before opening records. Do not
+        write an arbitration: park and quote the exact `ai-engineering-gate arbitrate` command
+        for the user to run locally against the shared evidence root.
+
+gates:
+  - name: engineering-suite
+    after: lint
+    command: "ai-engineering-gate can-stop --full"
+
+ci:
+  revalidate_repairs: true
+
+protected_paths:
+  - ".ai-engineering-suite.json"
+  - ".engineering-suite/**"

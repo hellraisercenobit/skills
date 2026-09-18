@@ -185,23 +185,30 @@ export const testingRecord = (overrides = {}) => {
   };
 };
 
-export const reviewEnvelope = (dimension, overrides = {}) => ({
-  document: 'review-envelope',
-  documentVersion: '1.0.0',
-  dimension,
-  contractVersion: '1.1.0',
-  verdict: 'SOUND',
-  records: ['rec-001@1'],
-  checks: [{ command: 'npm test', outcome: 'passed', guarantee: 'the suite discriminates the change' }],
-  reviewer: {
-    independence: 'Fresh context; the brief carried the declaration only.',
-    identity: 'design-pattern-reviewer',
-    agentType: 'design-pattern-reviewer',
-  },
-  findings: [],
-  challengedSurvived: ['Strategy over a registry: the variant set is closed at build time.'],
-  ...overrides,
-});
+export const reviewEnvelope = (dimension, overrides = {}) => {
+  const agent = {
+    'design-patterns': 'design-pattern-reviewer',
+    'modern-typescript': 'modern-typescript-reviewer',
+    'testing-patterns': 'testing-pattern-reviewer',
+  }[dimension] ?? `${dimension}-reviewer`;
+  return {
+    document: 'review-envelope',
+    documentVersion: '1.0.0',
+    dimension,
+    contractVersion: '1.1.0',
+    verdict: 'SOUND',
+    records: ['rec-001@1'],
+    checks: [{ command: 'npm test', outcome: 'passed', guarantee: 'the suite discriminates the change' }],
+    reviewer: {
+      independence: 'Fresh context; the brief carried the declaration only.',
+      identity: agent,
+      agentType: agent,
+    },
+    findings: [],
+    challengedSurvived: ['The strongest alternative failed the extension-cost question.'],
+    ...overrides,
+  };
+};
 
 export const evidenceFinding = (overrides = {}) => ({
   id: 'F1',

@@ -2,7 +2,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -228,17 +228,20 @@ const SHARED_SCHEMAS = [
 
 // The gate resolves its members and its reference bundles from its own distribution root - the
 // plugin root, the npm package or this checkout - and never from the target project, so a
-// reference fingerprint means the same thing wherever the gate runs.
+// reference fingerprint means the same thing wherever the gate runs. Walk to the outermost
+// `contracts/members.json` so a staged copy inside the package never shadows this checkout.
 function findDistributionRoot() {
   const override = process.env.AI_ENGINEERING_GATE_ROOT;
   if (override) return override;
   let directory = dirname(fileURLToPath(import.meta.url));
+  let found = null;
   for (let depth = 0; depth < 12; depth += 1) {
-    if (existsSync(join(directory, 'contracts/members.json'))) return directory;
+    if (existsSync(join(directory, 'contracts/members.json'))) found = directory;
     const parent = dirname(directory);
     if (parent === directory) break;
     directory = parent;
   }
+  if (found) return found;
   throw new Error('cannot resolve the gate distribution root: contracts/members.json not found');
 }
 
@@ -608,7 +611,9 @@ function buildContext(options) {
   });
   context.task = resolveTaskKey({
     flag: options.task,
-    env: process.env.AI_ENGINEERING_GATE_TASK,
+    // A CI checkout is a detached merge ref, so no branch names the task. One export carries one
+    // task, which is a fact the export itself states better than a pipeline variable could.
+    env: process.env.AI_ENGINEERING_GATE_TASK ?? (options.fromExport ? soleTask(context.evidenceRoot) : null),
     repoRoot,
   });
   context.paths = taskPaths(context.evidenceRoot, context.task);
@@ -617,6 +622,11 @@ function buildContext(options) {
   context.allowReplay = marker.allowReplay !== false;
   context.requireVerifiedIdentity = marker.requireVerifiedIdentity === true;
   return context;
+}
+
+function soleTask(evidenceRoot) {
+  const tasks = listDirectories(evidenceRoot).filter(name => name !== 'index');
+  return tasks.length === 1 ? tasks[0] : null;
 }
 
 // The command line the gate prints for the next step. It names the entry point it is running from,
@@ -942,21 +952,21 @@ function dimensionState(context, dimension) {
 }
 
 const NEXT_ACTION = {
-  'missing-declaration': 'declare the dimension applicable or non-applicable with its reason, request and constraints',
-  'missing-reason': 're-declare the dimension with the reason it does not apply',
-  'missing-record': 'write a decision record before the first affected write',
-  'missing-evidence': 'file the planned artifacts through `evidence append`',
-  'missing-review': 'dispatch the reviewer named in the plan',
-  'non-sound-review': 'address or dispute every finding of the report',
-  'remedies-pending': 'execute each remedy and append its artifact, or dispute it with counter-evidence',
-  'unresolved-dispute': 'ask the user to run `arbitrate`; no agent writes an arbitration',
-  'arbitration-required': 'ask the user to arbitrate the repeating cross-dimension conflict',
-  'round-cap-reached': 'ask the user to arbitrate: the task reached its total round cap',
-  'stale-source': 'the code moved since the verdict; run a new round of reviews',
-  'stale-reference': 'a catalog, schema or guide moved; run a new round of reviews',
-  'stale-decision': 'a declaration or record moved; run a new round of reviews',
-  'review-in-flight': 'wait for the open review to file or release',
-  'gate-failure': 'the gate itself failed; read the error and fix the setup',
+  'missing-declaration': 'park for the author: declare the dimension applicable or non-applicable with its reason, request and constraints',
+  'missing-reason': 'park for the author: re-declare the dimension with the reason it does not apply',
+  'missing-record': 'park for the author: write a decision record before the first affected write',
+  'missing-evidence': 'park for the author: file the planned artifacts through `evidence append`',
+  'missing-review': 'dispatch a review round: launch the reviewer named in the plan',
+  'non-sound-review': 'park for the author: address or dispute every finding of the report',
+  'remedies-pending': 'dispatch a review round once the builder executes each remedy, or dispute it with counter-evidence',
+  'unresolved-dispute': 'park for the user: run `arbitrate` locally; no agent writes an arbitration',
+  'arbitration-required': 'park for the user: arbitrate the repeating cross-dimension conflict',
+  'round-cap-reached': 'park for the user: the task reached its total round cap',
+  'stale-source': 'dispatch a review round: the code moved since the verdict',
+  'stale-reference': 'dispatch a review round: a catalog, schema or guide moved',
+  'stale-decision': 'dispatch a review round: a declaration or record moved',
+  'review-in-flight': 'park for the author: wait for the open review to file or release',
+  'gate-failure': 'park as infrastructure: the gate itself failed; read the error and fix the setup',
 };
 
 function completionOf(context, states) {
@@ -1001,7 +1011,7 @@ function reviewReady(states) {
 
 function blockingCause(states) {
   const applicable = states.filter(one => one.applicability === 'applicable');
-  for (const code of ['missing-record', 'missing-evidence', 'remedies-pending', 'unresolved-dispute', 'review-in-flight']) {
+  for (const code of ['missing-record', 'missing-evidence', 'remedies-pending', 'unresolved-dispute']) {
     if (applicable.some(one => one.codes.includes(code))) return code;
   }
   return null;
@@ -2403,13 +2413,21 @@ function parseArguments(argv) {
   return args;
 }
 
+function documentRefusal(reason) {
+  const error = new Error(reason);
+  error.refusal = refuse('invalid-document', reason);
+  throw error;
+}
+
 function readDocument(args) {
   const raw = readStdin();
-  if (!raw.trim()) throw new Error(`${args.name} reads its document on stdin; pipe it and pass --stdin`);
+  if (!raw.trim()) {
+    documentRefusal(`${args.name} reads its document on stdin; pipe it and pass --stdin`);
+  }
   try {
     return JSON.parse(raw);
   } catch (error) {
-    throw new Error(`the document on stdin is not JSON: ${error.message}`);
+    documentRefusal(`the document on stdin is not JSON: ${error.message}`);
   }
 }
 
@@ -2564,7 +2582,12 @@ function main(argv) {
   }
   let context;
   try {
-    context = buildContext({ harness: args.harness, task: args.task, evidenceRoot: args.evidenceRoot });
+    context = buildContext({
+      harness: args.harness,
+      task: args.task,
+      evidenceRoot: args.evidenceRoot,
+      fromExport: args.fromExport,
+    });
   } catch (error) {
     process.stderr.write(`gate-failure: ${error.message}\n`);
     return args.hook ? 2 : 1;
@@ -2595,6 +2618,11 @@ function main(argv) {
     if (text) process.stdout.write(`${text}\n`);
     return result.ok ? 0 : 2;
   } catch (error) {
+    if (error.refusal) {
+      const text = render(context, args, error.refusal);
+      if (text) process.stdout.write(`${text}\n`);
+      return 2;
+    }
     if (args.json) {
       process.stdout.write(`${JSON.stringify({
         outputVersion: '1.0.0',
@@ -2611,6 +2639,17 @@ function main(argv) {
     return 1;
   }
 }
+
+function invokedAsCli() {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(resolve(process.argv[1]));
+  } catch {
+    return false;
+  }
+}
+
+if (invokedAsCli()) process.exitCode = main(process.argv.slice(2));
 
 export { main };
 

@@ -107,21 +107,9 @@ findings".
 
 ## Severity
 
-The [contract](../transpose-design-patterns/references/suite-contract.md) owns the three tiers; this section
-only says what each one is in this domain. Tie severity to impact, not to how clever the finding is.
-
-- **Blocker** - an **Avoid**-clause anti-pattern with concrete bite: `switch`/`constructor.name` on a type tag
-  as the extension mechanism, a DTO leaking into UI/template, global mutable state, exposed writable state, a
-  reuse-bound Command folded into a store. Correctness or maintainability will pay for it.
-- **Major** - wrong or missing pattern: a pattern-shaped need solved ad hoc, a `none` that fails the
-  extension-cost test, or a pattern misapplied (giant strategy class, a factory with no creation logic, a
-  hand-maintained enum where a Registry belongs); or a guide anti-pattern with structural cost (a process
-  boundary crossed on a cast without validation, business logic in a component or a controller).
-- **Minor** - transposition / idiom drift that the gate confirms as "works, not idiomatic" (e.g. constructor
-  injection over `inject()` in Angular, TS `private` over `#`, per-service YAML wiring where attributes
-  suffice in PHP).
-
-A catalog gap has no severity: it is not a finding (see _Catalog gaps_).
+The [contract](../transpose-design-patterns/references/suite-contract.md) owns Blocker, Major and Minor.
+Apply that clause. Tie the chosen tier to impact, not to how clever the finding is. A catalog gap has
+no severity: it is not a finding (see _Catalog gaps_).
 
 Each finding is also typed. A **judgment** finding says a recorded decision is wrong against the catalog and
 carries the `correction` to make. An **evidence** finding says an artifact the record planned is not on file

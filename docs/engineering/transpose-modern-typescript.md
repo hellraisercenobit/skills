@@ -41,7 +41,8 @@ always faster. Performance claims distinguish less algorithmic work from actual 
 
 Records preserve sites, targets/evidence, alternatives, choice, action, trade-offs and
 invariants. The reviewer freezes expectations before reading those records. Only current
-SOUND with passing checks completes the work, subject to any required gate support.
+SOUND with passing checks completes the work. File SOUND through
+`ai-engineering-gate attest --dimension modern-typescript --stdin` after `begin`.
 
 See [the shared suite guide](../skill-suite.md) for installation, composition, expiry,
-portable operation and contribution.
+the marker and contribution.

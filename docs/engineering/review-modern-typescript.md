@@ -33,5 +33,6 @@ recorded/actual, impact, defense, refutation and correction. Useful existing cho
 defended; catalog gaps are listed without changing the verdict.
 
 SOUND means complete with zero findings. SMELLS means findings without a Blocker; VIOLATIONS
-means at least one Blocker. Fixes belong to the builder and require another fresh review.
-See [the suite contract guide](../skill-suite.md) for verdict expiry and gate limitations.
+means at least one Blocker. File them through `ai-engineering-gate attest` or `report` after
+`begin`. Fixes belong to the builder and require another fresh review.
+See [the suite contract guide](../skill-suite.md) for verdict expiry and the gate.

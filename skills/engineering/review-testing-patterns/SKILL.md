@@ -68,9 +68,9 @@ the state the verdict binds to, captures who you are and refuses the builder of 
 ## Completion
 
 Use exactly SOUND (complete audit, no findings), SMELLS (findings without Blocker), or
-VIOLATIONS (a Blocker). The contract owns the three severity tiers. Missing prerequisites are
-incomplete execution, not a fourth verdict. A proposal verdict does not qualify runtime
-behavior.
+VIOLATIONS (a Blocker). Apply the contract's severity clause for Blocker, Major and Minor;
+do not restate it. Missing prerequisites are incomplete execution, not a fourth verdict.
+A proposal verdict does not qualify runtime behavior.
 
 File through the window you opened. Pipe a
 [review envelope](../transpose-testing-patterns/references/review-envelope.schema.json) to
