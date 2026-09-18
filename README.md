@@ -393,4 +393,4 @@ Finish those edits **before** final suite reviews.
 
 New skills start from [the template](./skills/in-progress/_template/). Suite membership also needs [contract qualification](./docs/skill-suite.md#maintain-and-extend). After a contract change: `npm run sync:contract`, `npm test`, `npm run check:contract`. After a gate change: `npm run check:gate`, `npm run check:axi`, `npm run test:gate`.
 
-Add a changeset for a release-worthy change. The [release workflow](./.github/workflows/release.yml) versions and publishes `@hellraisercenobit/ai-engineering-gate` from `main`. Do not edit generated changelogs, manifest versions or the gate bundle by hand.
+Add a changeset for a release-worthy change, targeting `@hellraisercenobit/ai-engineering-gate`. The [release workflow](./.github/workflows/release.yml) versions that package from `main` and copies the version onto the plugin manifests. Do not edit generated changelogs, manifest versions or the gate bundle by hand.

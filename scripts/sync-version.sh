@@ -9,7 +9,12 @@ const fs = require("fs");
 const read = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
 const write = (path, data) => fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
 
-const { version } = read("package.json");
+const gate = "packages/ai-engineering-gate/package.json";
+const { version } = read(gate);
+
+const root = read("package.json");
+root.version = version;
+write("package.json", root);
 
 const plugin = read(".claude-plugin/plugin.json");
 plugin.version = version;
@@ -22,12 +27,5 @@ for (const entry of marketplace.plugins) {
 }
 write(".claude-plugin/marketplace.json", marketplace);
 
-// The gate reports this version and the attestations record it, so a CI runner can require the same
-// gate that attested. It must never drift from the plugin's.
-const gate = "packages/ai-engineering-gate/package.json";
-const gatePackage = read(gate);
-gatePackage.version = version;
-write(gate, gatePackage);
-
-console.log(`synced version ${version} to plugin.json, marketplace.json and the gate package`);
+console.log(`synced version ${version} from the gate to package.json, plugin.json and marketplace.json`);
 JS

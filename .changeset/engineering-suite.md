@@ -1,5 +1,4 @@
 ---
-"hellraisercenobit-skills": minor
 "@hellraisercenobit/ai-engineering-gate": minor
 ---
 
