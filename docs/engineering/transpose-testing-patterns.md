@@ -36,6 +36,6 @@ retained. Builders and ports require a concrete benefit; no specialized pattern 
 Keep decisions outside the checkout before writes. Preserve actual RED/GREEN output and
 inspectable states separately, compile production and tests, and map required scenarios to
 executed tests. Historical coverage must not be presented as observed TDD.
-See the [central setup and delivery guide](../../README.md#1-install-the-suite) for Claude
-Code/Codex hooks, direct PRs and no-mistakes. `ai-engineering-gate can-stop` is the lock;
+See [how it fits the environment](../../README.md#how-it-fits-the-environment) for Claude
+Code/Codex hooks, no-mistakes and direct PRs. `ai-engineering-gate can-stop` is the lock;
 hooks are advisory.

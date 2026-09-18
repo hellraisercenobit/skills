@@ -33,7 +33,6 @@ export function hookAgent(event) {
   };
 }
 
-// Claude Code shapes.
 const claudeCode = {
   sessionContext: text => ({
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text },

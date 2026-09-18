@@ -165,7 +165,7 @@ export function dimensionState(context, dimension) {
     const wider = (record.document.scope ?? [])
       .some(path => !(declaration.scope?.paths ?? []).some(scope => matchesPattern(path, scope) || path.startsWith(scope)));
     if (wider && !warnings.includes('scope-wider-than-declaration')) warnings.push('scope-wider-than-declaration');
-    const claims = (record.document.cites ?? []).map(citation => citation.claim);
+    const claims = (record.document.cites ?? []).map(citation => `${citation.path}\0${citation.claim}`);
     if (new Set(claims).size !== claims.length && !warnings.includes('duplicate-evidence')) {
       warnings.push('duplicate-evidence');
     }

@@ -1,36 +1,54 @@
-import { handoffKey, noteBuilder, readBuilders, readHandoff, writeHandoff } from './store.mjs';
+import { handoffKey, invocationHash, noteBuilder, readBuilders, readHandoff, writeHandoff } from './store.mjs';
 
 // Harnesses that expose an agent identifier in hook input inside a subagent call. Elsewhere the
 // identity claim cannot be checked, and the gate says so rather than pretending it verified one.
 const HARNESSES_WITH_AGENT_IDENTITY = new Set(['claude-code']);
 const HANDOFF_LIFETIME_MS = 5 * 60 * 1000;
 
+function nonempty(value) {
+  return value ? value : null;
+}
+
 export function sessionIdentifier() {
-  return process.env.CLAUDE_SESSION_ID
-    ?? process.env.CODEX_SESSION_ID
-    ?? process.env.AI_ENGINEERING_GATE_SESSION
+  return nonempty(process.env.CLAUDE_SESSION_ID)
+    ?? nonempty(process.env.CODEX_SESSION_ID)
+    ?? nonempty(process.env.AI_ENGINEERING_GATE_SESSION)
     ?? null;
 }
 
-// A harness exposes its session identifier to the hook but not always to the tool call the hook is
-// about to allow, so the handoff is written under both keys and the invoked command consumes
-// whichever it can name.
-export function recordHandoff(context, { session, verb, dimension, agent, agentType, toolUseId }) {
+function toolUseIdentifier() {
+  return nonempty(process.env.CLAUDE_TOOL_USE_ID)
+    ?? nonempty(process.env.AI_ENGINEERING_GATE_TOOL_USE_ID)
+    ?? null;
+}
+
+// The hook sees a session id the invoked process sometimes does not, so both the tool-use key and
+// the session+command-hash key are written; a null-session twin is not, because a leftover of that
+// twin would make a typed command look like an agent.
+export function recordHandoff(context, { session, verb, dimension, agent, agentType, toolUseId, command }) {
+  const commandHash = invocationHash(command);
   const document = {
-    session, verb, dimension, agent, agentType, toolUseId,
+    session, verb, dimension, agent, agentType, toolUseId, commandHash,
     harness: context.harness,
     recordedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + HANDOFF_LIFETIME_MS).toISOString(),
     consumed: false,
   };
-  const keys = [...new Set([handoffKey(session, verb, dimension), handoffKey(null, verb, dimension)])];
+  const keys = [...new Set([
+    handoffKey(session, toolUseId, commandHash),
+    handoffKey(session, null, commandHash),
+  ])];
   for (const key of keys) writeHandoff(context.paths, key, document);
   return keys;
 }
 
-function takeHandoff(context, verb, dimension) {
+function takeHandoff(context) {
   const session = sessionIdentifier();
-  const keys = [...new Set([handoffKey(session, verb, dimension), handoffKey(null, verb, dimension)])];
+  const commandHash = invocationHash(process.argv.slice(1).join(' '));
+  const keys = [...new Set([
+    handoffKey(session, toolUseIdentifier(), commandHash),
+    handoffKey(session, null, commandHash),
+  ])];
   const found = keys
     .map(key => ({ key, stored: readHandoff(context.paths, key) }))
     .find(one => one.stored && !one.stored.consumed

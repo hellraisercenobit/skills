@@ -37,7 +37,7 @@ test('the bundle carries the validator and depends on nothing outside node', () 
 
 test('the plugin declares the three hooks against its own bundle, and no others', () => {
   const plugin = JSON.parse(readFileSync('.claude-plugin/plugin.json', 'utf8'));
-  assert.equal(plugin.hooks, './hooks/hooks.json');
+  assert.deepEqual(plugin.hooks, ['./hooks/hooks.json', './hooks/hooks.optional.json']);
   const { hooks } = JSON.parse(readFileSync('hooks/hooks.json', 'utf8'));
   assert.deepEqual(Object.keys(hooks), ['SessionStart', 'PreToolUse', 'Stop']);
   const commands = Object.values(hooks).flat().flatMap(entry => entry.hooks.map(one => one.command));
@@ -49,9 +49,10 @@ test('the plugin declares the three hooks against its own bundle, and no others'
   }
 });
 
-test('the optional wiring adds SubagentStop and never decides validity', () => {
+test('the optional wiring adds PostToolUse and SubagentStop and never decides validity', () => {
   const { hooks } = JSON.parse(readFileSync('hooks/hooks.optional.json', 'utf8'));
-  assert.deepEqual(Object.keys(hooks), ['SubagentStop']);
+  assert.deepEqual(Object.keys(hooks), ['PostToolUse', 'SubagentStop']);
+  assert.match(hooks.PostToolUse[0].hooks[0].command, /fingerprint --hook --harness claude-code/);
   assert.match(hooks.SubagentStop[0].hooks[0].command, /release --hook --harness claude-code/);
 });
 
@@ -76,7 +77,9 @@ test('the installer wires Claude Code idempotently and removes only its own entr
 
   const withOptional = run(installer, '--file', file, '--optional');
   assert.equal(withOptional.status, 0);
-  assert.ok('SubagentStop' in JSON.parse(readFileSync(file, 'utf8')).hooks);
+  const optionalHooks = JSON.parse(readFileSync(file, 'utf8')).hooks;
+  assert.ok('PostToolUse' in optionalHooks);
+  assert.ok('SubagentStop' in optionalHooks);
 });
 
 test('the installer preserves hooks it did not write', () => {
@@ -107,6 +110,7 @@ test('the Codex route uses Codex event names, its versioned file and states its 
   assert.equal(settings.version, 1);
   assert.equal(settings.hooks.beforeShellExecution[0].type, 'command');
   assert.match(settings.hooks.stop[0].command, /can-stop --hook --harness codex/);
+  assert.match(settings.hooks.preToolUse[0].matcher, /ApplyPatch/);
   assert.equal(run('scripts/install-gate-hooks.mjs', '--harness', 'codex', '--file', file, '--check').status, 0);
 });
 
@@ -141,6 +145,13 @@ test('plugin and npm distribution roots fingerprint the same references', () => 
   const staged = run('scripts/stage-gate-package.mjs');
   assert.equal(staged.status, 0, staged.stdout + staged.stderr);
   try {
+    const pluginBundle = readFileSync('packages/ai-engineering-gate/dist/ai-engineering-gate.mjs');
+    const npmBundle = readFileSync(resolve('packages/ai-engineering-gate/dist/ai-engineering-gate.mjs'));
+    assert.deepEqual(pluginBundle, npmBundle);
+    assert.deepEqual(
+      readFileSync('contracts/members.json'),
+      readFileSync(resolve('packages/ai-engineering-gate/contracts/members.json')),
+    );
     const app = makeProject({ marker: MARKER(['design-patterns']), files: { 'src/price-order.ts': 'export {}\n' } });
     app.gate(['declare', '--dimension', 'design-patterns', '--stdin'], pipe(declaration('design-patterns')));
     app.gate(['record', '--dimension', 'design-patterns', '--stdin'], pipe(designRecord({

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { accept, refuse } from './answer.mjs';
+import { excludedFromChangeSet } from './changeset.mjs';
 import { stampAppend } from './cmd-write.mjs';
 import { captureIdentity } from './identity.mjs';
 import { git } from './repo.mjs';
@@ -19,14 +20,15 @@ export function commandExport(context) {
   }
   const dirty = git(['status', '--porcelain'], context.repoRoot).stdout
     .split('\n')
-    .map(line => line.slice(3).trim())
+    .map(line => line.slice(3).trim().replace(/^.* -> /, ''))
     .filter(Boolean)
     .filter(path => !path.startsWith(directory));
-  if (dirty.length > 0) {
+  const change = dirty.filter(path => !excludedFromChangeSet(context, path));
+  if (change.length > 0) {
     return refuse(
       'state-moved',
-      'the worktree differs from HEAD, so a clean checkout would recompute different fingerprints; commit first',
-      dirty.slice(0, 20),
+      'HEAD would recompute different fingerprints than the attestations; commit the change set first',
+      change.slice(0, 20),
     );
   }
   const view = suiteView(context);
@@ -64,6 +66,32 @@ export function exportVerificationErrors(context, base) {
   return errors;
 }
 
+export function applyExportVerification(context, result, base) {
+  const errors = exportVerificationErrors(context, base);
+  if (errors.length === 0) return result;
+  const versionDrift = errors.some(one => one.includes('was filed by gate'));
+  const codes = new Set(result.view?.completion?.codes ?? []);
+  if (versionDrift) codes.add('stale-reference');
+  const view = result.view && {
+    ...result.view,
+    completion: {
+      complete: false,
+      codes: [...codes],
+      next: result.view.completion.next,
+    },
+  };
+  if (versionDrift) {
+    return { ok: false, view, details: errors };
+  }
+  return {
+    ok: false,
+    view,
+    code: 'invalid-document',
+    reason: 'the exported evidence does not verify against this checkout',
+    details: errors,
+  };
+}
+
 // The gate executes the replay, never the builder. An isolated copy at the record's base carries the
 // planned test artifacts alone, so the red it captures is a fact the gate stamped.
 export function commandReplay(context, args) {
@@ -98,32 +126,42 @@ export function commandReplay(context, args) {
     }
     place(context, worktree, tests);
     const red = run(args.command, worktree);
+    const identity = captureIdentity(context, 'replay', dimension);
+    const redEvent = appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
+      document: 'evidence-append',
+      documentVersion: '1.0.0',
+      dimension,
+      record: record.reference,
+      kind: 'journal-event',
+      payload: {
+        record: record.reference,
+        scenario: args.scenario ?? 'scenario',
+        phase: 'red',
+        command: args.command,
+        exitCode: red.code,
+        output: writeOutput(context, args.scenario, 'red', red.output),
+        cause: firstFailure(red.output),
+        failureClass: 'expected-behavior-missing',
+      },
+    }, identity, true, worktree));
     place(context, worktree, production);
     const green = run(args.command, worktree);
-    const identity = captureIdentity(context, 'replay', dimension);
-    const events = [
-      { phase: 'red', result: red, failureClass: 'expected-behavior-missing' },
-      { phase: 'green', result: green },
-    ].map(({ phase, result, failureClass }) => {
-      const output = join('replays', `${args.scenario ?? 'scenario'}-${phase}.txt`);
-      writeFileSync(ensure(join(context.paths.root, output)), result.output);
-      return appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
-        document: 'evidence-append',
-        documentVersion: '1.0.0',
-        dimension,
+    const greenEvent = appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
+      document: 'evidence-append',
+      documentVersion: '1.0.0',
+      dimension,
+      record: record.reference,
+      kind: 'journal-event',
+      payload: {
         record: record.reference,
-        kind: 'journal-event',
-        payload: {
-          record: record.reference,
-          scenario: args.scenario ?? 'scenario',
-          phase,
-          command: args.command,
-          exitCode: result.code,
-          output,
-          ...(phase === 'red' ? { cause: firstFailure(result.output), failureClass } : {}),
-        },
-      }, identity, true));
-    });
+        scenario: args.scenario ?? 'scenario',
+        phase: 'green',
+        command: args.command,
+        exitCode: green.code,
+        output: writeOutput(context, args.scenario, 'green', green.output),
+      },
+    }, identity, true, worktree));
+    const events = [redEvent, greenEvent];
     const lines = [
       `replayed ${dimension} ${record.reference} scenario ${args.scenario ?? 'scenario'}`,
       `red exit ${red.code}, green exit ${green.code}`,
@@ -137,6 +175,12 @@ export function commandReplay(context, args) {
     git(['worktree', 'remove', '--force', worktree], context.repoRoot);
     rmSync(isolated, { recursive: true, force: true });
   }
+}
+
+function writeOutput(context, scenario, phase, output) {
+  const relative = join('replays', `${scenario ?? 'scenario'}-${phase}.txt`);
+  writeFileSync(ensure(join(context.paths.root, relative)), output);
+  return relative;
 }
 
 function ensure(path) {

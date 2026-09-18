@@ -1,7 +1,8 @@
 This is the maintainer guide for composing and extending the transpose/review suite.
-Start with the [README](../README.md#how-the-suite-works) for the strategy, workflow diagram,
-value beyond project rules and step-by-step setup. [Contract 1.0.0](../contracts/suite-contract.md)
-is the authoritative execution protocol; this guide explains how to maintain pairs that follow it.
+Start with the [README](../README.md#how-the-suite-works) for the strategy, [CLI workflow](../README.md#the-workflow-and-the-cli),
+[environments](../README.md#how-it-fits-the-environment) (local hooks, no-mistakes, direct PR + CI) and setup.
+[Contract 1.1.0](../contracts/suite-contract.md)
+is the authoritative execution protocol; this guide explains how to maintain pairs that follow it. Adding a dimension never adds a hook: SessionStart, PreToolUse and Stop stay generic, and optional PostToolUse / SubagentStop never decide validity.
 
 ## Members and responsibilities
 

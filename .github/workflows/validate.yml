@@ -50,7 +50,7 @@ jobs:
         if: steps.marker.outputs.on_head == 'yes'
         run: |
           exported="$(node -e "console.log(JSON.parse(require('fs').readFileSync('.ai-engineering-suite.json','utf8')).exportDirectory ?? '.engineering-suite')")"
-          node packages/ai-engineering-gate/dist/ai-engineering-gate.mjs can-stop --full \
+          node packages/ai-engineering-gate/dist/ai-engineering-gate.mjs can-stop --json \
             --from-export --evidence-root "$exported" \
             --base "origin/${{ github.event.pull_request.base.ref }}"
   testing-patterns:

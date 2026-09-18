@@ -142,6 +142,10 @@ function toRepoRelative(repoRoot, path) {
 // A path the gate owns or publishes is never part of the state a verdict binds to: the export
 // directory carries the verdicts themselves, an evidence root inside the checkout is the index, and
 // the marker configures enforcement rather than describing the change.
+function excludedFromChangeSet(context, path) {
+  return excluded(context, path);
+}
+
 function excluded(context, path) {
   const { marker, repoRoot, evidenceRoot } = context;
   if (path === MARKER_FILE) return true;
@@ -269,19 +273,27 @@ function gateVersion(distributionRoot) {
 
 // The dimensions the project registered, resolved against the manifest. An identifier the manifest
 // does not carry is an unresolvable registry member, not a dimension the gate invents.
+function memberAgentType(member) {
+  return member.agent.split('/').pop().replace(/\.md$/, '');
+}
+
 function registeredMembers(registry, marker) {
-  if (marker.dimensions === 'all') return registry.members;
   const byName = new Map(registry.members.map(member => [member.dimension, member]));
-  return marker.dimensions.map(name => {
-    const member = byName.get(name);
-    if (!member) throw new Error(`the marker registers ${name}, which the member manifest does not`);
+  const selected = marker.dimensions === 'all'
+    ? registry.members
+    : marker.dimensions.map(name => {
+      const member = byName.get(name);
+      if (!member) throw new Error(`the marker registers ${name}, which the member manifest does not`);
+      return member;
+    });
+  for (const member of selected) {
     for (const path of [member.transpose, member.review, member.agent, member.decisionSchema]) {
       if (!existsSync(join(registry.root, path))) {
-        throw new Error(`registry member ${name} does not resolve ${path}`);
+        throw new Error(`registry member ${member.dimension} does not resolve ${path}`);
       }
     }
-    return member;
-  });
+  }
+  return selected;
 }
 
 function memberDecisionSchema(registry, member) {
@@ -542,11 +554,25 @@ function writeRounds(paths, value) {
   return writeJsonAtomic(join(paths.index, 'rounds.json'), value);
 }
 
-// A handoff carries the agent identity a PreToolUse hook saw, keyed on the session, the verb and the
-// dimension so the invoked command consumes exactly its own even when two reviewers run at once.
-// Its absence is what `arbitrate` reads as a human hand.
-function handoffKey(session, verb, dimension) {
-  return hashText(canonicalJson([session ?? '', verb ?? '', dimension ?? ''])).slice(7, 39);
+function readStopSnapshot(paths) {
+  return readJson(join(paths.index, 'stop-snapshot.json'));
+}
+
+function writeStopSnapshot(paths, value) {
+  return writeJsonAtomic(join(paths.index, 'stop-snapshot.json'), value);
+}
+
+function invocationHash(command) {
+  const tokens = String(command).trim().split(/\s+/).filter(Boolean);
+  const gateAt = tokens.findIndex(token => token.includes('ai-engineering-gate'));
+  const rest = gateAt >= 0 ? tokens.slice(gateAt + 1) : tokens;
+  return hashText(canonicalJson(rest));
+}
+
+// Keyed on session, tool-use id and the hash of the gate argv so two same-verb calls
+// stay distinct, and a leftover of another verb cannot be consumed as this one.
+function handoffKey(session, toolUseId, commandHash) {
+  return hashText(canonicalJson([session ?? '', toolUseId ?? '', commandHash ?? ''])).slice(7, 39);
 }
 
 function writeHandoff(paths, key, document) {
@@ -695,32 +721,50 @@ function undeclaredFor(context) {
 const HARNESSES_WITH_AGENT_IDENTITY = new Set(['claude-code']);
 const HANDOFF_LIFETIME_MS = 5 * 60 * 1000;
 
+function nonempty(value) {
+  return value ? value : null;
+}
+
 function sessionIdentifier() {
-  return process.env.CLAUDE_SESSION_ID
-    ?? process.env.CODEX_SESSION_ID
-    ?? process.env.AI_ENGINEERING_GATE_SESSION
+  return nonempty(process.env.CLAUDE_SESSION_ID)
+    ?? nonempty(process.env.CODEX_SESSION_ID)
+    ?? nonempty(process.env.AI_ENGINEERING_GATE_SESSION)
     ?? null;
 }
 
-// A harness exposes its session identifier to the hook but not always to the tool call the hook is
-// about to allow, so the handoff is written under both keys and the invoked command consumes
-// whichever it can name.
-function recordHandoff(context, { session, verb, dimension, agent, agentType, toolUseId }) {
+function toolUseIdentifier() {
+  return nonempty(process.env.CLAUDE_TOOL_USE_ID)
+    ?? nonempty(process.env.AI_ENGINEERING_GATE_TOOL_USE_ID)
+    ?? null;
+}
+
+// The hook sees a session id the invoked process sometimes does not, so both the tool-use key and
+// the session+command-hash key are written; a null-session twin is not, because a leftover of that
+// twin would make a typed command look like an agent.
+function recordHandoff(context, { session, verb, dimension, agent, agentType, toolUseId, command }) {
+  const commandHash = invocationHash(command);
   const document = {
-    session, verb, dimension, agent, agentType, toolUseId,
+    session, verb, dimension, agent, agentType, toolUseId, commandHash,
     harness: context.harness,
     recordedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + HANDOFF_LIFETIME_MS).toISOString(),
     consumed: false,
   };
-  const keys = [...new Set([handoffKey(session, verb, dimension), handoffKey(null, verb, dimension)])];
+  const keys = [...new Set([
+    handoffKey(session, toolUseId, commandHash),
+    handoffKey(session, null, commandHash),
+  ])];
   for (const key of keys) writeHandoff(context.paths, key, document);
   return keys;
 }
 
-function takeHandoff(context, verb, dimension) {
+function takeHandoff(context) {
   const session = sessionIdentifier();
-  const keys = [...new Set([handoffKey(session, verb, dimension), handoffKey(null, verb, dimension)])];
+  const commandHash = invocationHash(process.argv.slice(1).join(' '));
+  const keys = [...new Set([
+    handoffKey(session, toolUseIdentifier(), commandHash),
+    handoffKey(session, null, commandHash),
+  ])];
   const found = keys
     .map(key => ({ key, stored: readHandoff(context.paths, key) }))
     .find(one => one.stored && !one.stored.consumed
@@ -926,7 +970,7 @@ function dimensionState(context, dimension) {
     const wider = (record.document.scope ?? [])
       .some(path => !(declaration.scope?.paths ?? []).some(scope => matchesPattern(path, scope) || path.startsWith(scope)));
     if (wider && !warnings.includes('scope-wider-than-declaration')) warnings.push('scope-wider-than-declaration');
-    const claims = (record.document.cites ?? []).map(citation => citation.claim);
+    const claims = (record.document.cites ?? []).map(citation => `${citation.path}\0${citation.claim}`);
     if (new Set(claims).size !== claims.length && !warnings.includes('duplicate-evidence')) {
       warnings.push('duplicate-evidence');
     }
@@ -1220,7 +1264,6 @@ const valid = (schema, value, root) => {
   return errors.length === 0;
 };
 
-// Returns the empty array when the value conforms, or every violation as `<path>: <message>`.
 function schemaErrors(schema, value) {
   const errors = [];
   check(schema, value, '', schema, errors);
@@ -1492,10 +1535,10 @@ function commandEvidenceAppend(context, args, document) {
 
 // Every append carries the content hashes of the record's planned artifacts, by role, so an event
 // proves the state of test and production files at the moment it was filed.
-function stampAppend(context, dimension, record, document, identity, replayed) {
+function stampAppend(context, dimension, record, document, identity, replayed, hashRoot = context.repoRoot) {
   const roles = {};
   for (const plan of record.document.plans ?? []) {
-    const digest = hashFile(join(context.repoRoot, plan.path)) ?? hashFile(join(context.paths.root, plan.path));
+    const digest = hashFile(join(hashRoot, plan.path)) ?? hashFile(join(context.paths.root, plan.path));
     roles[plan.role] = { ...(roles[plan.role] ?? {}), [plan.path]: digest };
   }
   return {
@@ -1603,7 +1646,7 @@ function neutralBrief(context, state, view) {
     lines.push(`Relevant configuration: ${declaration.scope.configuration.join(', ')}.`);
   }
   if (state.warnings.includes('duplicate-evidence')) {
-    lines.push('Note: two cited evidence items in one record carry the same claim.');
+    lines.push('Note: two cited evidence items in one record are identical.');
   }
   if (conflict) {
     lines.push('Note: this dimension turned non-SOUND on a state produced by correcting another; the conflicting findings are in the previous reports.');
@@ -1629,7 +1672,7 @@ function dispatchPlan(context, view) {
       const fingerprints = fingerprintsOf(context, state.dimension, state.declaration);
       return {
         dimension: state.dimension,
-        agent: member.agent.split('/').pop().replace(/\.md$/, ''),
+        agent: memberAgentType(member),
         skill: member.review.split('/').pop(),
         fingerprints: {
           source: fingerprints.source,
@@ -1660,6 +1703,20 @@ function commandCanStop(context) {
   return { ok: view.completion.complete, view };
 }
 
+function commandCanStopHook(context, reentrant) {
+  const view = suiteView(context);
+  if (view.completion.complete) return { ok: true, view, silent: true };
+  const fingerprint = hashJson(view.states.map(state => ({
+    dimension: state.dimension,
+    fingerprints: state.fingerprints ?? null,
+    codes: state.codes,
+  })));
+  const previous = readStopSnapshot(context.paths);
+  if (reentrant && previous?.fingerprint === fingerprint) return { ok: true, view, silent: true };
+  writeStopSnapshot(context.paths, { fingerprint });
+  return { ok: false, view };
+}
+
 // The text form answers the one question a builder asks - what does the gate see right now - while
 // `--json` stays the single status shape, whose dimensions already carry the same three digests.
 function commandFingerprint(context, args) {
@@ -1672,10 +1729,11 @@ function commandFingerprint(context, args) {
   return { ok: true, text: lines.join('\n'), view: suiteView(context) };
 }
 
-const WRITE_FORM = /(^|[\s;&|])(>|>>|tee\b|sed\s+-i|perl\s+-i|install\b|truncate\b|dd\b|mv\b|cp\b|rm\b|chmod\b|chown\b|ln\b)|git\s+(apply|checkout|restore|stash|clean|rm|mv)\b|\bpatch\b/u;
+const WRITE_FORM = /(^|[\s;&|])(>|>>|tee\b|sed\s+-i|perl\s+-i|mv\b|cp\b)|git\s+(apply|checkout|restore|stash|clean|rm|mv)\b|\bpatch\b/u;
 
 // `can-write` is mechanical only. It decides by file path, never by the content of a write, and it
-// never infers applicability for the builder: a path outside every declared scope passes.
+// never infers applicability for the builder: a path outside every declared scope passes, except
+// while a review window is open, when the whole change set is frozen.
 function commandCanWrite(context, args) {
   const paths = args.paths ?? [];
   const command = args.command ?? null;
@@ -1692,9 +1750,21 @@ function commandCanWrite(context, args) {
     return refuse('invalid-document', `the gate index is written by gate commands only: ${context.paths.index}`);
   }
 
+  const relatives = paths.map(path => toRepoRelative(context.repoRoot, path));
+  if (openWindows.length > 0) {
+    const hitsChangeSet = relatives.some(path => path && !excludedFromChangeSet(context, path))
+      || (command !== null && WRITE_FORM.test(command));
+    if (hitsChangeSet) {
+      return refuse(
+        'review-in-flight',
+        `a review is in flight on ${openWindows.join(', ')}; wait for it to file or release before editing the change set`,
+        openWindows,
+      );
+    }
+  }
+
   const scoped = [];
-  for (const path of paths) {
-    const relative = toRepoRelative(context.repoRoot, path);
+  for (const relative of relatives) {
     for (const dimension of coveringDimensions(relative, all)) {
       if (!scoped.includes(dimension)) scoped.push(dimension);
     }
@@ -1710,13 +1780,6 @@ function commandCanWrite(context, args) {
     return accept(paths.length > 0
       ? `allowed: no declared scope covers ${paths.join(', ')}`
       : 'allowed: nothing in a declared scope');
-  }
-  if (openWindows.length > 0) {
-    return refuse(
-      'review-in-flight',
-      `a review is in flight on ${openWindows.join(', ')}; wait for it to file or release before editing the change set`,
-      openWindows,
-    );
   }
   const without = scoped.filter(dimension => currentRecords(context.paths, dimension).length === 0);
   if (without.length > 0) {
@@ -1754,10 +1817,6 @@ function shellCommand(toolInput) {
     if (typeof toolInput?.[key] === 'string') return toolInput[key];
   }
   return null;
-}
-
-function isIgnoredByMarker(context, path) {
-  return (context.marker.ignore ?? []).some(pattern => matchesPattern(path, pattern));
 }
 
 // packages/ai-engineering-gate/src/cmd-review.mjs
@@ -1798,8 +1857,6 @@ function commandCanReview(context, args) {
   return accept(`allowed: ${dimension} is ready for a fresh review`);
 }
 
-// A reviewer's first gate call. It opens the window, snapshots the state the verdict will bind to and
-// captures the caller identity, whatever route dispatched it.
 function commandBegin(context, args) {
   const dimension = args.dimension;
   const readiness = reviewReadiness(context, dimension);
@@ -1893,7 +1950,7 @@ function fileVerdict(context, args, document, kind) {
   const warnings = [];
   if (ignoredFingerprints(document)) warnings.push('fingerprint-ignored');
   if (!identity.verified) warnings.push('identity-unverified');
-  if (document.reviewer.agentType && document.reviewer.agentType !== member.agent.split('/').pop().replace(/\.md$/, '')) {
+  if (document.reviewer.agentType && document.reviewer.agentType !== memberAgentType(member)) {
     warnings.push('identity-unverified');
   }
 
@@ -1932,12 +1989,20 @@ function fileVerdict(context, args, document, kind) {
   const conflict = kind === 'report' && previous !== null;
   const conflicts = new Set(rounds.conflicts ?? []);
   if (conflict) conflicts.add(dimension);
+  const sameState = rounds.filedOn === current.source;
+  let conflictRounds = rounds.conflictRounds ?? 0;
+  if (!sameState) {
+    conflictRounds = conflict ? ((rounds.roundConflicted ? conflictRounds : 0) + 1) : 0;
+  } else if (conflict && !rounds.roundConflicted) {
+    conflictRounds += 1;
+  }
   writeRounds(context.paths, {
     ...rounds,
     round,
     filedOn: current.source,
     conflicts: [...conflicts],
-    conflictRounds: conflict ? (rounds.conflictRounds ?? 0) + 1 : (conflicts.size === 0 ? 0 : rounds.conflictRounds ?? 0),
+    roundConflicted: sameState ? Boolean(rounds.roundConflicted) || conflict : conflict,
+    conflictRounds,
     history: [...(rounds.history ?? []), { round, dimension, verdict: document.verdict, id }],
   });
 
@@ -1960,20 +2025,12 @@ function commandReport(context, args, document) {
   return fileVerdict(context, args, document, 'report');
 }
 
-// A reviewer that ended without filing. Recorded, shown in the status, and the window is freed.
 function commandRelease(context, args) {
   const dimension = args.dimension;
   if (!dimension) return accept('nothing to release: no dimension named');
   const released = closeWindow(context.paths, dimension, 'released');
   if (!released) return accept(`no open window for ${dimension}`);
   return accept(`released the open review window for ${dimension}\nnext: dispatch a fresh reviewer for ${dimension}`);
-}
-
-function pendingFindingsOf(context, dimension) {
-  const state = dimensionState(context, dimension);
-  const report = verdicts(context.paths, 'report', dimension).at(-1) ?? null;
-  const status = findingStatus(context, dimension, report, currentRecords(context.paths, dimension), state.fingerprints ?? {});
-  return status.pending;
 }
 
 // packages/ai-engineering-gate/src/cmd-transfer.mjs
@@ -1986,14 +2043,15 @@ function commandExport(context) {
   }
   const dirty = git(['status', '--porcelain'], context.repoRoot).stdout
     .split('\n')
-    .map(line => line.slice(3).trim())
+    .map(line => line.slice(3).trim().replace(/^.* -> /, ''))
     .filter(Boolean)
     .filter(path => !path.startsWith(directory));
-  if (dirty.length > 0) {
+  const change = dirty.filter(path => !excludedFromChangeSet(context, path));
+  if (change.length > 0) {
     return refuse(
       'state-moved',
-      'the worktree differs from HEAD, so a clean checkout would recompute different fingerprints; commit first',
-      dirty.slice(0, 20),
+      'HEAD would recompute different fingerprints than the attestations; commit the change set first',
+      change.slice(0, 20),
     );
   }
   const view = suiteView(context);
@@ -2031,6 +2089,32 @@ function exportVerificationErrors(context, base) {
   return errors;
 }
 
+function applyExportVerification(context, result, base) {
+  const errors = exportVerificationErrors(context, base);
+  if (errors.length === 0) return result;
+  const versionDrift = errors.some(one => one.includes('was filed by gate'));
+  const codes = new Set(result.view?.completion?.codes ?? []);
+  if (versionDrift) codes.add('stale-reference');
+  const view = result.view && {
+    ...result.view,
+    completion: {
+      complete: false,
+      codes: [...codes],
+      next: result.view.completion.next,
+    },
+  };
+  if (versionDrift) {
+    return { ok: false, view, details: errors };
+  }
+  return {
+    ok: false,
+    view,
+    code: 'invalid-document',
+    reason: 'the exported evidence does not verify against this checkout',
+    details: errors,
+  };
+}
+
 // The gate executes the replay, never the builder. An isolated copy at the record's base carries the
 // planned test artifacts alone, so the red it captures is a fact the gate stamped.
 function commandReplay(context, args) {
@@ -2065,32 +2149,42 @@ function commandReplay(context, args) {
     }
     place(context, worktree, tests);
     const red = run(args.command, worktree);
+    const identity = captureIdentity(context, 'replay', dimension);
+    const redEvent = appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
+      document: 'evidence-append',
+      documentVersion: '1.0.0',
+      dimension,
+      record: record.reference,
+      kind: 'journal-event',
+      payload: {
+        record: record.reference,
+        scenario: args.scenario ?? 'scenario',
+        phase: 'red',
+        command: args.command,
+        exitCode: red.code,
+        output: writeOutput(context, args.scenario, 'red', red.output),
+        cause: firstFailure(red.output),
+        failureClass: 'expected-behavior-missing',
+      },
+    }, identity, true, worktree));
     place(context, worktree, production);
     const green = run(args.command, worktree);
-    const identity = captureIdentity(context, 'replay', dimension);
-    const events = [
-      { phase: 'red', result: red, failureClass: 'expected-behavior-missing' },
-      { phase: 'green', result: green },
-    ].map(({ phase, result, failureClass }) => {
-      const output = join('replays', `${args.scenario ?? 'scenario'}-${phase}.txt`);
-      writeFileSync(ensure(join(context.paths.root, output)), result.output);
-      return appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
-        document: 'evidence-append',
-        documentVersion: '1.0.0',
-        dimension,
+    const greenEvent = appendEvidence(context.paths, dimension, stampAppend(context, dimension, record, {
+      document: 'evidence-append',
+      documentVersion: '1.0.0',
+      dimension,
+      record: record.reference,
+      kind: 'journal-event',
+      payload: {
         record: record.reference,
-        kind: 'journal-event',
-        payload: {
-          record: record.reference,
-          scenario: args.scenario ?? 'scenario',
-          phase,
-          command: args.command,
-          exitCode: result.code,
-          output,
-          ...(phase === 'red' ? { cause: firstFailure(result.output), failureClass } : {}),
-        },
-      }, identity, true));
-    });
+        scenario: args.scenario ?? 'scenario',
+        phase: 'green',
+        command: args.command,
+        exitCode: green.code,
+        output: writeOutput(context, args.scenario, 'green', green.output),
+      },
+    }, identity, true, worktree));
+    const events = [redEvent, greenEvent];
     const lines = [
       `replayed ${dimension} ${record.reference} scenario ${args.scenario ?? 'scenario'}`,
       `red exit ${red.code}, green exit ${green.code}`,
@@ -2104,6 +2198,12 @@ function commandReplay(context, args) {
     git(['worktree', 'remove', '--force', worktree], context.repoRoot);
     rmSync(isolated, { recursive: true, force: true });
   }
+}
+
+function writeOutput(context, scenario, phase, output) {
+  const relative = join('replays', `${scenario ?? 'scenario'}-${phase}.txt`);
+  writeFileSync(ensure(join(context.paths.root, relative)), output);
+  return relative;
 }
 
 function ensure(path) {
@@ -2173,7 +2273,6 @@ function hookAgent(event) {
   };
 }
 
-// Claude Code shapes.
 const claudeCode = {
   sessionContext: text => ({
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text },
@@ -2441,15 +2540,7 @@ function runCommand(context, args) {
     case 'can-stop': {
       const result = commandCanStop(context);
       if (!args.fromExport) return result;
-      const errors = exportVerificationErrors(context, args.base);
-      if (errors.length === 0) return result;
-      return {
-        ok: false,
-        view: result.view,
-        code: 'state-moved',
-        reason: 'the exported evidence does not verify against this checkout',
-        details: errors,
-      };
+      return applyExportVerification(context, result, args.base);
     }
     case 'can-write': return commandCanWrite(context, args);
     case 'can-review': return commandCanReview(context, args);
@@ -2530,10 +2621,12 @@ function runHook(context, args) {
     return { stdout: JSON.stringify(toolDeny(refusalText(result), harness)), exitCode: 0 };
   }
   if (args.name === 'can-stop') {
-    if (agent.reentrant) return { exitCode: 0 };
-    const view = suiteView(context);
-    if (view.completion.complete) return { exitCode: 0 };
-    return { stdout: JSON.stringify(stopBlock(renderStatus(context, view, { full: true }), harness)), exitCode: 0 };
+    const result = commandCanStopHook(context, agent.reentrant);
+    if (result.ok) return { exitCode: 0 };
+    return { stdout: JSON.stringify(stopBlock(renderStatus(context, result.view, { full: true }), harness)), exitCode: 0 };
+  }
+  if (args.name === 'fingerprint') {
+    return { exitCode: 0 };
   }
   if (args.name === 'release') {
     const reviewer = reviewerFor(context, { subagent_type: agent.agentType }) ?? args.dimension;
@@ -2558,13 +2651,14 @@ function noteHandoff(context, agent, command) {
     agent: agent.agent,
     agentType: agent.agentType,
     toolUseId: agent.toolUseId,
+    command,
   });
 }
 
 function reviewerFor(context, toolInput) {
   const type = toolInput?.subagent_type ?? toolInput?.agent_type ?? toolInput?.agentType ?? null;
   if (!type) return null;
-  const member = context.members.find(one => one.agent.split('/').pop().replace(/\.md$/, '') === type);
+  const member = context.members.find(one => memberAgentType(one) === type);
   return member?.dimension ?? null;
 }
 

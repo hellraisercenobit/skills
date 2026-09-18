@@ -200,7 +200,6 @@ const valid = (schema, value, root) => {
   return errors.length === 0;
 };
 
-// Returns the empty array when the value conforms, or every violation as `<path>: <message>`.
 export function schemaErrors(schema, value) {
   const errors = [];
   check(schema, value, '', schema, errors);

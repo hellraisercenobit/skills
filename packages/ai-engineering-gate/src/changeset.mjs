@@ -7,6 +7,10 @@ import { MARKER_FILE, git, gitLines, isInside, matchesPattern, toRepoRelative } 
 // A path the gate owns or publishes is never part of the state a verdict binds to: the export
 // directory carries the verdicts themselves, an evidence root inside the checkout is the index, and
 // the marker configures enforcement rather than describing the change.
+export function excludedFromChangeSet(context, path) {
+  return excluded(context, path);
+}
+
 function excluded(context, path) {
   const { marker, repoRoot, evidenceRoot } = context;
   if (path === MARKER_FILE) return true;

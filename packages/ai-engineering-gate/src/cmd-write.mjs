@@ -166,10 +166,10 @@ export function commandEvidenceAppend(context, args, document) {
 
 // Every append carries the content hashes of the record's planned artifacts, by role, so an event
 // proves the state of test and production files at the moment it was filed.
-export function stampAppend(context, dimension, record, document, identity, replayed) {
+export function stampAppend(context, dimension, record, document, identity, replayed, hashRoot = context.repoRoot) {
   const roles = {};
   for (const plan of record.document.plans ?? []) {
-    const digest = hashFile(join(context.repoRoot, plan.path)) ?? hashFile(join(context.paths.root, plan.path));
+    const digest = hashFile(join(hashRoot, plan.path)) ?? hashFile(join(context.paths.root, plan.path));
     roles[plan.role] = { ...(roles[plan.role] ?? {}), [plan.path]: digest };
   }
   return {

@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 
 import { fingerprintsOf, memberOf } from './context.mjs';
+import { memberAgentType } from './registry.mjs';
 import { reviewReady } from './state.mjs';
 import { readRounds } from './store.mjs';
 
@@ -30,7 +31,7 @@ export function neutralBrief(context, state, view) {
     lines.push(`Relevant configuration: ${declaration.scope.configuration.join(', ')}.`);
   }
   if (state.warnings.includes('duplicate-evidence')) {
-    lines.push('Note: two cited evidence items in one record carry the same claim.');
+    lines.push('Note: two cited evidence items in one record are identical.');
   }
   if (conflict) {
     lines.push('Note: this dimension turned non-SOUND on a state produced by correcting another; the conflicting findings are in the previous reports.');
@@ -56,7 +57,7 @@ export function dispatchPlan(context, view) {
       const fingerprints = fingerprintsOf(context, state.dimension, state.declaration);
       return {
         dimension: state.dimension,
-        agent: member.agent.split('/').pop().replace(/\.md$/, ''),
+        agent: memberAgentType(member),
         skill: member.review.split('/').pop(),
         fingerprints: {
           source: fingerprints.source,

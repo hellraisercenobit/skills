@@ -1,5 +1,17 @@
 {
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/packages/ai-engineering-gate/dist/ai-engineering-gate.mjs\" fingerprint --hook --harness claude-code",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "hooks": [

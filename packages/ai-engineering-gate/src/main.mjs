@@ -7,14 +7,15 @@ import {
   commandArbitrate, commandDeclare, commandDispute, commandEvidenceAppend, commandRecord,
 } from './cmd-write.mjs';
 import {
-  commandCanStop, commandCanWrite, commandFingerprint, commandStatus, editedPaths, shellCommand,
+  commandCanStop, commandCanStopHook, commandCanWrite, commandFingerprint, commandStatus, editedPaths, shellCommand,
   suiteView,
 } from './cmd-inspect.mjs';
 import { commandAttest, commandBegin, commandCanReview, commandRelease, commandReport } from './cmd-review.mjs';
-import { commandExport, commandReplay, exportVerificationErrors } from './cmd-transfer.mjs';
+import { commandExport, commandReplay, applyExportVerification } from './cmd-transfer.mjs';
 import { buildContext } from './context.mjs';
 import { recordHandoff } from './identity.mjs';
 import { hookAgent, readHookEvent, readStdin, sessionContext, stopBlock, toolDeny } from './hookio.mjs';
+import { memberAgentType } from './registry.mjs';
 import { assertOutputShape, renderStatus, silentJson, statusJson } from './render.mjs';
 
 const DOCUMENT_VERBS = new Set([
@@ -128,15 +129,7 @@ function runCommand(context, args) {
     case 'can-stop': {
       const result = commandCanStop(context);
       if (!args.fromExport) return result;
-      const errors = exportVerificationErrors(context, args.base);
-      if (errors.length === 0) return result;
-      return {
-        ok: false,
-        view: result.view,
-        code: 'state-moved',
-        reason: 'the exported evidence does not verify against this checkout',
-        details: errors,
-      };
+      return applyExportVerification(context, result, args.base);
     }
     case 'can-write': return commandCanWrite(context, args);
     case 'can-review': return commandCanReview(context, args);
@@ -217,10 +210,12 @@ function runHook(context, args) {
     return { stdout: JSON.stringify(toolDeny(refusalText(result), harness)), exitCode: 0 };
   }
   if (args.name === 'can-stop') {
-    if (agent.reentrant) return { exitCode: 0 };
-    const view = suiteView(context);
-    if (view.completion.complete) return { exitCode: 0 };
-    return { stdout: JSON.stringify(stopBlock(renderStatus(context, view, { full: true }), harness)), exitCode: 0 };
+    const result = commandCanStopHook(context, agent.reentrant);
+    if (result.ok) return { exitCode: 0 };
+    return { stdout: JSON.stringify(stopBlock(renderStatus(context, result.view, { full: true }), harness)), exitCode: 0 };
+  }
+  if (args.name === 'fingerprint') {
+    return { exitCode: 0 };
   }
   if (args.name === 'release') {
     const reviewer = reviewerFor(context, { subagent_type: agent.agentType }) ?? args.dimension;
@@ -245,13 +240,14 @@ function noteHandoff(context, agent, command) {
     agent: agent.agent,
     agentType: agent.agentType,
     toolUseId: agent.toolUseId,
+    command,
   });
 }
 
 function reviewerFor(context, toolInput) {
   const type = toolInput?.subagent_type ?? toolInput?.agent_type ?? toolInput?.agentType ?? null;
   if (!type) return null;
-  const member = context.members.find(one => one.agent.split('/').pop().replace(/\.md$/, '') === type);
+  const member = context.members.find(one => memberAgentType(one) === type);
   return member?.dimension ?? null;
 }
 

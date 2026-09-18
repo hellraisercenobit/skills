@@ -28,9 +28,9 @@ window, release recorded, second begin refused, edit and dispatch denied while a
 open, cross-dimension conflict, round and conflict caps, concurrent attestations, builder
 identity refused, unverified identity warned, hook decisions on stdout, re-entrance, gate
 failure in hook mode blocking, dispatch plan present only when a round is ready, plugin
-directory smoke, plugin and npm reference fingerprints equal, JSON output schema-stable,
+directory smoke, plugin and npm bundles byte-identical with equal reference fingerprints, JSON output schema-stable,
 output under the pipeline cap, export then verification from a clean checkout, exported
-evidence stale when the checkout or the gate version moved, marker dropped on the head
+evidence stale when the checkout or the gate version moved, live RED proven by production hashes at base, marker dropped on the head
 failing CI.
 
 The existing probe-based and schema-based checks of the testing fixtures stay where they

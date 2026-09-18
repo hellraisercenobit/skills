@@ -1,12 +1,13 @@
 import { isAbsolute, resolve } from 'node:path';
 
 import { accept, refuse } from './answer.mjs';
-import { coveringDimensions } from './changeset.mjs';
+import { coveringDimensions, excludedFromChangeSet } from './changeset.mjs';
 import { declarations, fingerprintsOf } from './context.mjs';
+import { hashJson } from './hash.mjs';
 import { dispatchPlan } from './plan.mjs';
-import { isInside, matchesPattern, toRepoRelative } from './repo.mjs';
+import { isInside, toRepoRelative } from './repo.mjs';
 import { suiteState } from './state.mjs';
-import { arbitrations, currentRecords, readWindow } from './store.mjs';
+import { arbitrations, currentRecords, readStopSnapshot, readWindow, writeStopSnapshot } from './store.mjs';
 
 export function suiteView(context) {
   const view = suiteState(context);
@@ -26,6 +27,20 @@ export function commandCanStop(context) {
   return { ok: view.completion.complete, view };
 }
 
+export function commandCanStopHook(context, reentrant) {
+  const view = suiteView(context);
+  if (view.completion.complete) return { ok: true, view, silent: true };
+  const fingerprint = hashJson(view.states.map(state => ({
+    dimension: state.dimension,
+    fingerprints: state.fingerprints ?? null,
+    codes: state.codes,
+  })));
+  const previous = readStopSnapshot(context.paths);
+  if (reentrant && previous?.fingerprint === fingerprint) return { ok: true, view, silent: true };
+  writeStopSnapshot(context.paths, { fingerprint });
+  return { ok: false, view };
+}
+
 // The text form answers the one question a builder asks - what does the gate see right now - while
 // `--json` stays the single status shape, whose dimensions already carry the same three digests.
 export function commandFingerprint(context, args) {
@@ -38,10 +53,11 @@ export function commandFingerprint(context, args) {
   return { ok: true, text: lines.join('\n'), view: suiteView(context) };
 }
 
-const WRITE_FORM = /(^|[\s;&|])(>|>>|tee\b|sed\s+-i|perl\s+-i|install\b|truncate\b|dd\b|mv\b|cp\b|rm\b|chmod\b|chown\b|ln\b)|git\s+(apply|checkout|restore|stash|clean|rm|mv)\b|\bpatch\b/u;
+const WRITE_FORM = /(^|[\s;&|])(>|>>|tee\b|sed\s+-i|perl\s+-i|mv\b|cp\b)|git\s+(apply|checkout|restore|stash|clean|rm|mv)\b|\bpatch\b/u;
 
 // `can-write` is mechanical only. It decides by file path, never by the content of a write, and it
-// never infers applicability for the builder: a path outside every declared scope passes.
+// never infers applicability for the builder: a path outside every declared scope passes, except
+// while a review window is open, when the whole change set is frozen.
 export function commandCanWrite(context, args) {
   const paths = args.paths ?? [];
   const command = args.command ?? null;
@@ -58,9 +74,21 @@ export function commandCanWrite(context, args) {
     return refuse('invalid-document', `the gate index is written by gate commands only: ${context.paths.index}`);
   }
 
+  const relatives = paths.map(path => toRepoRelative(context.repoRoot, path));
+  if (openWindows.length > 0) {
+    const hitsChangeSet = relatives.some(path => path && !excludedFromChangeSet(context, path))
+      || (command !== null && WRITE_FORM.test(command));
+    if (hitsChangeSet) {
+      return refuse(
+        'review-in-flight',
+        `a review is in flight on ${openWindows.join(', ')}; wait for it to file or release before editing the change set`,
+        openWindows,
+      );
+    }
+  }
+
   const scoped = [];
-  for (const path of paths) {
-    const relative = toRepoRelative(context.repoRoot, path);
+  for (const relative of relatives) {
     for (const dimension of coveringDimensions(relative, all)) {
       if (!scoped.includes(dimension)) scoped.push(dimension);
     }
@@ -76,13 +104,6 @@ export function commandCanWrite(context, args) {
     return accept(paths.length > 0
       ? `allowed: no declared scope covers ${paths.join(', ')}`
       : 'allowed: nothing in a declared scope');
-  }
-  if (openWindows.length > 0) {
-    return refuse(
-      'review-in-flight',
-      `a review is in flight on ${openWindows.join(', ')}; wait for it to file or release before editing the change set`,
-      openWindows,
-    );
   }
   const without = scoped.filter(dimension => currentRecords(context.paths, dimension).length === 0);
   if (without.length > 0) {
@@ -120,8 +141,4 @@ export function shellCommand(toolInput) {
     if (typeof toolInput?.[key] === 'string') return toolInput[key];
   }
   return null;
-}
-
-export function isIgnoredByMarker(context, path) {
-  return (context.marker.ignore ?? []).some(pattern => matchesPattern(path, pattern));
 }

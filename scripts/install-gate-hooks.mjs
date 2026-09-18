@@ -23,14 +23,17 @@ const WIRING = {
   // documents no output field that injects context there, so the compact status is not delivered and
   // the installer reports that limit instead of wiring a hook that answers into the void.
   codex: [
-    { event: 'preToolUse', command: 'can-write', matcher: 'Write|StrReplace|EditNotebook|Delete', timeout: 20 },
+    { event: 'preToolUse', command: 'can-write', matcher: 'Write|StrReplace|EditNotebook|Delete|ApplyPatch', timeout: 20 },
     { event: 'beforeShellExecution', command: 'can-write', matcher: null, timeout: 20 },
     { event: 'subagentStart', command: 'can-review', matcher: '.*reviewer', timeout: 20 },
     { event: 'stop', command: 'can-stop', matcher: null, timeout: 30 },
   ],
 };
 const OPTIONAL = {
-  'claude-code': [{ event: 'SubagentStop', command: 'release', matcher: null, timeout: 20 }],
+  'claude-code': [
+    { event: 'PostToolUse', command: 'fingerprint', matcher: 'Edit|Write|MultiEdit|NotebookEdit', timeout: 20 },
+    { event: 'SubagentStop', command: 'release', matcher: null, timeout: 20 },
+  ],
   codex: [{ event: 'subagentStop', command: 'release', matcher: '.*reviewer', timeout: 20 }],
 };
 
@@ -119,7 +122,7 @@ async function main() {
     console.log([
       'usage: node scripts/install-gate-hooks.mjs [--harness claude-code|codex] [--optional] [--check] [--remove]',
       'harness: which harness to wire; a plugin install needs neither',
-      'optional: also wire SubagentStop, which releases a window a reviewer left open',
+      'optional: also wire PostToolUse (eager fingerprint) and SubagentStop (release an abandoned window)',
       'check:    report what is missing without writing',
       'remove:   take out only the entries this installer added',
       'file:     override the harness settings file',

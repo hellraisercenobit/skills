@@ -44,7 +44,7 @@ test('a claim of unknown without a cited source is refused', () => {
   assert.match(refused.stdout, /refused: unknown-without-source/);
 });
 
-test('two citations that carry the same claim are warned, not refused', () => {
+test('two identical evidence items on one record are warned, not refused', () => {
   const app = makeProject({ marker: MARKER(['design-patterns']), files: { 'src/price-order.ts': SOURCE } });
   app.gate(['declare', '--dimension', 'design-patterns', '--stdin'], pipe(declaration('design-patterns')));
   const recorded = app.gate(['record', '--dimension', 'design-patterns', '--stdin'], pipe(designRecord({

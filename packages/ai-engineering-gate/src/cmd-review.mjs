@@ -1,7 +1,8 @@
 import { accept, refuse } from './answer.mjs';
 import { fingerprintsOf, memberOf } from './context.mjs';
+import { memberAgentType } from './registry.mjs';
 import { captureIdentity, isBuilderIdentity, storedIdentity } from './identity.mjs';
-import { blockingCause, dimensionState, findingStatus, suiteState } from './state.mjs';
+import { blockingCause, dimensionState, suiteState } from './state.mjs';
 import {
   closeWindow, currentRecords, readDeclaration, readRounds, readWindow, verdicts, writeRounds,
   writeVerdict, writeWindow,
@@ -45,8 +46,6 @@ export function commandCanReview(context, args) {
   return accept(`allowed: ${dimension} is ready for a fresh review`);
 }
 
-// A reviewer's first gate call. It opens the window, snapshots the state the verdict will bind to and
-// captures the caller identity, whatever route dispatched it.
 export function commandBegin(context, args) {
   const dimension = args.dimension;
   const readiness = reviewReadiness(context, dimension);
@@ -140,7 +139,7 @@ function fileVerdict(context, args, document, kind) {
   const warnings = [];
   if (ignoredFingerprints(document)) warnings.push('fingerprint-ignored');
   if (!identity.verified) warnings.push('identity-unverified');
-  if (document.reviewer.agentType && document.reviewer.agentType !== member.agent.split('/').pop().replace(/\.md$/, '')) {
+  if (document.reviewer.agentType && document.reviewer.agentType !== memberAgentType(member)) {
     warnings.push('identity-unverified');
   }
 
@@ -179,12 +178,20 @@ function fileVerdict(context, args, document, kind) {
   const conflict = kind === 'report' && previous !== null;
   const conflicts = new Set(rounds.conflicts ?? []);
   if (conflict) conflicts.add(dimension);
+  const sameState = rounds.filedOn === current.source;
+  let conflictRounds = rounds.conflictRounds ?? 0;
+  if (!sameState) {
+    conflictRounds = conflict ? ((rounds.roundConflicted ? conflictRounds : 0) + 1) : 0;
+  } else if (conflict && !rounds.roundConflicted) {
+    conflictRounds += 1;
+  }
   writeRounds(context.paths, {
     ...rounds,
     round,
     filedOn: current.source,
     conflicts: [...conflicts],
-    conflictRounds: conflict ? (rounds.conflictRounds ?? 0) + 1 : (conflicts.size === 0 ? 0 : rounds.conflictRounds ?? 0),
+    roundConflicted: sameState ? Boolean(rounds.roundConflicted) || conflict : conflict,
+    conflictRounds,
     history: [...(rounds.history ?? []), { round, dimension, verdict: document.verdict, id }],
   });
 
@@ -207,18 +214,10 @@ export function commandReport(context, args, document) {
   return fileVerdict(context, args, document, 'report');
 }
 
-// A reviewer that ended without filing. Recorded, shown in the status, and the window is freed.
 export function commandRelease(context, args) {
   const dimension = args.dimension;
   if (!dimension) return accept('nothing to release: no dimension named');
   const released = closeWindow(context.paths, dimension, 'released');
   if (!released) return accept(`no open window for ${dimension}`);
   return accept(`released the open review window for ${dimension}\nnext: dispatch a fresh reviewer for ${dimension}`);
-}
-
-export function pendingFindingsOf(context, dimension) {
-  const state = dimensionState(context, dimension);
-  const report = verdicts(context.paths, 'report', dimension).at(-1) ?? null;
-  const status = findingStatus(context, dimension, report, currentRecords(context.paths, dimension), state.fingerprints ?? {});
-  return status.pending;
 }

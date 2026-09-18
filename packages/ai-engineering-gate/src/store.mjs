@@ -201,11 +201,25 @@ export function writeRounds(paths, value) {
   return writeJsonAtomic(join(paths.index, 'rounds.json'), value);
 }
 
-// A handoff carries the agent identity a PreToolUse hook saw, keyed on the session, the verb and the
-// dimension so the invoked command consumes exactly its own even when two reviewers run at once.
-// Its absence is what `arbitrate` reads as a human hand.
-export function handoffKey(session, verb, dimension) {
-  return hashText(canonicalJson([session ?? '', verb ?? '', dimension ?? ''])).slice(7, 39);
+export function readStopSnapshot(paths) {
+  return readJson(join(paths.index, 'stop-snapshot.json'));
+}
+
+export function writeStopSnapshot(paths, value) {
+  return writeJsonAtomic(join(paths.index, 'stop-snapshot.json'), value);
+}
+
+export function invocationHash(command) {
+  const tokens = String(command).trim().split(/\s+/).filter(Boolean);
+  const gateAt = tokens.findIndex(token => token.includes('ai-engineering-gate'));
+  const rest = gateAt >= 0 ? tokens.slice(gateAt + 1) : tokens;
+  return hashText(canonicalJson(rest));
+}
+
+// Keyed on session, tool-use id and the hash of the gate argv so two same-verb calls
+// stay distinct, and a leftover of another verb cannot be consumed as this one.
+export function handoffKey(session, toolUseId, commandHash) {
+  return hashText(canonicalJson([session ?? '', toolUseId ?? '', commandHash ?? ''])).slice(7, 39);
 }
 
 export function writeHandoff(paths, key, document) {

@@ -59,7 +59,9 @@ A `transpose-*` skill that decides and writes, and its `review-*` twin that audi
 
 **Round**: one pass of reviews against one frozen source fingerprint. A content-neutral rebase is not a new round.
 
-**In-flight window**: an open review that froze the three fingerprints. Edits in declared scope are refused until it files or is released.
+**In-flight window**: an open review that froze the three fingerprints. Edits on the change set are refused until it files or is released.
+
+**Threat model**: the gate catches omission, drift and stale evidence. It does not stop a forged index or a write through a tool the hooks do not see. Those are deliberate acts; cryptographic proof is out of scope.
 
 **Gate**: `ai-engineering-gate`. Generic enforcement: it stores documents, derives state, computes fingerprints and answers `can-write`, `can-review` and `can-stop`. It does not judge the domain.
 

@@ -52,19 +52,27 @@ export function gateVersion(distributionRoot) {
 
 // The dimensions the project registered, resolved against the manifest. An identifier the manifest
 // does not carry is an unresolvable registry member, not a dimension the gate invents.
+export function memberAgentType(member) {
+  return member.agent.split('/').pop().replace(/\.md$/, '');
+}
+
 export function registeredMembers(registry, marker) {
-  if (marker.dimensions === 'all') return registry.members;
   const byName = new Map(registry.members.map(member => [member.dimension, member]));
-  return marker.dimensions.map(name => {
-    const member = byName.get(name);
-    if (!member) throw new Error(`the marker registers ${name}, which the member manifest does not`);
+  const selected = marker.dimensions === 'all'
+    ? registry.members
+    : marker.dimensions.map(name => {
+      const member = byName.get(name);
+      if (!member) throw new Error(`the marker registers ${name}, which the member manifest does not`);
+      return member;
+    });
+  for (const member of selected) {
     for (const path of [member.transpose, member.review, member.agent, member.decisionSchema]) {
       if (!existsSync(join(registry.root, path))) {
-        throw new Error(`registry member ${name} does not resolve ${path}`);
+        throw new Error(`registry member ${member.dimension} does not resolve ${path}`);
       }
     }
-    return member;
-  });
+  }
+  return selected;
 }
 
 export function memberDecisionSchema(registry, member) {

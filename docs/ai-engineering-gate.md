@@ -1,6 +1,8 @@
 # ai-engineering-gate
 
-Generic enforcement for the transpose/review engineering suite. One CLI, one JSON surface, three fingerprints. The gate does not judge design, TypeScript or tests: it stores the documents, derives the state, and answers whether a task is complete.
+Command and enforcement reference. Strategy, workflow diagrams and environment choices (local harness, [no-mistakes](https://kunchenguid.github.io/no-mistakes/), direct PR + CI) live in the [README](../README.md#how-the-suite-works).
+
+One CLI, one JSON surface, three fingerprints. The gate does not judge design, TypeScript or tests: it stores the documents, derives the state, and answers whether a task is complete.
 
 Install it with the Claude Code plugin, with `npm i -g @hellraisercenobit/ai-engineering-gate`, or run it from this checkout:
 
@@ -45,6 +47,18 @@ The gate is silent and allows everything in a repository that does not carry `.a
 
 Exit codes: `0` allowed or valid, `2` denied by policy, `1` gate or infrastructure failure.
 
+```mermaid
+flowchart LR
+  declare --> record --> evidence
+  record --> canWrite["can-write"]
+  evidence --> begin
+  begin --> attest["attest / report"]
+  attest --> canStop["can-stop"]
+  canStop --> export["export, then CI --from-export"]
+```
+
+Publication lock is `can-stop` exit 0. With no-mistakes the driver consumes `can-stop --full` after lint. Without it, CI consumes `can-stop --json --from-export`. Local hooks are advisory. See [how it fits the environment](../README.md#how-it-fits-the-environment).
+
 ## Fingerprints
 
 A verdict binds to three content hashes the gate computes and never accepts from a document:
@@ -57,7 +71,11 @@ A content-neutral rebase leaves a verdict current. A catalog edit, a record revi
 
 ## Hooks
 
-The plugin ships `SessionStart`, `PreToolUse` and `Stop` against this bundle. `npm run install:hooks` covers a skills.sh install and Codex. Codex has no `sessionStart` context injection; the installer reports that limit instead of wiring a hook that answers into the void.
+The plugin ships the three required hooks (`SessionStart`, `PreToolUse`, `Stop`) and the two optional ones (`PostToolUse` eager fingerprint refresh, `SubagentStop` `release --hook`) against this bundle. Neither optional hook decides validity. `npm run install:hooks -- --optional` covers a skills.sh install and Codex. Codex has no `sessionStart` context injection; the installer reports that limit instead of wiring a hook that answers into the void.
+
+## Threat model
+
+The gate catches omission, drift and stale evidence. It does not defend against a forged index or a write through a tool the hooks do not see. `can-write` denies harness edits and shell write forms that target the index outside gate commands.
 
 ## AXI
 
