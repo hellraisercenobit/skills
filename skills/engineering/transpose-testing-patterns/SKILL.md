@@ -29,11 +29,15 @@ catalog analysis only; do not claim qualified transposition or silently migrate 
 0. **Declare.** Pipe a [declaration](references/declaration.schema.json) to
    `ai-engineering-gate declare --dimension testing-patterns --stdin` before any record: applicability
    and its reason, the requester's own wording, the factual constraints, the base and the protected
-   paths. `non-applicable` with its reason is a complete answer, and the reviewer's brief is rendered
-   from this document alone.
+   paths. When tests are TypeScript, `constraints` must name the ES/compiler target as a factual
+   string (example: `compiler: TypeScript 4.0.5, target ES2015, lib es2015, strict off`). A tsconfig
+   path in `scope.configuration` is not a substitute. PHP and other non-TypeScript suites omit this
+   constraint rather than invent one. `non-applicable` with its reason is a complete answer, and the
+   reviewer's brief is rendered from this document alone.
 1. **Frame.** Establish raw need, scope/base, public contracts, actual runner/compiler,
-   configuration and runtimes. Include relevant tests, production, helpers and new files.
-   Select TDD, characterization, existing coverage or audit mode honestly.
+   configuration and runtimes. When tests are TypeScript, name the ES/compiler target in
+   `constraints`; do not leave it only in tsconfig. Include relevant tests, production, helpers
+   and new files. Select TDD, characterization, existing coverage or audit mode honestly.
 2. **Inventory and compare.** Walk every catalog axis, including retained choices and
    uncovered risks. For each site name behavior, risk, public seam and independent oracle.
    Compare current tests, direct tests and plausible alternatives. Family, level, double

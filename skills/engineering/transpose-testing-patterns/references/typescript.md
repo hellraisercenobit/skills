@@ -16,14 +16,14 @@ and verify the intended diagnostic without the directive in an isolated probe; a
 missing import can otherwise satisfy the directive. Do not run invalid static-only calls
 as runtime tests. An unused directive must fail the checker.
 
-Prefer typed factories and structural doubles, using `satisfies` where useful. Avoid
-`any`, `as unknown as` or suppressions used to conceal an invalid contract. Construct
-malformed inputs at `unknown`, where validation belongs. A brand does not validate an
+Prefer typed factories and structural doubles, using `satisfies` when the compiler profile
+supports it. Avoid `any`, `as unknown as` or suppressions used to conceal an invalid contract.
+Construct malformed inputs at `unknown`, where validation belongs. A brand does not validate an
 external string and `readonly` does not freeze or defensively copy an object.
 
 Ordinary runtime matchers do not necessarily narrow types. Use a genuinely typed assertion
 such as a supported `expect.assert` or a small `asserts` function when later code needs
-narrowing; do not hide the issue with `!`.
+narrowing and the compiler profile supports it; do not hide the issue with `!`.
 
 Where observable, test Map/Set key identity, duplicate policy and promised iteration order;
 test partial generator consumption and closure without prescribing their private data

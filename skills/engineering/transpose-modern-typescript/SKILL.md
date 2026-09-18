@@ -38,8 +38,10 @@ incomplete. No framework guide is required by this catalog.
    base and the protected paths. `non-applicable` with its reason is a complete answer. The reviewer's
    brief is rendered from this document, so it carries no chosen idiom and no rationale.
 1. **Frame.** Identify raw need, exact scope/base and actual compiler/lockfile, tsconfig,
-   build, runtimes and browsers. Do not pin projects to the test compiler. In JS, use
-   runtime rules and existing JSDoc/checkJs without requiring a TS migration. Respect
+   build, runtimes and browsers. Put the ES/compiler target in declaration `constraints`
+   when this dimension applies; a tsconfig path is not a substitute. Do not pin projects to
+   the test compiler. In JS, use runtime rules and existing JSDoc/checkJs without requiring
+   a TS migration. Respect
    framework reactivity, DOM ownership and cleanup. Invoke /transpose-design-patterns only
    for architectural decisions; a local idiom does not automatically need a pattern.
 2. **Inventory.** Walk every catalog axis across relevant sites, including retained code.

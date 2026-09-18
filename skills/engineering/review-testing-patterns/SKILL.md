@@ -17,10 +17,12 @@ are not an independent rule catalog.
 Resolve installed /transpose-testing-patterns through harness skill locations, without a
 maintainer checkout. Read its `references/suite-contract.md`, `catalog.md`,
 `decision-record.schema.json`, `journal-event.schema.json` and applicable guides. This
-reviewer requires contract 1.1.0, catalog 1.0.0, record schema 2.0.0 and a Vitest adapter
-compatible with 1.0.0. Missing or conflicting references mean incomplete execution, without
-verdict; do not download substitutes or invent rules. Other runners allow catalog-only
-analysis, not qualified transposition completion.
+reviewer requires contract 1.1.0, catalog 1.0.0 and record schema 2.0.0. Apply
+`assessTestingProfile` from `references/compiler-profile.mjs`. Missing or conflicting
+references mean incomplete execution, without verdict; do not download substitutes or invent
+rules. A Vitest adapter compatible with 1.0.0 qualifies Vitest transposition. Other runners
+still receive catalog recale, including compiler profile and wrong-runner APIs; SOUND does
+not require Vitest.
 
 A transposition requires a fresh context and neutral brief. Check record paths exist but
 do not open them before freezing. Contamination requires a new dispatch. Standalone audits
@@ -33,7 +35,13 @@ the state the verdict binds to, captures who you are and refuses the builder of 
 
 1. **Facts.** Establish scope/base with git diff, reads and relevant untracked files, never
    git log, PR descriptions or author analysis. Identify source/configuration/reference
-   state as well as HEAD. Derive runner, checker and runtime profile independently.
+   state as well as HEAD. Derive runner, checker and compiler/runtime profile independently
+   from project files; do not copy the builder's record or trust constraints alone. When any
+   in-scope test is TypeScript or JavaScript emitted by tsc, the profile has four layers:
+   parser/compiler syntax (installed TypeScript version + target), lib/types, emit/runner
+   transform, and actual runtime. Constraints must contain the ES/compiler target; a
+   tsconfig path is not a substitute, and derived `compiler.target` is a second independent
+   layer. Apply `assessTestingProfile` to that derived profile and the actual syntax/APIs.
 2. **Derive.** Inventory behaviors and risks from the request and public contracts.
    Builder-written names, assertions and helpers are not independent requirements. Defer
    detailed assertion reading until freeze when possible; disclose significant exposure
@@ -41,9 +49,10 @@ the state the verdict binds to, captures who you are and refuses the builder of 
    characterization tests, including defensible existing choices.
 3. **Freeze.** Publish an immutable matrix in your response before the next tool call
    opening records or builder evidence: site, behavior/risk, rule IDs, acceptable seams
-   and alternatives, runtime/type guarantees and discriminating cases. Freeze acceptable
-   outcomes, not exact syntax. Changed verified premises require a new framing/reviewer,
-   preserving this matrix.
+   and alternatives, runtime/type guarantees, the four compiler/runtime layers and
+   discriminating cases. Freeze acceptable outcomes, not exact syntax. An unknown required
+   layer is incomplete execution: leave it unresolved and do not issue SOUND. Changed
+   verified premises require a new framing/reviewer, preserving this matrix.
 4. **Compare.** Open records and evidence. Validate shape/membership separately from
    semantic judgment. Compare expected / recorded / actual for every site, including
    uncovered risks. Inspect actual assertions, production, helpers and configuration.
@@ -54,6 +63,11 @@ the state the verdict binds to, captures who you are and refuses the builder of 
    or its failure class is missing, and `non-TDD` when the record never claimed the mode. A
    missing red is an evidence finding whose remedy is a replay, not a judgment about intent.
    Hashes alone are not inspectable evidence. A reassuring record or global green is not proof.
+   Recale syntax the installed compiler/`target` cannot parse, APIs not in `lib` and not proven
+   on the runtime, and runner APIs from a different adapter family (for example `vi.fn` on
+   karma-jasmine-angular). Incompatible modernization is a finding (MT-23), not taste. A
+   constraints versus derived target mismatch is a finding. Tests-only work with
+   `modern-typescript` non-applicable still recales too-modern spec TypeScript here.
 5. **Steelman.** Defend every candidate by contract, fidelity, compatibility, diagnostic
    value, cost or simplicity. Drop it if that defense holds. Confirm only with an exact
    applicable rule, observed evidence, impact and refutation. Report catalog gaps
@@ -69,8 +83,9 @@ the state the verdict binds to, captures who you are and refuses the builder of 
 
 Use exactly SOUND (complete audit, no findings), SMELLS (findings without Blocker), or
 VIOLATIONS (a Blocker). Apply the contract's severity clause for Blocker, Major and Minor;
-do not restate it. Missing prerequisites are incomplete execution, not a fourth verdict.
-A proposal verdict does not qualify runtime behavior.
+do not restate it. Missing prerequisites or an unknown required compiler/runtime layer are
+incomplete execution, not a fourth verdict. Findings from `assessTestingProfile` prevent
+SOUND. SOUND does not require Vitest. A proposal verdict does not qualify runtime behavior.
 
 File through the window you opened. Pipe a
 [review envelope](../transpose-testing-patterns/references/review-envelope.schema.json) to

@@ -44,7 +44,7 @@
       "minLength": 1
     },
     "constraints": {
-      "description": "Factual constraints only: project targets, public contracts, independent sources.",
+      "description": "Factual constraints only: project targets, public contracts, independent sources. When tests are TypeScript, name the ES/compiler target as a factual string (example: compiler: TypeScript 4.0.5, target ES2015, lib es2015, strict off). A tsconfig path in scope.configuration is not a substitute. PHP and other non-TypeScript suites omit this constraint rather than invent one.",
       "type": "array",
       "items": {
         "type": "string",

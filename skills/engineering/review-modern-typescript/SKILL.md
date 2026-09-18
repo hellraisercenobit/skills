@@ -33,8 +33,9 @@ the state the verdict binds to, captures who you are and refuses the builder of 
 1. **Facts.** Establish scope with git diff against the stated base, staged/unstaged changes
    and relevant untracked files. Never git log, PR rationale or author analysis. State
    standalone/proposal mode when applicable. Derive compiler/types/build/runtime/browser
-   profile independently. Identify dirty and untracked contents as well as HEAD. Report
-   significant author justification encountered in source; do not use it to choose outcomes.
+   profile independently. A missing required compiler profile is incomplete execution, not
+   SOUND. Identify dirty and untracked contents as well as HEAD. Report significant author
+   justification encountered in source; do not use it to choose outcomes.
 2. **Inventory.** Walk catalog axes at every site, including retained choices. Use signatures
    to locate repeated guards, helpers, lookups, retention, eager work and manual platform
    mechanisms. Read context; a search hit is not evidence.
@@ -45,8 +46,10 @@ the state the verdict binds to, captures who you are and refuses the builder of 
    retaining the old matrix.
 4. **Compare.** Now open records and check evidence. Check schema, catalog membership,
    profiles, alternatives, revisions and invariants. Compare expected / recorded / actual
-   at every site. Independently verify support claims. A reassuring record is not proof.
-   A proposal review judges intended artifacts, not a runtime implementation.
+   at every site. Independently verify support claims. A recorded or actual idiom that fails
+   any MT-23 layer is a finding even if the builder omitted MT-23 from the record. Steelman
+   still allows retaining compatible code. A reassuring record is not proof. A proposal
+   review judges intended artifacts, not a runtime implementation.
 5. **Steelman.** Defend each candidate using concrete compatibility, public contract, domain
    behavior, framework effects, workload or simplicity. Drop it if the defense holds.
    Otherwise cite exact rule and evidence, refute the defense and propose a scoped fix.
@@ -72,7 +75,9 @@ the state the verdict binds to, captures who you are and refuses the builder of 
   defense, refutation and correction.
 - Defended choices, rejected candidates, separate catalog gaps, check evidence and limits.
 - One verdict: SOUND (complete, zero findings), SMELLS (findings, no Blocker), or VIOLATIONS
-  (a Blocker). Missing prerequisites are incomplete execution, not a fourth quality verdict.
+  (a Blocker). Missing prerequisites or a missing compiler profile are incomplete execution,
+  not a fourth quality verdict. Skipped MT-23 still yields a finding when actual exceeds the
+  profile.
 
 SOUND expires on audited file or pinned reference changes: the gate recomputes the source,
 reference and decision fingerprints and reports `stale-source`, `stale-reference` or
