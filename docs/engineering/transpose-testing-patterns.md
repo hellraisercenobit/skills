@@ -41,6 +41,11 @@ that adapter. An undocumented major stays on the family with `complete: false`. 
 runners permit catalog analysis, not a qualified transposition. Existing compatible
 versions can remain in use.
 
+## Compiler profile
+
+When tests are TypeScript, put the ES/compiler target in declaration constraints. A
+tsconfig path is not a substitute.
+
 ## Evidence and delivery
 
 Keep decisions outside the checkout before writes. Preserve actual RED/GREEN output and

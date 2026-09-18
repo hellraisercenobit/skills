@@ -1,0 +1,14 @@
+{
+  "document": "declaration",
+  "documentVersion": "1.0.0",
+  "dimension": "modern-typescript",
+  "applicability": "non-applicable",
+  "reason": "Tests-only change; language idioms in production are out of scope.",
+  "request": "Add a spec for the shipping threshold.",
+  "constraints": [],
+  "revision": {
+    "number": 1,
+    "previous": null,
+    "reason": "Initial declaration."
+  }
+}
