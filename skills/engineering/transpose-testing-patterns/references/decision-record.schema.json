@@ -40,7 +40,10 @@
       ],
       "properties": {
         "name": {
-          "const": "vitest"
+          "enum": [
+            "vitest",
+            "karma-jasmine-angular"
+          ]
         },
         "version": {
           "const": "1.0.0"

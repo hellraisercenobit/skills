@@ -1,10 +1,15 @@
 # Testing-patterns qualification
 
-These fixtures qualify decisions and evidence, not an application framework. The runner
-is Vitest throughout. Playwright is only its provider for the real-browser fixture; users
-of the skills do not need to install it. Node handles pure/domain and infrastructure cases.
-Vitest also supports happy-dom for DOM simulation when that fidelity is sufficient.
-Simulation does not establish a native browser guarantee.
+These fixtures qualify decisions and evidence, not an application framework. Runner
+families are adaptive. Vitest fixtures below pin two reference profiles (Vitest 5 and
+Vitest 4). Karma + jasmine-core + Angular TestBed is a separate family. Its routing pin
+lives in `tests/testing-patterns/karma-jasmine-angular/` (package.json versions + karma
+config). That pin is not a live `ng test` app; ChromeHeadless remains optional. Routing
+probes also live in `tests/testing-adapter-route.test.mjs`. Playwright is only Vitest's provider for the
+real-browser fixture; users of the skills do not need to install it. Node handles
+pure/domain and infrastructure cases. Vitest also supports happy-dom for DOM simulation
+when that fidelity is sufficient. Simulation does not establish a native browser
+guarantee.
 
 ## Reproduce deterministic checks
 
@@ -27,6 +32,9 @@ On Linux CI, use `playwright install --with-deps chromium`. The lockfiles pin th
 profile to Vitest 5.0.1, TypeScript 7.0.2, Vite 8.3.0, fast-check 4.10.1 and Playwright
 1.63.0. The conservation profile uses Vitest 4.1.11, TypeScript 6.0.3 and Vite 7.3.6.
 Both compile their tests. These versions are qualification targets, not consumer requirements.
+Routing probes for the Karma + jasmine-core + Angular TestBed family live in
+`tests/testing-adapter-route.test.mjs`: Angular 10.2.5 and a neighbouring id must select
+the same adapter; Vitest and jasmine without Angular must not.
 
 For raw evidence, use Vitest's JSON reporter and a directory outside the checkout:
 

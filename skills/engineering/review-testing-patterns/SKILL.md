@@ -17,10 +17,14 @@ are not an independent rule catalog.
 Resolve installed /transpose-testing-patterns through harness skill locations, without a
 maintainer checkout. Read its `references/suite-contract.md`, `catalog.md`,
 `decision-record.schema.json`, `journal-event.schema.json` and applicable guides. This
-reviewer requires contract 1.1.0, catalog 1.0.0, record schema 2.0.0 and a Vitest adapter
-compatible with 1.0.0. Missing or conflicting references mean incomplete execution, without
-verdict; do not download substitutes or invent rules. Other runners allow catalog-only
-analysis, not qualified transposition completion.
+reviewer requires contract 1.1.0, catalog 1.0.0, record schema 2.0.0 and the adapter for
+the detected family, compatible with 1.0.0. Vitest loads
+`references/transpose-vitest.md`. Karma + jasmine-core + Angular TestBed loads
+`references/transpose-karma-jasmine-angular.md`. SOUND on that family requires the
+adapter and a qualification pin under `tests/testing-patterns/karma-jasmine-angular/`;
+ChromeHeadless execution is optional. Missing or conflicting references mean incomplete
+execution, without verdict; do not download substitutes or invent rules. Other runners
+allow catalog-only analysis, not qualified transposition completion.
 
 A transposition requires a fresh context and neutral brief. Check record paths exist but
 do not open them before freezing. Contamination requires a new dispatch. Standalone audits
