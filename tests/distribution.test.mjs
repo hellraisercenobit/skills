@@ -22,7 +22,7 @@ test('distributed companions expose a usable local contract, catalog and schema'
         await readFile('contracts/suite-contract.md', 'utf8'));
     }
     const testing = join(root, 'transpose-testing-patterns/references');
-    for (const file of ['catalog.md', 'tdd.md', 'doubles-data.md', 'typescript.md', 'transpose-vitest.md', 'record.md']) {
+    for (const file of ['catalog.md', 'tdd.md', 'doubles-data.md', 'typescript.md', 'transpose-vitest.md', 'transpose-codeception.md', 'record.md']) {
       assert.ok((await stat(join(testing, file))).isFile());
     }
     const testingSchema = JSON.parse(await readFile(join(testing, 'decision-record.schema.json'), 'utf8'));

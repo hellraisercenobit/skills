@@ -22,8 +22,10 @@ observed TDD when appropriate, then requests a fresh read-only review under C01-
 ## Prerequisites
 
 Install both companions from the same revision and provide a fresh reviewer context. The
-first runner adapter is Vitest. Other runners permit catalog analysis, not a qualified
-transposition. Existing compatible versions can remain in use.
+first qualified runner adapter is Vitest. Codeception has an adaptive adapter selected from
+the lockfile; its 5.x Unit+MySQL path is a reference profile, not an adoption pin. Other
+runners permit catalog analysis, not a qualified transposition. Existing compatible
+versions can remain in use.
 
 ## Choose by behavior
 

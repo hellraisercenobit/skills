@@ -1,6 +1,6 @@
 ---
 name: transpose-testing-patterns
-description: "Choose and record a testing strategy before writing tests or affected implementation, then guide observable RED/GREEN/refactor and independent review. Use for behavior changes, regression tests, test doubles, testability seams, static TypeScript contracts or unreliable tests. Runner-neutral catalog with a qualified Vitest adapter. Companion to review-testing-patterns. Excludes prose-only and formatting-only changes."
+description: "Choose and record a testing strategy before writing tests or affected implementation, then guide observable RED/GREEN/refactor and independent review. Use for behavior changes, regression tests, test doubles, testability seams, static TypeScript contracts or unreliable tests. Runner-neutral catalog with a qualified Vitest adapter and an implemented Codeception adapter. Companion to review-testing-patterns. Excludes prose-only and formatting-only changes."
 license: MIT
 metadata:
   author: Guillaume Mongin (@hellraisercenobit)
@@ -15,14 +15,19 @@ refactor. A direct test, an existing factory or no new abstraction can be the be
 
 Read [contract 1.1.0](references/suite-contract.md), [catalog 1.0.0](references/catalog.md)
 and [record guidance](references/record.md). Resolve /review-testing-patterns and the
-[schema 2.0.0](references/decision-record.schema.json). For Vitest, read the
-[adapter 1.0.0](references/transpose-vitest.md) and check the installed capabilities. The
-shared shapes sit beside the contract: [declaration](references/declaration.schema.json),
+[schema 2.0.0](references/decision-record.schema.json). Detect the actual runner from the
+lockfile ([detect-adapter](references/detect-adapter.mjs)). For Vitest, read the
+[adapter 1.0.0](references/transpose-vitest.md) and check the installed capabilities. If
+Codeception is the runner, read the
+[Codeception adapter 1.0.0](references/transpose-codeception.md) instead; version
+differences stay in that adapter's profile table, and an exact `5.0.0` string is not
+required. The shared shapes sit beside the contract: [declaration](references/declaration.schema.json),
 [decision envelope](references/decision-envelope.schema.json),
 [evidence append](references/evidence-append.schema.json),
 [journal event](references/journal-event.schema.json) and [dispute](references/dispute.schema.json).
 Missing/conflicting required references leave execution incomplete. Other runners permit
-catalog analysis only; do not claim qualified transposition or silently migrate them.
+catalog analysis only; do not claim qualified transposition or silently migrate them to
+Vitest.
 
 ## Procedure
 

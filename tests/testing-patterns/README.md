@@ -28,6 +28,13 @@ profile to Vitest 5.0.1, TypeScript 7.0.2, Vite 8.3.0, fast-check 4.10.1 and Pla
 1.63.0. The conservation profile uses Vitest 4.1.11, TypeScript 6.0.3 and Vite 7.3.6.
 Both compile their tests. These versions are qualification targets, not consumer requirements.
 
+Codeception is an adaptive adapter (`transpose-codeception.md`), not a Vitest substitute.
+Its first reference profile is Codeception 5.x Unit tests that use MySQL through
+`UnitTester` transactions, with optional `@group` filters and the project's actual
+`codecept` invocation. That profile is a test target, not an adoption pin: Codeception 4.x
+and 5.1.x lockfiles select the same adapter. Docker/`codecept` replay is not a gate
+command; the member stays `implemented` until J fixtures exist.
+
 For raw evidence, use Vitest's JSON reporter and a directory outside the checkout:
 
 ```sh
