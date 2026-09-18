@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/blob/main/contracts/schemas/arbitration.schema.json",
+  "title": "Arbitration 1.0.0",
+  "description": "A dispute's only exit, and only a human hand writes it. `arbitrate` is refused whenever an identity handoff exists for the call, which is the case for every agent tool call a hook saw.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "documentVersion",
+    "dimension",
+    "dispute",
+    "decision",
+    "words"
+  ],
+  "properties": {
+    "document": {
+      "const": "arbitration"
+    },
+    "documentVersion": {
+      "const": "1.0.0"
+    },
+    "dimension": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dispute": {
+      "description": "The identifier of the dispute being arbitrated.",
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "description": "`uphold` closes the finding by arbitration and allows one fresh review on the same state; `reject` puts its remedy or correction back to pending.",
+      "enum": [
+        "uphold",
+        "reject"
+      ]
+    },
+    "words": {
+      "description": "The user's own words.",
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

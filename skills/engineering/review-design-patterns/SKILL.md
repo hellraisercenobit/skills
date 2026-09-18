@@ -35,7 +35,7 @@ it ships.
 
 This skill owns no catalog. It judges against the bundled sources of its companion, `transpose-design-patterns`:
 
-- **Shared procedure:** resolve `/transpose-design-patterns` and read its `references/suite-contract.md` (contract 1.0.0). Apply its dependency, read-only, neutral-context, composition and state-expiry guarantees alongside this domain protocol. Missing required references mean incomplete execution, never `SOUND`.
+- **Shared procedure:** resolve `/transpose-design-patterns` and read its `references/suite-contract.md` (contract 1.1.0). Apply its dependency, read-only, neutral-context, composition and state-expiry guarantees alongside this domain protocol. Missing required references mean incomplete execution, never `SOUND`.
 - **Catalog (the rules):** [`../transpose-design-patterns/references/pattern-catalog.md`](../transpose-design-patterns/references/pattern-catalog.md)
   - the _Structural forces_ table (with the _Extension-cost test_) and each entry's _Invariants_ are the
   **positive** checklist (what must be observable when the design is right); each entry's **Avoid** clause
@@ -56,13 +56,15 @@ This skill owns no catalog. It judges against the bundled sources of its compani
 Run every step. The discipline is in steps 3 and 5 - do not skip from "I spotted something" to "here are my
 findings".
 
-1. **Frame the audit.** State that the standard is the catalog, not author intent. Fix the **scope** - a
-   diff, a lib, the whole codebase - and establish a diff with `git diff --stat <base>...HEAD` plus the
-   working tree, **never with `git log`**: commit subjects carry the author's intent. Resolve the
-   **framework**. Note whether a **design decision record** exists - its path comes from the brief; checking
-   that the path exists is fine, reading its content is not. If you authored the code in scope this session,
-   dispatch to a fresh reviewer now. _Done when:_ scope, framework, record presence and independence stance
-   are explicit.
+1. **Frame the audit.** Open your window first: `ai-engineering-gate begin --dimension design-patterns` freezes
+   the state your verdict will bind to, captures who you are and refuses you outright if you are the builder of
+   this task. State that the standard is the catalog, not author intent. Fix the **scope** - a diff, a lib, the
+   whole codebase - and establish a diff with `git diff --stat <base>...HEAD` plus the working tree, **never
+   with `git log`**: commit subjects carry the author's intent. Resolve the **framework**. Note whether a
+   **design decision record** exists - its path comes from the brief; checking that the path exists is fine,
+   reading its content is not. If you authored the code in scope this session, dispatch to a fresh reviewer
+   now. _Done when:_ the window is open and scope, framework, record presence and independence stance are
+   explicit.
 
 2. **Inventory the pattern-shaped sites.** Find every site with a pattern-shaped decision - interchangeable
    behavior, plugin/extensibility, object-creation logic, a DTO/domain boundary, shared state, a composable
@@ -105,7 +107,8 @@ findings".
 
 ## Severity
 
-Tie severity to impact, not to how clever the finding is.
+The [contract](../transpose-design-patterns/references/suite-contract.md) owns the three tiers; this section
+only says what each one is in this domain. Tie severity to impact, not to how clever the finding is.
 
 - **Blocker** - an **Avoid**-clause anti-pattern with concrete bite: `switch`/`constructor.name` on a type tag
   as the extension mechanism, a DTO leaking into UI/template, global mutable state, exposed writable state, a
@@ -120,17 +123,33 @@ Tie severity to impact, not to how clever the finding is.
 
 A catalog gap has no severity: it is not a finding (see _Catalog gaps_).
 
+Each finding is also typed. A **judgment** finding says a recorded decision is wrong against the catalog and
+carries the `correction` to make. An **evidence** finding says an artifact the record planned is not on file
+and carries a `remedy` the builder can execute - `produce` the artifact, or `rerun` the check that proves it.
+A finding a builder believes wrong is disputed, never argued in prose: the builder files
+`dispute --dimension design-patterns` with counter-evidence, and only the user arbitrates it.
+
 ## Verdict
 
 - **SOUND** - zero confirmed findings. The only verdict that completes a `transpose-design-patterns` task.
 - **SMELLS** - confirmed findings, none of them a blocker.
 - **VIOLATIONS** - at least one blocker.
 
-Only `SOUND` is attested. When `ai-engineering-gate` is on the PATH, pipe the verdict block -
-`{"dimension":"design","verdict":"SOUND","records":["<record path>"]}` - to
-`ai-engineering-gate attest --dimension design --stdin`; the gate computes the worktree fingerprint itself,
-never supply one. `SMELLS` and `VIOLATIONS` are reported, never attested: the author fixes, then dispatches
-a fresh review. An implementer never attests its own code.
+Open the window before the audit and file through it afterwards, so the verdict binds to the state you read:
+
+```bash
+ai-engineering-gate begin --dimension design-patterns          # prints the three fingerprints you bind to
+ai-engineering-gate attest --dimension design-patterns --stdin  # SOUND only
+ai-engineering-gate report --dimension design-patterns --stdin  # SMELLS and VIOLATIONS
+```
+
+Both read a [review envelope](../transpose-design-patterns/references/review-envelope.schema.json) on stdin:
+the verdict, the records examined, the checks you saw executed, your independence claim and every finding with
+its type, severity and remedy or correction. Never put a fingerprint in it - the gate computes all three and
+accepts none - and never file for a dimension you were not dispatched for. If the state moved while you were
+reading, `attest` refuses with `state-moved` and the review is void: say so and stop rather than filing on
+code you did not read. `SMELLS` and `VIOLATIONS` are reported, never attested: the builder corrects, then a
+fresh reviewer reassesses. An implementer never attests its own code, and the gate refuses it by identity.
 
 ## Catalog gaps
 
