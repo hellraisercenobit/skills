@@ -71,7 +71,7 @@ A content-neutral rebase leaves a verdict current. A catalog edit, a record revi
 
 ## Hooks
 
-The plugin ships the three required hooks (`SessionStart`, `PreToolUse`, `Stop`) and the two optional ones (`PostToolUse` eager fingerprint refresh, `SubagentStop` `release --hook`) against this bundle. Neither optional hook decides validity. `npm run install:hooks -- --optional` covers a skills.sh install and Codex. Codex has no `sessionStart` context injection; the installer reports that limit instead of wiring a hook that answers into the void.
+The plugin ships the three required hooks (`SessionStart`, `PreToolUse`, `Stop`) and the two optional ones (`PostToolUse` eager fingerprint refresh, `SubagentStop` `release --hook`) against this bundle. `SessionStart` and `Stop` inject the **compact** status (`next:` plus `status --full`). The dispatch briefs stay behind an explicit `can-stop --full` / `status --full`, which is what a no-mistakes driver runs. Neither optional hook decides validity. `npm run install:hooks -- --optional` covers a skills.sh install and Codex. Codex has no `sessionStart` context injection; the installer reports that limit instead of wiring a hook that answers into the void.
 
 ## Threat model
 
