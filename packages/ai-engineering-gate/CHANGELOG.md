@@ -1,5 +1,17 @@
 # @hellraisercenobit/ai-engineering-gate
 
+## 0.7.0
+
+### Minor Changes
+
+- [#25](https://github.com/hellraisercenobit/skills/pull/25) [`7773743`](https://github.com/hellraisercenobit/skills/commit/7773743505d79013fd247241383d47c6000a3f98) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add an adaptive Codeception testing-pattern adapter selected from the lockfile, without pinning identity to 5.0.0.
+
+- [#23](https://github.com/hellraisercenobit/skills/pull/23) [`053b3c9`](https://github.com/hellraisercenobit/skills/commit/053b3c9dc1c8010be93337d34ec8f376a495e866) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - Add an adaptive Karma + jasmine-core + Angular TestBed testing adapter. Routing follows the family, not a pinned 10.2.5 stack; reference profiles stay test targets.
+
+### Patch Changes
+
+- [#24](https://github.com/hellraisercenobit/skills/pull/24) [`459e8a2`](https://github.com/hellraisercenobit/skills/commit/459e8a235201292a284dd56864c1a3d8a9ce670e) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - The testing reviewer recales compiler and runtime profile independently. TypeScript tests must name the ES target in declaration constraints; a missing layer is incomplete execution, not SOUND.
+
 ## 0.6.0
 
 ### Minor Changes
