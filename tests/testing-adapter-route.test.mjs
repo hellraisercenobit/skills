@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import test from 'node:test';
-import { detectTestingAdapter } from '../skills/engineering/transpose-testing-patterns/references/detect-adapter.mjs';
+import { detectTestingAdapter, inspectProject } from '../skills/engineering/transpose-testing-patterns/references/detect-adapter.mjs';
 
 test('Karma + jasmine-core + Angular 10.2.5 selects the karma-jasmine-angular adapter', () => {
   const result = detectTestingAdapter({
@@ -82,13 +84,8 @@ test('an unknown Angular major that still looks like TestBed plus Karma stays on
   });
   assert.equal(result.family, 'karma-jasmine-angular');
   assert.equal(result.adapter, 'transpose-karma-jasmine-angular.md');
-  assert.equal(result.complete, true);
-  assert.deepEqual(result.profile, {
-    angular: '19.0.0',
-    karma: '9.0.0',
-    jasmineCore: '5.1.0',
-    typescript: '5.6.0',
-  });
+  assert.equal(result.complete, false);
+  assert.deepEqual(result.profile.unknowns, ['angular-major', 'karma-major', 'jasmine-major']);
 });
 
 test('missing Angular TestBed signals stay unknown and never become Vitest', () => {
@@ -118,4 +115,29 @@ test('Karma without jasmine-core stays unknown and never becomes Vitest', () => 
   assert.equal(result.complete, false);
   assert.notEqual(result.adapter, 'transpose-vitest.md');
   assert.deepEqual(result.profile, {});
+});
+
+test('catalog stays free of Karma Angular runner APIs', async () => {
+  const catalog = await readFile(
+    'skills/engineering/transpose-testing-patterns/references/catalog.md',
+    'utf8',
+  );
+  assert.doesNotMatch(catalog, /TestBed/);
+  assert.doesNotMatch(catalog, /fakeAsync/);
+  assert.doesNotMatch(catalog, /DRIFTED_SPECS/);
+  assert.doesNotMatch(catalog, /openssl-legacy-provider/);
+});
+
+test('adapter forbids mixing jasmine.clock with fakeAsync', async () => {
+  const adapter = await readFile(
+    'skills/engineering/transpose-testing-patterns/references/transpose-karma-jasmine-angular.md',
+    'utf8',
+  );
+  assert.match(adapter, /Do not mix with `jasmine\.clock\(\)`/);
+});
+
+test('inspectProject reads the Karma Angular pin', () => {
+  const result = inspectProject(resolve('tests/testing-patterns/karma-jasmine-angular'));
+  assert.equal(result.family, 'karma-jasmine-angular');
+  assert.equal(result.complete, true);
 });

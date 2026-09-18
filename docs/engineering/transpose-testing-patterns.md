@@ -21,18 +21,23 @@ observed TDD when appropriate, then requests a fresh read-only review under C01-
 
 ## Prerequisites
 
-Install both companions from the same revision and provide a fresh reviewer context. Runner
-families are adaptive: Vitest, and Karma + jasmine-core + Angular TestBed. Reference
-profiles (Vitest 5 / Vitest 4, and the live Angular 10 / Karma 6.3 / jasmine 3.5 / TS 4.0
-stack) are test targets, not the adapter's supported-version list. Neighbouring majors
-that still use the same runner shape stay on that adapter. Unknown runners permit catalog
-analysis, not a qualified transposition. Existing compatible versions can remain in use.
+Install both companions from the same revision and provide a fresh reviewer context.
 
 ## Choose by behavior
 
 Direct examples, state, interaction, contract, property and characterization tests are
-alternatives with different guarantees. A factory, typed `vi.fn` or useful hook can be
+alternatives with different guarantees. Doubles follow the detected adapter (`vi.fn` on
+Vitest, `jasmine.createSpy` on Karma + Angular TestBed). A factory or useful hook can be
 retained. Builders and ports require a concrete benefit; no specialized pattern is a valid choice.
+
+## Runner adapters
+
+Runner families are adaptive: Vitest, and Karma + jasmine-core + Angular TestBed. Reference
+profiles (Vitest 5 / Vitest 4, and the Angular 10 / Karma 6.3 / jasmine 3.5 / TS 4.0 pin)
+are test targets, not the adapter's supported-version list. Neighbouring majors that still
+use the same runner shape stay on that adapter. An undocumented major stays on the family
+with `complete: false`. Unknown runners permit catalog analysis, not a qualified
+transposition. Existing compatible versions can remain in use.
 
 ## Evidence and delivery
 

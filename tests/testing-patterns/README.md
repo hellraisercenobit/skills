@@ -2,10 +2,10 @@
 
 These fixtures qualify decisions and evidence, not an application framework. Runner
 families are adaptive. Vitest fixtures below pin two reference profiles (Vitest 5 and
-Vitest 4). Karma + jasmine-core + Angular TestBed is a separate family; its first
-reference profile is the live Angular 10 / Karma 6.3 / jasmine 3.5 / TS 4.0 stack, and a
-neighbouring version id must still select that adapter. Those ids are test targets, not
-the adapter's supported-version list. Playwright is only Vitest's provider for the
+Vitest 4). Karma + jasmine-core + Angular TestBed is a separate family. Its routing pin
+lives in `tests/testing-patterns/karma-jasmine-angular/` (package.json versions + karma
+config). That pin is not a live `ng test` app; ChromeHeadless remains optional. Routing
+probes also live in `tests/testing-adapter-route.test.mjs`. Playwright is only Vitest's provider for the
 real-browser fixture; users of the skills do not need to install it. Node handles
 pure/domain and infrastructure cases. Vitest also supports happy-dom for DOM simulation
 when that fidelity is sufficient. Simulation does not establish a native browser

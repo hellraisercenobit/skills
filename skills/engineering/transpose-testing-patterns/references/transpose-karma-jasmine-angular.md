@@ -48,8 +48,9 @@ stack cannot honor.
 ## Doubles, types and TestBed
 
 Keep doubles on the installed jasmine-core API. Do not invent Vitest spies to satisfy
-TP-03. When the reference profile's TypeScript strictness is off, untyped spies are the
-honest mapping; enabling strict flags to unlock TP-12 is out of scope.
+TP-03. When the installed tsconfig has `strict` / `noImplicitAny` / `strictNullChecks` /
+`noImplicitThis` off, untyped spies are the honest mapping; enabling those flags to unlock
+TP-12 is out of scope.
 
 Arrange through existing TestBed modules or spec factories. TestBed owns component,
 module and HTTP testing resources that the spec creates; reset or close them according
