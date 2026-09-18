@@ -40,20 +40,55 @@ export function detectTestingAdapter(evidence) {
       profile,
     };
   }
-  const vitestVersion = evidence?.npmPackages?.vitest;
-  if (vitestVersion) {
+  const npmPackages = evidence.npmPackages ?? {};
+  if (
+    evidence.hasKarmaConfig &&
+    evidence.hasAngularProject &&
+    npmPackages.karma &&
+    npmPackages['jasmine-core'] &&
+    npmPackages['@angular/core']
+  ) {
+    const profile = {
+      angular: npmPackages['@angular/core'],
+      karma: npmPackages.karma,
+      jasmineCore: npmPackages['jasmine-core'],
+    };
+    if (npmPackages.typescript) {
+      profile.typescript = npmPackages.typescript;
+    }
+    const unknowns = [];
+    if (packageMajor(profile.angular) !== 10 && packageMajor(profile.angular) !== 11) {
+      unknowns.push('angular-major');
+    }
+    if (packageMajor(profile.karma) !== 6) {
+      unknowns.push('karma-major');
+    }
+    if (packageMajor(profile.jasmineCore) !== 3) {
+      unknowns.push('jasmine-major');
+    }
+    if (unknowns.length > 0) {
+      profile.unknowns = unknowns;
+    }
+    return {
+      family: 'karma-jasmine-angular',
+      adapter: 'transpose-karma-jasmine-angular.md',
+      complete: unknowns.length === 0,
+      profile,
+    };
+  }
+  if (npmPackages.vitest) {
     return {
       family: 'vitest',
       adapter: 'transpose-vitest.md',
       complete: true,
-      profile: { runner: 'vitest', version: vitestVersion },
+      profile: { vitest: npmPackages.vitest },
     };
   }
   return {
     family: 'unknown',
     adapter: null,
     complete: false,
-    profile: { runner: 'unknown', version: null },
+    profile: {},
   };
 }
 

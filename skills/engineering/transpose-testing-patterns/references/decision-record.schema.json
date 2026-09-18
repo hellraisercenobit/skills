@@ -42,7 +42,8 @@
         "name": {
           "enum": [
             "vitest",
-            "codeception"
+            "codeception",
+            "karma-jasmine-angular"
           ]
         },
         "version": {

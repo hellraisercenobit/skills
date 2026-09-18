@@ -27,14 +27,18 @@ Install both companions from the same revision and provide a fresh reviewer cont
 
 Direct examples, state, interaction, contract, property and characterization tests are
 alternatives with different guarantees. Doubles follow the detected adapter (`vi.fn` on
-Vitest, `Codeception\\Stub` on Codeception). A factory or useful hook can be retained.
-Builders and ports require a concrete benefit; no specialized pattern is a valid choice.
+Vitest, `Codeception\\Stub` on Codeception, `jasmine.createSpy` on Karma + Angular TestBed).
+A factory or useful hook can be retained. Builders and ports require a concrete benefit;
+no specialized pattern is a valid choice.
 
 ## Runner adapters
 
-The first qualified runner adapter is Vitest. Codeception has an adaptive adapter selected
-from the lockfile; its 5.x Unit+MySQL path is a reference profile, not an adoption pin.
-Other runners permit catalog analysis, not a qualified transposition. Existing compatible
+Runner families are adaptive: Vitest, Codeception, and Karma + jasmine-core + Angular
+TestBed. Reference profiles (Vitest 5 / Vitest 4, Codeception 5.x Unit+MySQL, and the
+Angular 10 / Karma 6.3 / jasmine 3.5 / TS 4.0 pin) are test targets, not the adapter's
+supported-version list. Neighbouring majors that still use the same runner shape stay on
+that adapter. An undocumented major stays on the family with `complete: false`. Unknown
+runners permit catalog analysis, not a qualified transposition. Existing compatible
 versions can remain in use.
 
 ## Evidence and delivery
