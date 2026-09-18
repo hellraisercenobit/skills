@@ -21,7 +21,10 @@ suspected defect before confirmation. A persuasive record cannot establish a mis
 
 ## Prerequisites
 
-Install the transpose companion and matching references. When tests are TypeScript, freeze
+Install the transpose companion and matching references. Route the reviewer to the adapter
+for the detected family. SOUND on Codeception needs the pin under
+`tests/testing-patterns/codeception/`; SOUND on Karma + Angular TestBed needs the pin under
+`tests/testing-patterns/karma-jasmine-angular/`. When tests are TypeScript, freeze
 the four compiler/runtime layers and put the ES target in declaration constraints. A
 handoff needs an independent
 context with the [neutral brief](../../contracts/suite-contract.md#neutral-brief). If the named

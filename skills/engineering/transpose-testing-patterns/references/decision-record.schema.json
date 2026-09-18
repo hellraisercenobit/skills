@@ -40,7 +40,11 @@
       ],
       "properties": {
         "name": {
-          "const": "vitest"
+          "enum": [
+            "vitest",
+            "codeception",
+            "karma-jasmine-angular"
+          ]
         },
         "version": {
           "const": "1.0.0"
@@ -157,7 +161,8 @@
         "language": {
           "enum": [
             "typescript",
-            "javascript"
+            "javascript",
+            "php"
           ]
         },
         "runner": {

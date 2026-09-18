@@ -10,7 +10,7 @@ is the authoritative execution protocol; this guide explains how to maintain pai
 | --- | --- | --- |
 | [transpose-design-patterns](engineering/transpose-design-patterns.md) / [review-design-patterns](engineering/review-design-patterns.md) | Architectural forces and framework wiring | Implemented; schema 1.0.0 with enumerated forces |
 | [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented; catalog 1.1.0, schema 2.0.0 |
-| [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Implemented; Vitest adapter, schema 2.0.0 |
+| [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Implemented; Vitest, Karma + jasmine-core + Angular TestBed and Codeception adapters, schema 2.0.0 |
 
 The [member manifest](../contracts/members.json) is the registry. `nuke-review`,
 `transpose-comments` and `review-comments` are outside it; installing them alongside the
