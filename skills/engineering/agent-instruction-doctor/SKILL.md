@@ -1,13 +1,19 @@
 ---
 name: agent-instruction-doctor
-description: Diagnose and repair coding-agent instruction/configuration problems from the current repository through user/global settings. Use when the user reports ignored rules, unexpected comments or code style, skills that do not trigger, hooks that interfere, AGENTS.md or CLAUDE.md problems, ambiguous/conflicting instructions, subagent drift, MCP/tool issues, or asks for a general audit. Treat invocation text as the symptom or investigation hypothesis, not a literal grep filter. Reconstruct the effective configuration, identify the smallest root cause, and finish by proposing a minimal patch. Compare Claude Code and Codex only when cross-harness differences are relevant to the reported problem.
+description: "Diagnose why a coding agent ignores its instructions - rules, skills, hooks, settings, subagents, MCP - and apply only the repairs you select."
+disable-model-invocation: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write, AskUserQuestion
 ---
 
 # Agent Instruction Doctor
 
 Audit the effective instruction system that controls a coding agent. Reconstruct what can influence behavior, determine what actually applies, then explain the smallest plausible cause of the reported symptom.
 
-Default to diagnosis plus a proposed repair. Remain read-only unless the user explicitly asks to apply changes. Always finish a completed audit with a concrete minimal patch proposal when a safe textual/configuration repair can be expressed.
+Default to diagnosis plus selectable repair candidates. Stay read-only during discovery and diagnosis. Treat the user selecting one or more proposed repair IDs as explicit authorization to apply exactly those patches. Always finish a completed audit with concrete minimal patch candidates when safe textual/configuration repairs can be expressed.
+
+## Output
+
+Keep diagnosis, repair choices, patch previews, and verification inline in the current terminal/conversation. Do not delegate presentation or create/open report artifacts.
 
 ## Core principle
 
@@ -219,9 +225,18 @@ Prefer references to authoritative runtime/project configuration over stale pros
 
 Never invent precedence semantics. If harness behavior cannot be established from local configuration or bundled references, mark it `uncertain` and recommend verification.
 
-### 10. Propose the patch
+### 10. Build selectable patch candidates
 
-After the diagnosis, produce a patch proposal for the smallest repair whenever the evidence is sufficient.
+After diagnosis, turn each independently actionable repair into a stable candidate ID such as `F01`, `F02`, `F03`.
+
+Each candidate must include:
+
+- finding ID and short title
+- evidence-backed root cause
+- exact files affected
+- smallest repair
+- concrete unified diff or exact replacement
+- dependencies or conflicts with other candidates, if any
 
 Patch rules:
 
@@ -232,14 +247,62 @@ Patch rules:
 5. Show exact file paths.
 6. Use a unified diff when practical. For new/replacement snippets where a diff would be misleading, show the exact replacement block.
 7. Separate evidence-backed edits from optional hardening.
-8. Do not apply the patch unless the user explicitly asks you to edit files.
-9. If evidence is insufficient, state what must be verified instead of inventing a patch.
+8. If multiple findings require one inseparable change, combine them into one candidate instead of pretending they can be selected independently.
+9. If two candidates are alternatives, mark them mutually exclusive.
+10. If evidence is insufficient, do not create an applyable candidate; state what must be verified.
 
-For a targeted audit, the patch is part of the normal output, not an optional appendix.
+For a targeted audit, repair candidates are part of the normal output, not an optional appendix.
 
-### 11. Report
+### 11. Ask which repairs to apply
 
-Use [references/report-format.md](references/report-format.md).
+After presenting candidates, let the user choose before modifying files.
+
+- If a native structured multi-select/question tool is available, use it with one option per applyable candidate. Keep each option concise and preserve the full diff inline above it.
+- Otherwise render a Markdown checklist and ask the user to reply with candidate IDs, for example `F01 F03`.
+- Do not apply unselected candidates.
+- Do not interpret silence as approval.
+- Treat selection of candidate IDs as explicit authorization to apply those exact patches; do not ask for a second confirmation unless the selected patches have become stale or unsafe since presentation.
+- If the user asks to adjust a candidate first, revise its patch and present the changed candidate before applying it.
+
+A fallback checklist should look like:
+
+```text
+Select repairs to apply:
+[ ] F01 - Narrow the no-comments rule scope
+[ ] F02 - Remove the conflicting documentation instruction
+[ ] F03 - Restrict the PostToolUse hook matcher
+
+Reply with IDs, e.g. F01 F03.
+```
+
+### 12. Apply selected repairs
+
+For each selected candidate:
+
+1. Re-read the affected file immediately before editing.
+2. Ensure the evidence and patch context are still current.
+3. Apply only the selected diff.
+4. Preserve unrelated formatting and configuration.
+5. If a candidate can no longer be applied cleanly, stop that candidate and report it as stale instead of improvising a different repair.
+
+Do not execute project hooks merely because configuration changed.
+
+### 13. Verify selected repairs
+
+After editing, re-run only the narrow static/reachability checks needed to verify the selected causes.
+
+Report each selected candidate as:
+
+- `applied` - patch landed and the configuration now reflects the intended repair
+- `stale` - source changed before application; nothing improvised
+- `failed` - edit could not be completed
+- `needs-runtime-verification` - static repair is present but runtime behavior still requires an explicit experiment
+
+Keep unselected findings visible as unresolved when they still matter.
+
+### 14. Report
+
+Use [references/report-format.md](references/report-format.md). Prefer an inline unified diff for the patch.
 
 For every finding, include evidence from concrete files/lines whenever possible.
 
@@ -296,7 +359,7 @@ When no symptom is supplied:
 
 ## Important constraints
 
-- Remain read-only by default.
+- Remain read-only until the user selects repair candidate IDs.
 - Never execute arbitrary hooks merely because they are present.
 - Never expose secrets from settings, environment files, credentials, or MCP configuration. Redact secret values and report only their existence/relevance.
 - Do not assume a file is active solely because it exists.
