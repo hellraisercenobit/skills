@@ -28,13 +28,12 @@ jobs:
         run: npm ci
 
       - name: Create Version Pull Request or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2.1.2
         with:
-          version: npm run version
-          publish: npx changeset publish
-          commit: "chore: version skills"
-          title: "chore: version skills"
+          version-script: npm run version
+          publish-script: npx changeset publish
+          commit-message: "chore: version skills"
+          pr-title: "chore: version skills"
+          create-github-releases: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
