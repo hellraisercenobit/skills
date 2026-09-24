@@ -32,3 +32,14 @@ The text you pass is the symptom to explain, not a search filter. "Comments keep
 The report follows a fixed remediation order. Delete a redundant or misleading instruction first, then choose one authoritative source, sharpen a trigger, narrow a scope. Add new text only when nothing smaller works. Findings use one taxonomy (contradictions, scope gaps, weak or broken pointers, unreachable skills, hook collisions, execution cycles, harness divergence), and each patch edits the authoritative source instead of every duplicate. Candidates that must land together are merged into one; alternatives are marked mutually exclusive.
 
 `scripts/discover-agent-config.sh` lists candidate instruction and configuration files, read-only. A file that exists is a candidate, not proof that it is active.
+
+## Guardrail
+
+On Claude Code, the skill registers its own hooks when you invoke it (`hooks/guardrail.mjs`, Node, no dependency). They prove each step of the workflow with content hashes instead of trusting the prose:
+
+- **Read-only diagnosis.** Every file write is denied until you select candidate ids, and the turn cannot end while a discovered instruction source has a different sha256 than at invocation.
+- **Discovery and manifest.** The turn cannot end before `discover-agent-config.sh` ran and the candidates manifest (`candidates.json`, validated against `hooks/candidates.schema.json`) was written; the reference reads are reported to you as a warning only.
+- **Selection and application.** An edit is allowed only on a file listed by a selected candidate, re-read after the selection and unchanged since, whose patch is still the one you saw. A candidate whose patch changed is stale and must be presented again.
+- **Verification.** After applying, the final message must carry a status per selected id (`applied`, `stale`, `failed`, `needs-runtime-verification`).
+
+The guardrail is fail-visible, not fail-closed: if `node` or the script cannot be found, the invocation tells Claude to say so; an internal error never blocks. Evidence lives in an append-only ledger under the system temp directory (digests, paths and ids, never file content) and is purged after 24 hours. `node hooks/guardrail.mjs self-check` prints where the guardrail runs and whether `hooks/contract.json` still matches `SKILL.md`. Limits: Claude Code only (Codex, Cursor and Copilot ignore the frontmatter hooks), a resumed session does not re-register the hooks until you invoke the skill again, the resolver needs a POSIX `sh`, and the source fingerprint covers what `discover-agent-config.sh` lists, which skips skills installed as symlinks because `find -type f` does not follow them.

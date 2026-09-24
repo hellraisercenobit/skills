@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hellraisercenobit/skills/skills/engineering/agent-instruction-doctor/hooks/candidates.schema.json",
+  "title": "agent-instruction-doctor candidates manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "symptom", "candidates"],
+  "properties": {
+    "mode": { "enum": ["targeted", "general"] },
+    "symptom": { "type": "string" },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "severity", "observed", "affects", "patch", "relationship"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^F[0-9]{2}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["Critical", "Important", "Moderate", "Low"] },
+          "observed": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "affects": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "patch": { "type": "string", "minLength": 1 },
+          "relationship": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

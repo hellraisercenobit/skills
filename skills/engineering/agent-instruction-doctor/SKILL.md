@@ -3,6 +3,34 @@ name: agent-instruction-doctor
 description: "Diagnose why a coding agent ignores its instructions - rules, skills, hooks, settings, subagents, MCP - and apply only the repairs you select."
 disable-model-invocation: true
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write, AskUserQuestion
+hooks:
+  UserPromptSubmit:
+    - hooks:
+        - type: command
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh prompt"
+          timeout: 20
+  PreToolUse:
+    - matcher: "Edit|Write|MultiEdit|NotebookEdit"
+      hooks:
+        - type: command
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh can-write"
+          timeout: 10
+  PostToolUse:
+    - matcher: "Bash|Read|Write|AskUserQuestion"
+      hooks:
+        - type: command
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh record"
+          timeout: 10
+  Stop:
+    - hooks:
+        - type: command
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh can-stop"
+          timeout: 30
+  SessionEnd:
+    - hooks:
+        - type: command
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh close"
+          timeout: 10
 ---
 
 # Agent Instruction Doctor
@@ -76,8 +104,10 @@ Record:
 Run:
 
 ```sh
-scripts/discover-agent-config.sh --root "$PWD" --include-global --format markdown
+${CLAUDE_SKILL_DIR}/scripts/discover-agent-config.sh --root "$PWD" --include-global --format markdown
 ```
+
+The script lives in this skill's own `scripts/` folder; if your harness does not substitute `${CLAUDE_SKILL_DIR}`, run it from that folder.
 
 Use the manifest as candidate discovery, not as proof that every file is active.
 
@@ -253,11 +283,33 @@ Patch rules:
 
 For a targeted audit, repair candidates are part of the normal output, not an optional appendix.
 
+Before asking which repairs to apply, also write the candidates as a JSON manifest with the Write tool, at the exact path the guardrail handed you when the skill was invoked (the context line `agent-instruction-doctor guardrail is armed for this session`). Write it even when the candidates list is empty. Its shape is fixed by [hooks/candidates.schema.json](hooks/candidates.schema.json):
+
+```json
+{
+  "mode": "targeted",
+  "symptom": "comments keep appearing",
+  "candidates": [
+    {
+      "id": "F01",
+      "title": "Narrow the no-comments rule scope",
+      "severity": "Important",
+      "observed": [".claude/rules/no-comments.md:2 - paths: src/**/*.ts"],
+      "affects": [".claude/rules/no-comments.md"],
+      "patch": "--- a/.claude/rules/no-comments.md\n+++ b/.claude/rules/no-comments.md\n-paths: src/**/*.ts\n+paths: \"**/*.ts\"\n",
+      "relationship": "independent"
+    }
+  ]
+}
+```
+
+`affects` lists every file the patch touches, relative to the working directory or absolute. `patch` is the same diff or replacement you show inline. The manifest is what lets the guardrail allow edits to exactly the selected files and detect a candidate that went stale.
+
 ### 11. Ask which repairs to apply
 
 After presenting candidates, let the user choose before modifying files.
 
-- If a native structured multi-select/question tool is available, use it with one option per applyable candidate. Keep each option concise and preserve the full diff inline above it.
+- If a native structured multi-select/question tool is available, use it with one option per applyable candidate. Each option label starts with the candidate id, for example `F01` or `F01 - Narrow the no-comments rule scope`; the guardrail reads the selection from those ids. Keep each option concise and preserve the full diff inline above it.
 - Otherwise render a Markdown checklist and ask the user to reply with candidate IDs, for example `F01 F03`.
 - Do not apply unselected candidates.
 - Do not interpret silence as approval.
@@ -360,6 +412,7 @@ When no symptom is supplied:
 ## Important constraints
 
 - Remain read-only until the user selects repair candidate IDs.
+- A guardrail ships with this skill (`hooks/guardrail.mjs`, registered by the frontmatter hooks on Claude Code). It denies writes before a selection, checks the candidates manifest, refuses an edit on a file that was not selected or not re-read, and blocks the end of the turn until the discovery ran, the manifest exists and each selected repair has a status. When it denies a tool call or blocks a stop, follow its reason; never work around it.
 - Never execute arbitrary hooks merely because they are present.
 - Never expose secrets from settings, environment files, credentials, or MCP configuration. Redact secret values and report only their existence/relevance.
 - Do not assume a file is active solely because it exists.

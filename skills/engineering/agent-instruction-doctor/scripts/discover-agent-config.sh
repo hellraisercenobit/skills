@@ -65,6 +65,10 @@ TMP="${TMPDIR:-/tmp}/agent-instruction-doctor.$$"
 trap 'rm -f "$TMP"' EXIT HUP INT TERM
 : > "$TMP"
 
+canonical_dir() {
+  (cd "$1" 2>/dev/null && pwd -P) || printf '%s' "$1"
+}
+
 add_file() {
   kind=$1
   scope=$2
@@ -73,14 +77,36 @@ add_file() {
   if [ -d "$path" ]; then
     return 0
   fi
-  canonical=$(cd "$(dirname "$path")" 2>/dev/null && printf '%s/%s' "$(pwd -P)" "$(basename "$path")" || printf '%s' "$path")
-  printf '%s\t%s\t%s\n' "$kind" "$scope" "$canonical" >> "$TMP"
+  printf '%s\t%s\t%s\n' "$kind" "$scope" "$path" >> "$TMP"
+}
+
+kind_of_resource() {
+  case "$1" in
+    */rules/*) printf 'rule' ;;
+    */agents/*) printf 'agent' ;;
+    */commands/*|*/prompts/*) printf 'command' ;;
+    */hooks/*) printf 'hook' ;;
+    */skills/*) printf 'skill-resource' ;;
+    */config.toml) printf 'settings' ;;
+    *) printf 'candidate' ;;
+  esac
+}
+
+scan_resource_dir() {
+  dir=$1
+  scope=$2
+  [ -d "$dir" ] || return 0
+  dir=$(canonical_dir "$dir")
+  find "$dir" -type f 2>/dev/null | while IFS= read -r path; do
+    add_file "$(kind_of_resource "$path")" "$scope" "$path"
+  done
 }
 
 scan_tree() {
   base=$1
   scope=$2
   [ -d "$base" ] || return 0
+  base=$(canonical_dir "$base")
 
   find "$base" \
     \( -type d \( -name .git -o -name node_modules -o -name dist -o -name build -o -name target -o -name vendor -o -name .venv -o -name __pycache__ \) -prune \) -o \
@@ -104,17 +130,7 @@ scan_tree() {
   for dir in \
     "$base/.claude/rules" "$base/.claude/agents" "$base/.claude/commands" "$base/.claude/skills" \
     "$base/.agents/skills" "$base/.agents" "$base/.codex"; do
-    [ -d "$dir" ] || continue
-    find "$dir" -type f 2>/dev/null | while IFS= read -r path; do
-      case "$path" in
-        */rules/*) kind="rule" ;;
-        */agents/*) kind="agent" ;;
-        */commands/*) kind="command" ;;
-        */skills/*) kind="skill-resource" ;;
-        *) kind="candidate" ;;
-      esac
-      add_file "$kind" "$scope" "$path"
-    done
+    scan_resource_dir "$dir" "$scope"
   done
 }
 
@@ -137,9 +153,11 @@ scan_tree "$REPO_ROOT" "repo"
 scan_ancestors "$ROOT" "$REPO_ROOT"
 
 if [ "$INCLUDE_GLOBAL" -eq 1 ] && [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+  HOME_DIR=$(canonical_dir "$HOME")
   for path in \
-    "$HOME/.claude/CLAUDE.md" "$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json" \
-    "$HOME/.codex/config.toml" "$HOME/AGENTS.md" "$HOME/AGENTS.override.md" "$HOME/CLAUDE.md"; do
+    "$HOME_DIR/.claude/CLAUDE.md" "$HOME_DIR/.claude/settings.json" "$HOME_DIR/.claude/settings.local.json" \
+    "$HOME_DIR/.codex/config.toml" "$HOME_DIR/.codex/AGENTS.md" "$HOME_DIR/.codex/AGENTS.override.md" "$HOME_DIR/.codex/hooks.json" \
+    "$HOME_DIR/AGENTS.md" "$HOME_DIR/AGENTS.override.md" "$HOME_DIR/CLAUDE.md"; do
     case "$(basename "$path")" in
       CLAUDE.md|AGENTS.md|AGENTS.override.md) kind="instruction" ;;
       *) kind="settings" ;;
@@ -148,20 +166,10 @@ if [ "$INCLUDE_GLOBAL" -eq 1 ] && [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
   done
 
   for dir in \
-    "$HOME/.claude/rules" "$HOME/.claude/agents" "$HOME/.claude/commands" "$HOME/.claude/skills" \
-    "$HOME/.codex" "$HOME/.agents/skills"; do
-    [ -d "$dir" ] || continue
-    find "$dir" -type f 2>/dev/null | while IFS= read -r path; do
-      case "$path" in
-        */rules/*) kind="rule" ;;
-        */agents/*) kind="agent" ;;
-        */commands/*) kind="command" ;;
-        */skills/*) kind="skill-resource" ;;
-        */config.toml) kind="settings" ;;
-        *) kind="candidate" ;;
-      esac
-      add_file "$kind" "global" "$path"
-    done
+    "$HOME_DIR/.claude/rules" "$HOME_DIR/.claude/agents" "$HOME_DIR/.claude/commands" "$HOME_DIR/.claude/skills" \
+    "$HOME_DIR/.codex/skills" "$HOME_DIR/.codex/rules" "$HOME_DIR/.codex/hooks" "$HOME_DIR/.codex/agents" "$HOME_DIR/.codex/prompts" \
+    "$HOME_DIR/.agents/skills"; do
+    scan_resource_dir "$dir" "global"
   done
 fi
 
