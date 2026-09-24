@@ -1,5 +1,11 @@
 # @hellraisercenobit/ai-engineering-gate
 
+## 0.8.0
+
+### Minor Changes
+
+- [#32](https://github.com/hellraisercenobit/skills/pull/32) [`24ac388`](https://github.com/hellraisercenobit/skills/commit/24ac3882bf462dcfa78c277b59c430ae85bb391d) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - `agent-instruction-doctor` lists repair candidates (`F01`, `F02`...) and applies only the ones you select, then reports each as applied, stale, failed or needs-runtime-verification. It is now user-invoked only: type `/agent-instruction-doctor`.
+
 ## 0.7.0
 
 ### Minor Changes
