@@ -4,7 +4,7 @@ Personal agent skills by **Guillaume Mongin** ([@hellraisercenobit](https://gith
 
 The **transpose/review suite** is a protocol for coding agents: record an engineering decision **before** the affected edit, implement it, then have a **fresh** reviewer challenge the result against a shared catalog. The lock on publication is `ai-engineering-gate`, not a generic CI green.
 
-**Start here:** [strategy](#how-the-suite-works) · [CLI workflow](#the-workflow-and-the-cli) · [environments](#how-it-fits-the-environment) · [install](#1-install-the-suite).
+**Start here:** [strategy](#how-the-suite-works) · [CLI workflow](#the-workflow-and-the-cli) · [environments](#how-it-fits-the-environment) · [install](#1-install-the-suite) · [other tools](#also-in-this-repository).
 
 | Dimension | Question | Before implementation | Independent review |
 | --- | --- | --- | --- |
@@ -12,7 +12,13 @@ The **transpose/review suite** is a protocol for coding agents: record an engine
 | Modern TS/JS | Which language, types, collections and platform choices fit the behavior? | [transpose-modern-typescript](./skills/engineering/transpose-modern-typescript/SKILL.md) | [review-modern-typescript](./skills/engineering/review-modern-typescript/SKILL.md) |
 | Testing / TDD | Which observations and evidence protect the behavior? | [transpose-testing-patterns](./skills/engineering/transpose-testing-patterns/SKILL.md) | [review-testing-patterns](./skills/engineering/review-testing-patterns/SKILL.md) |
 
-`agent-instruction-doctor` ships in the same plugin. It is **outside the suite**: it cannot supply or replace a suite verdict.
+### Also in this repository
+
+| Tool | Job | Install |
+| --- | --- | --- |
+| [agent-instruction-doctor](./docs/engineering/agent-instruction-doctor.md) | Diagnose why an agent ignores a rule, skips a skill or fights a hook: rebuild the effective instructions (AGENTS.md, CLAUDE.md, rules, skills, hooks, settings, subagents, MCP) and propose the smallest patch. Read-only by default. | `npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --global` |
+
+It ships in the same Claude Code plugin and needs no companion or gate. It is **outside the suite**: it cannot supply or replace a suite verdict. See [install it alone](#install-agent-instruction-doctor).
 
 ## How the suite works
 
@@ -244,6 +250,16 @@ claude plugin list
 
 Restart afterwards. Do not also install the same skills through skills.sh for that harness.
 
+### Install agent-instruction-doctor
+
+It stands alone: no companion, no reviewer agent, no gate.
+
+```sh
+npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --agent codex claude-code --global --yes
+```
+
+`--global` makes it available in every repository, which suits a tool that audits user and global settings too; drop it for one project. The Claude Code plugin above already includes it. Then type `/agent-instruction-doctor <symptom>`, for example `/agent-instruction-doctor my no-comment rule is ignored`, or run it with no symptom for a general audit.
+
 ### Local development from this repository
 
 ```sh
@@ -374,7 +390,7 @@ Use `--global` for personal installs. Plugin: `claude plugin update hellraiserce
 
 ## Other engineering tools - outside the suite
 
-- **[agent-instruction-doctor](./skills/engineering/agent-instruction-doctor/SKILL.md)** - Diagnose ignored or conflicting agent instructions, skills, hooks and settings, then propose the smallest patch. Read-only by default.
+- **[agent-instruction-doctor](./skills/engineering/agent-instruction-doctor/SKILL.md)** - Diagnose ignored or conflicting agent instructions, skills, hooks and settings, then propose the smallest patch. Read-only by default. [Install it alone](#install-agent-instruction-doctor).
 
 ## Repository layout and releases
 
