@@ -1,0 +1,85 @@
+{
+  "skill": "agent-instruction-doctor",
+  "skill_sha256": "sha256:434d024c24007b6d0f5d67ba03f6bc20fe37d7ecabfe0f94067648645f0ded03",
+  "manifest_file": "candidates.json",
+  "ledger_dir": "agent-instruction-doctor",
+  "ledger_max_age_hours": 24,
+  "stop_blocks_before_release": 2,
+  "source_hash_limit": 2000,
+  "discovery_timeout_ms": 8000,
+  "source_kinds_when_limited": ["instruction", "rule", "settings", "mcp", "plugin", "agent", "command"],
+  "obligations": [
+    {
+      "id": "D1",
+      "step": "2. Discover instruction sources",
+      "event": "PostToolUse",
+      "tool": "Bash",
+      "severity": "hard",
+      "summary": "the discovery script ran before the first Stop"
+    },
+    {
+      "id": "D2",
+      "step": "2. Read the method reference",
+      "event": "PostToolUse",
+      "tool": "Read",
+      "severity": "soft",
+      "summary": "targeted-audit.md read on a targeted audit, at least one harness reference read on a general audit"
+    },
+    {
+      "id": "D3",
+      "step": "6 and 14. Taxonomy and report format",
+      "event": "PostToolUse",
+      "tool": "Read",
+      "severity": "soft",
+      "summary": "finding-taxonomy.md and report-format.md read before the first Stop"
+    },
+    {
+      "id": "D4",
+      "step": "Read-only until selection",
+      "event": "Stop",
+      "tool": null,
+      "severity": "hard",
+      "summary": "every discovered source has the same sha256 at Stop as at arming"
+    },
+    {
+      "id": "D5",
+      "step": "10. Build selectable patch candidates",
+      "event": "PostToolUse",
+      "tool": "Write",
+      "severity": "hard",
+      "summary": "the candidates manifest is written at the handed path and validates against candidates.schema.json"
+    },
+    {
+      "id": "D6",
+      "step": "11. Ask which repairs to apply",
+      "event": "PostToolUse",
+      "tool": "AskUserQuestion",
+      "severity": "hard",
+      "summary": "every selected label is a candidate id of the manifest"
+    },
+    {
+      "id": "D7",
+      "step": "12. Apply selected repairs",
+      "event": "PreToolUse",
+      "tool": "Edit|Write|MultiEdit|NotebookEdit",
+      "severity": "hard",
+      "summary": "a write targets a file of a selected candidate, re-read after selection and unchanged since, whose patch is the one presented"
+    },
+    {
+      "id": "D8",
+      "step": "13. Verify selected repairs",
+      "event": "Stop",
+      "tool": null,
+      "severity": "hard",
+      "summary": "the final message reports applied, stale, failed or needs-runtime-verification for each selected id"
+    },
+    {
+      "id": "D9",
+      "step": "14. Report",
+      "event": "Stop",
+      "tool": null,
+      "severity": "soft",
+      "summary": "the manifest precedes any selection and every candidate carries observed evidence"
+    }
+  ]
+}
