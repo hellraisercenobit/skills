@@ -16,7 +16,7 @@ The **transpose/review suite** is a protocol for coding agents: record an engine
 
 | Tool | Job | Install |
 | --- | --- | --- |
-| [agent-instruction-doctor](./docs/engineering/agent-instruction-doctor.md) | Diagnose why an agent ignores a rule, skips a skill or fights a hook: rebuild the effective instructions (AGENTS.md, CLAUDE.md, rules, skills, hooks, settings, subagents, MCP) and propose the smallest patch. Read-only by default. | `npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --global` |
+| [agent-instruction-doctor](./docs/engineering/agent-instruction-doctor.md) | Diagnose why an agent ignores a rule, skips a skill or fights a hook: rebuild the effective instructions (AGENTS.md, CLAUDE.md, rules, skills, hooks, settings, subagents, MCP) and apply only the repairs you select. You invoke it with `/agent-instruction-doctor`. | `npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --global` |
 
 It ships in the same Claude Code plugin and needs no companion or gate. It is **outside the suite**: it cannot supply or replace a suite verdict. See [install it alone](#install-agent-instruction-doctor).
 
@@ -258,7 +258,7 @@ It stands alone: no companion, no reviewer agent, no gate.
 npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --agent codex claude-code --global --yes
 ```
 
-`--global` makes it available in every repository, which suits a tool that audits user and global settings too; drop it for one project. The Claude Code plugin above already includes it. Then type `/agent-instruction-doctor <symptom>`, for example `/agent-instruction-doctor my no-comment rule is ignored`, or run it with no symptom for a general audit.
+`--global` makes it available in every repository, which suits a tool that audits user and global settings too; drop it for one project. The Claude Code plugin above already includes it. It never starts on its own: type `/agent-instruction-doctor <symptom>`, for example `/agent-instruction-doctor my no-comment rule is ignored`, or run it with no symptom for a general audit. It lists repair candidates (`F01`, `F02`...) and applies only the ones you pick.
 
 ### Local development from this repository
 
@@ -390,7 +390,7 @@ Use `--global` for personal installs. Plugin: `claude plugin update hellraiserce
 
 ## Other engineering tools - outside the suite
 
-- **[agent-instruction-doctor](./skills/engineering/agent-instruction-doctor/SKILL.md)** - Diagnose ignored or conflicting agent instructions, skills, hooks and settings, then propose the smallest patch. Read-only by default. [Install it alone](#install-agent-instruction-doctor).
+- **[agent-instruction-doctor](./skills/engineering/agent-instruction-doctor/SKILL.md)** - Diagnose ignored or conflicting agent instructions, skills, hooks and settings, then apply only the repairs you select. User-invoked. [Install it alone](#install-agent-instruction-doctor).
 
 ## Repository layout and releases
 

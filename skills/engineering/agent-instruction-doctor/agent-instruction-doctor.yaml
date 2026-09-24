@@ -4,13 +4,13 @@ tools:
   - claude-code
   - cursor
   - github-copilot
-description: "Diagnose ignored, conflicting or unreachable coding-agent instructions - AGENTS.md, CLAUDE.md, rules, skills, hooks, settings, subagents, MCP - from the repository up to user/global settings, then propose the smallest patch. Use when rules are ignored, a skill does not trigger, a hook interferes, instructions conflict, or for a general audit."
+description: "Diagnose why a coding agent ignores its instructions - rules, skills, hooks, settings, subagents, MCP - and apply only the repairs you select."
 label: "Agent Instruction Doctor"
 author: "Guillaume Mongin (@hellraisercenobit)"
 license: "MIT"
 copyright: "Copyright (c) 2026 Guillaume Mongin (@hellraisercenobit)"
 homepage: "https://github.com/hellraisercenobit/skills/tree/main/skills/engineering/agent-instruction-doctor"
-version: "1.0.0"
+version: "2.0.0"
 icon: "https://img.icons8.com/color/48/stethoscope.png"
 tags:
   - agents

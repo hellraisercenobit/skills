@@ -1,6 +1,7 @@
 interface:
-  display_name: Agent Instruction Doctor
-  short_description: Diagnose ignored agent instructions and propose the smallest
-    config patch
+  display_name: "Agent Instruction Doctor"
+  short_description: "Diagnose ignored agent instructions and apply the repairs you select"
   icon_small: assets/icon.svg
   icon_large: assets/icon.svg
+policy:
+  allow_implicit_invocation: false
