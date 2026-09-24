@@ -260,6 +260,8 @@ npx skills add hellraisercenobit/skills --skill agent-instruction-doctor --agent
 
 `--global` makes it available in every repository, which suits a tool that audits user and global settings too; drop it for one project. The Claude Code plugin above already includes it. It never starts on its own: type `/agent-instruction-doctor <symptom>`, for example `/agent-instruction-doctor my no-comment rule is ignored`, or run it with no symptom for a general audit. It lists repair candidates (`F01`, `F02`...) and applies only the ones you pick.
 
+Its guardrail installs itself with the skill: the `hooks/` folder travels with it and the `SKILL.md` frontmatter registers the hooks the moment you invoke the skill, on Claude Code, with `node` on your `PATH` as the only requirement. There is nothing to wire, and the `install:hooks` step below is for the suite gate, not for this skill. In a project install the hooks run once you have trusted the folder; Codex, Cursor and Copilot run the skill without the guardrail. `node <skill folder>/hooks/guardrail.mjs self-check` prints where it runs and whether its contract still matches the `SKILL.md`.
+
 ### Local development from this repository
 
 ```sh
