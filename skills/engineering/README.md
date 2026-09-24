@@ -3,7 +3,7 @@
 Skills for daily code work. **Promoted** - listed in the top-level README and shipped in the Claude plugin.
 
 The transpose/review suite contains the design-patterns, modern-typescript and testing-patterns pairs.
-`nuke-review`, `transpose-comments` and `review-comments` are separate tools outside the suite.
+`agent-instruction-doctor` is a separate tool outside the suite.
 
 ## Model-invoked
 
@@ -24,7 +24,4 @@ See the [suite guide](../../docs/skill-suite.md) for the common contract, compos
 
 ### Separate tools
 
-- **[nuke-review](./nuke-review/SKILL.md)** - Strict structural quality review of a branch or diff, invoked by the model or user. Fork of Cursor's [thermo-nuclear-code-quality-review](https://github.com/cursor/plugins/blob/main/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md) (MIT).
-
-- **[transpose-comments](./transpose-comments/SKILL.md)** — Write only the why: no comment by default, one Simplified Technical English (ASD-STE100) line where a why exists, placed in the language's idiom (lint directives carry it inline). Runs before any code write.
-- **[review-comments](./review-comments/SKILL.md)** — Audit comments in a diff, MR, or file: keep the why, delete narration, tighten the rest to STE. Companion to `transpose-comments`.
+- **[agent-instruction-doctor](./agent-instruction-doctor/SKILL.md)** - Diagnose ignored, conflicting or unreachable agent instructions from the repository up to user/global settings (AGENTS.md, CLAUDE.md, rules, skills, hooks, settings, subagents, MCP), then propose the smallest patch. Read-only by default.

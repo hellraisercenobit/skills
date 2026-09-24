@@ -12,7 +12,7 @@ The **transpose/review suite** is a protocol for coding agents: record an engine
 | Modern TS/JS | Which language, types, collections and platform choices fit the behavior? | [transpose-modern-typescript](./skills/engineering/transpose-modern-typescript/SKILL.md) | [review-modern-typescript](./skills/engineering/review-modern-typescript/SKILL.md) |
 | Testing / TDD | Which observations and evidence protect the behavior? | [transpose-testing-patterns](./skills/engineering/transpose-testing-patterns/SKILL.md) | [review-testing-patterns](./skills/engineering/review-testing-patterns/SKILL.md) |
 
-`nuke-review`, `transpose-comments` and `review-comments` ship in the same plugin. They are **outside the suite**: they cannot supply or replace a suite verdict.
+`agent-instruction-doctor` ships in the same plugin. It is **outside the suite**: it cannot supply or replace a suite verdict.
 
 ## How the suite works
 
@@ -309,7 +309,6 @@ Add this block to `AGENTS.md` (Codex reads it; for Claude Code, load it from `CL
   a new reviewer checks.
 - Finish only with passing checks and current SOUND in every applicable dimension.
   A dimension without an applicable site is non-applicable, with a reason.
-- nuke-review, transpose-comments and review-comments cannot replace a suite verdict.
 ```
 
 Document the project's real typecheck, test and lint commands. Do not copy this repository's test compiler into an application.
@@ -375,10 +374,7 @@ Use `--global` for personal installs. Plugin: `claude plugin update hellraiserce
 
 ## Other engineering tools - outside the suite
 
-- **[nuke-review](./skills/engineering/nuke-review/SKILL.md)** - Strict maintainability audit.
-- **[transpose-comments](./skills/engineering/transpose-comments/SKILL.md)** / **[review-comments](./skills/engineering/review-comments/SKILL.md)** - Necessary comments only; this review **edits**, unlike suite review.
-
-Finish those edits **before** final suite reviews.
+- **[agent-instruction-doctor](./skills/engineering/agent-instruction-doctor/SKILL.md)** - Diagnose ignored or conflicting agent instructions, skills, hooks and settings, then propose the smallest patch. Read-only by default.
 
 ## Repository layout and releases
 

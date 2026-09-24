@@ -12,9 +12,9 @@ is the authoritative execution protocol; this guide explains how to maintain pai
 | [transpose-modern-typescript](engineering/transpose-modern-typescript.md) / [review-modern-typescript](engineering/review-modern-typescript.md) | Language, types, collections, consumption, lifetime and platform | Implemented; catalog 1.1.0, schema 2.0.0 |
 | [transpose-testing-patterns](engineering/transpose-testing-patterns.md) / [review-testing-patterns](engineering/review-testing-patterns.md) | Test form, seam, oracle, doubles, TDD and TypeScript evidence | Implemented; Vitest, Karma + jasmine-core + Angular TestBed and Codeception adapters, schema 2.0.0 |
 
-The [member manifest](../contracts/members.json) is the registry. `nuke-review`,
-`transpose-comments` and `review-comments` are outside it; installing them alongside the
-suite does not make them members, prerequisites or substitutes for a suite verdict.
+The [member manifest](../contracts/members.json) is the registry. `agent-instruction-doctor`
+is outside it; installing it alongside the suite does not make it a member, a prerequisite
+or a substitute for a suite verdict.
 
 Transpose owns its domain catalog, schema and guides. Review consumes those references;
 it does not maintain a competing catalog. The named reviewer agent is a thin wrapper with
