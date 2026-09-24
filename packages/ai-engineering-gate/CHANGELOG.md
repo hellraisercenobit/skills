@@ -1,5 +1,11 @@
 # @hellraisercenobit/ai-engineering-gate
 
+## 0.9.0
+
+### Minor Changes
+
+- [#41](https://github.com/hellraisercenobit/skills/pull/41) [`4c66ba3`](https://github.com/hellraisercenobit/skills/commit/4c66ba3807d5deef118c6a2fd332d12352caa652) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - `agent-instruction-doctor` ships a hook guardrail on Claude Code (`hooks/guardrail.mjs`): writes are denied until you select candidate ids, the turn cannot end before the discovery ran and the candidates manifest is written, an edit is allowed only on a selected file re-read and unchanged since, a stale candidate is refused, and the final message must report a status per selected repair. Evidence is an append-only ledger of content hashes; the guardrail is fail-visible and never blocks on its own errors.
+
 ## 0.8.0
 
 ### Minor Changes
