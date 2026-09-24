@@ -1,3 +1,0 @@
-interface:
-  display_name: "Nuke Review"
-  short_description: "Strict structural review of branches and diffs"
