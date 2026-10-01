@@ -19,7 +19,7 @@ const RESOLVER = [
 
 const WIRING = [
   { event: 'UserPromptSubmit', matcher: null, command: 'prompt', timeout: 20 },
-  { event: 'PreToolUse', matcher: 'Edit|Write|MultiEdit|NotebookEdit', command: 'can-write', timeout: 10 },
+  { event: 'PreToolUse', matcher: 'Edit|Write|MultiEdit|NotebookEdit|AskUserQuestion', command: 'pre-tool-use', timeout: 10 },
   { event: 'PostToolUse', matcher: 'Bash|Read|Write|AskUserQuestion', command: 'record', timeout: 10 },
   { event: 'Stop', matcher: null, command: 'can-stop', timeout: 30 },
   { event: 'SessionEnd', matcher: null, command: 'close', timeout: 10 },
@@ -98,7 +98,7 @@ test('the resolver stays visible on the prompt event and silent elsewhere when t
         additionalContext: 'agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.',
       },
     });
-    for (const command of ['can-write', 'record', 'can-stop', 'close']) {
+    for (const command of ['pre-tool-use', 'record', 'can-stop', 'close']) {
       const silent = run(command);
       assert.equal(silent.status, 0);
       assert.equal(silent.stdout, '');

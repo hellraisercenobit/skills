@@ -1,6 +1,6 @@
 {
   "skill": "agent-instruction-doctor",
-  "skill_sha256": "sha256:434d024c24007b6d0f5d67ba03f6bc20fe37d7ecabfe0f94067648645f0ded03",
+  "skill_sha256": "sha256:fa27f500981b98b65e619a822f7bfaff6f4a2dc43f5a79e3944bc53eeb679e92",
   "manifest_file": "candidates.json",
   "ledger_dir": "agent-instruction-doctor",
   "ledger_max_age_hours": 24,
@@ -63,7 +63,7 @@
       "event": "PreToolUse",
       "tool": "Edit|Write|MultiEdit|NotebookEdit",
       "severity": "hard",
-      "summary": "a write targets a file of a selected candidate, re-read after selection and unchanged since, whose patch is the one presented"
+      "summary": "a write targets a file of a selected candidate, re-read after selection and unchanged since, whose patch is the one presented, and changes only lines that a selected patch for that file holds"
     },
     {
       "id": "D8",
@@ -80,6 +80,14 @@
       "tool": null,
       "severity": "soft",
       "summary": "the manifest precedes any selection and every candidate carries observed evidence"
+    },
+    {
+      "id": "D10",
+      "step": "11. Ask which repairs to apply",
+      "event": "PreToolUse",
+      "tool": "AskUserQuestion",
+      "severity": "hard",
+      "summary": "the selection question offers only manifest ids, over the recorded manifest, and the user is shown the patches those ids enforce"
     }
   ]
 }

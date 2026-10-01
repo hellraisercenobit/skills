@@ -58,7 +58,11 @@ if command -v git >/dev/null 2>&1; then
 else
   REPO_ROOT=""
 fi
-[ -n "$REPO_ROOT" ] || REPO_ROOT="$ROOT"
+TREE_DEPTH=""
+if [ -z "$REPO_ROOT" ]; then
+  REPO_ROOT="$ROOT"
+  TREE_DEPTH="-maxdepth 2"
+fi
 REPO_ROOT=$(cd "$REPO_ROOT" && pwd -P)
 
 TMP="${TMPDIR:-/tmp}/agent-instruction-doctor.$$"
@@ -80,26 +84,21 @@ add_file() {
   printf '%s\t%s\t%s\n' "$kind" "$scope" "$path" >> "$TMP"
 }
 
-kind_of_resource() {
-  case "$1" in
-    */rules/*) printf 'rule' ;;
-    */agents/*) printf 'agent' ;;
-    */commands/*|*/prompts/*) printf 'command' ;;
-    */hooks/*) printf 'hook' ;;
-    */skills/*) printf 'skill-resource' ;;
-    */config.toml) printf 'settings' ;;
-    *) printf 'candidate' ;;
-  esac
-}
-
 scan_resource_dir() {
   dir=$1
   scope=$2
   [ -d "$dir" ] || return 0
   dir=$(canonical_dir "$dir")
-  find "$dir" -type f 2>/dev/null | while IFS= read -r path; do
-    add_file "$(kind_of_resource "$path")" "$scope" "$path"
-  done
+  find -L "$dir" -type f 2>/dev/null | awk -v scope="$scope" '{
+    if ($0 ~ /\/rules\//) kind = "rule"
+    else if ($0 ~ /\/agents\//) kind = "agent"
+    else if ($0 ~ /\/(commands|prompts)\//) kind = "command"
+    else if ($0 ~ /\/hooks\//) kind = "hook"
+    else if ($0 ~ /\/skills\//) kind = "skill-resource"
+    else if ($0 ~ /\/config\.toml$/) kind = "settings"
+    else kind = "candidate"
+    printf "%s\t%s\t%s\n", kind, scope, $0
+  }' >> "$TMP"
 }
 
 scan_tree() {
@@ -108,30 +107,38 @@ scan_tree() {
   [ -d "$base" ] || return 0
   base=$(canonical_dir "$base")
 
-  find "$base" \
+  find "$base" $TREE_DEPTH \
     \( -type d \( -name .git -o -name node_modules -o -name dist -o -name build -o -name target -o -name vendor -o -name .venv -o -name __pycache__ \) -prune \) -o \
     \( -type f \( \
       -name AGENTS.md -o -name AGENTS.override.md -o -name CLAUDE.md -o -name SKILL.md -o \
       -name settings.json -o -name settings.local.json -o -name config.toml -o \
       -name .mcp.json -o -name mcp.json -o -name plugin.json \
-    \) -print \) 2>/dev/null | while IFS= read -r path; do
-      name=$(basename "$path")
-      case "$name" in
-        AGENTS.md|AGENTS.override.md|CLAUDE.md) kind="instruction" ;;
-        SKILL.md) kind="skill" ;;
-        settings.json|settings.local.json|config.toml) kind="settings" ;;
-        .mcp.json|mcp.json) kind="mcp" ;;
-        plugin.json) kind="plugin" ;;
-        *) kind="candidate" ;;
-      esac
-      add_file "$kind" "$scope" "$path"
-    done
+    \) -print \) 2>/dev/null | awk -v scope="$scope" '{
+      count = split($0, parts, "/")
+      name = parts[count]
+      if (name == "AGENTS.md" || name == "AGENTS.override.md" || name == "CLAUDE.md") kind = "instruction"
+      else if (name == "SKILL.md") kind = "skill"
+      else if (name == "settings.json" || name == "settings.local.json" || name == "config.toml") kind = "settings"
+      else if (name == ".mcp.json" || name == "mcp.json") kind = "mcp"
+      else if (name == "plugin.json") kind = "plugin"
+      else kind = "candidate"
+      printf "%s\t%s\t%s\n", kind, scope, $0
+    }' >> "$TMP"
 
   for dir in \
     "$base/.claude/rules" "$base/.claude/agents" "$base/.claude/commands" "$base/.claude/skills" \
-    "$base/.agents/skills" "$base/.agents" "$base/.codex"; do
+    "$base/.agents/skills" "$base/.agents"; do
     scan_resource_dir "$dir" "$scope"
   done
+  if [ -z "$TREE_DEPTH" ]; then
+    scan_resource_dir "$base/.codex" "$scope"
+    return 0
+  fi
+  for dir in \
+    "$base/.codex/skills" "$base/.codex/rules" "$base/.codex/hooks" "$base/.codex/agents" "$base/.codex/prompts"; do
+    scan_resource_dir "$dir" "$scope"
+  done
+  add_file "candidate" "$scope" "$base/.codex/hooks.json"
 }
 
 scan_ancestors() {
@@ -186,9 +193,9 @@ else
   printf -- '- global scan: `%s`\n\n' "$INCLUDE_GLOBAL"
   printf '| Kind | Scope | Path |\n'
   printf '|---|---|---|\n'
-  tab=$(printf '\t')
-  while IFS="$tab" read -r kind scope path; do
-    escaped=$(printf '%s' "$path" | sed 's/|/\\|/g')
-    printf '| %s | %s | `%s` |\n' "$kind" "$scope" "$escaped"
-  done < "$TMP"
+  awk -F '\t' '{
+    path = substr($0, length($1) + length($2) + 3)
+    gsub(/\|/, "\\|", path)
+    printf "| %s | %s | `%s` |\n", $1, $2, path
+  }' "$TMP"
 fi
