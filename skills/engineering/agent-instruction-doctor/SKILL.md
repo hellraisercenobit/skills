@@ -10,10 +10,10 @@ hooks:
           command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh prompt"
           timeout: 20
   PreToolUse:
-    - matcher: "Edit|Write|MultiEdit|NotebookEdit"
+    - matcher: "Edit|Write|MultiEdit|NotebookEdit|AskUserQuestion"
       hooks:
         - type: command
-          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh can-write"
+          command: "sh -c 'for f in \"$CLAUDE_PLUGIN_ROOT/hooks/guardrail.mjs\" \"$CLAUDE_PLUGIN_ROOT/skills/engineering/agent-instruction-doctor/hooks/guardrail.mjs\"; do [ -f \"$f\" ] && command -v node >/dev/null && exec node \"$f\" \"$@\"; done; [ \"$1\" = prompt ] && printf %s \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"UserPromptSubmit\\\",\\\"additionalContext\\\":\\\"agent-instruction-doctor guardrail disabled: guardrail.mjs or node not found. Tell the user before continuing.\\\"}}\"; exit 0' sh pre-tool-use"
           timeout: 10
   PostToolUse:
     - matcher: "Bash|Read|Write|AskUserQuestion"
@@ -412,7 +412,7 @@ When no symptom is supplied:
 ## Important constraints
 
 - Remain read-only until the user selects repair candidate IDs.
-- A guardrail ships with this skill (`hooks/guardrail.mjs`, registered by the frontmatter hooks on Claude Code). It denies writes before a selection, checks the candidates manifest, refuses an edit on a file that was not selected or not re-read, and blocks the end of the turn until the discovery ran, the manifest exists and each selected repair has a status. When it denies a tool call or blocks a stop, follow its reason; never work around it.
+- A guardrail ships with this skill (`hooks/guardrail.mjs`, registered by the frontmatter hooks on Claude Code). It denies writes before a selection, checks the candidates manifest, shows the user the manifest patches when the selection question is asked, refuses an edit on a file that was not selected or not re-read, or whose changed lines no selected patch holds, and blocks the end of the turn until the discovery ran, the manifest exists and each selected repair has a status. When it denies a tool call or blocks a stop, follow its reason; never work around it.
 - Never execute arbitrary hooks merely because they are present.
 - Never expose secrets from settings, environment files, credentials, or MCP configuration. Redact secret values and report only their existence/relevance.
 - Do not assume a file is active solely because it exists.

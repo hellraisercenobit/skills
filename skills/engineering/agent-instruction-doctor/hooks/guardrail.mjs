@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -149,17 +149,42 @@ function purgeStaleLedgers() {
   }
 }
 
+const realPathOf = path => {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
+};
+
+const harnessSyncedRoot = () => `${realPathOf(join(homedir(), '.claude/skills/synced'))}/`;
+
+const statOf = path => {
+  try {
+    const { size, mtimeMs } = statSync(path);
+    return `${size}:${mtimeMs}`;
+  } catch {
+    return null;
+  }
+};
+
 function discoverSources(cwd) {
   const result = spawnSync('sh', [DISCOVERY_SCRIPT, '--root', cwd, '--include-global', '--format', 'tsv'], {
     encoding: 'utf8',
     timeout: CONTRACT.discovery_timeout_ms,
+    killSignal: 'SIGKILL',
   });
   if (result.error?.code === 'ETIMEDOUT') return { files: [], limited: false, timedOut: true };
   if (result.status !== 0) return { files: [], limited: false, failed: true };
-  const rows = result.stdout.split('\n').slice(1).filter(Boolean).map(row => {
+  const synced = harnessSyncedRoot();
+  const byFile = new Map();
+  for (const row of result.stdout.split('\n').slice(1).filter(Boolean)) {
     const [kind, scope, path] = row.split('\t');
-    return { kind, scope, path };
-  });
+    const file = realPathOf(path);
+    if (file.startsWith(synced) || byFile.has(file)) continue;
+    byFile.set(file, { kind, scope, path });
+  }
+  const rows = [...byFile.values()];
   const limited = rows.length > CONTRACT.source_hash_limit;
   return { files: limited ? rows.filter(row => CONTRACT.source_kinds_when_limited.includes(row.kind)) : rows, limited };
 }
@@ -174,7 +199,7 @@ function arm(event, symptom, origin) {
   const note = discovery.timedOut ? 'source-discovery-timeout' : discovery.failed ? 'source-discovery-failed' : discovery.limited ? 'source-hash-limit' : null;
   append(event.session_id, [
     { event: 'armed', prompt_id: event.prompt_id ?? null, symptom, subject: manifest, origin },
-    ...discovery.files.map(file => ({ event: 'source', kind: file.kind, subject: file.path, digest: hashFile(file.path) })),
+    ...discovery.files.map(file => ({ event: 'source', kind: file.kind, subject: file.path, digest: hashFile(file.path), stat: statOf(file.path) })),
     ...(note ? [{ event: 'note', subject: note, digest: null }] : []),
   ]);
   return { manifest, note };
@@ -192,9 +217,9 @@ const armedContext = ({ manifest, note }) => [
 
 function ledgerOrLazyArm(event) {
   const existing = readLedger(event.session_id);
-  if (existing) return existing;
-  arm(event, '', 'lazy');
-  return readLedger(event.session_id);
+  if (existing) return { lines: existing, lazy: null };
+  const lazy = arm(event, '', 'lazy');
+  return { lines: readLedger(event.session_id), lazy };
 }
 
 const fromTool = (event, entry) => ({
@@ -204,7 +229,13 @@ const fromTool = (event, entry) => ({
 });
 
 const selectedLabels = answers => Object.values(answers ?? {})
-  .flatMap(value => String(value).split(',').map(label => label.trim()).filter(Boolean));
+  .flatMap(value => String(value).match(/\s*"[^"]*"|[^,]+/g) ?? [])
+  .map(label => label.trim().replace(/^"(.*)"$/, '$1'))
+  .filter(Boolean);
+
+const offeredOptionLabels = event => new Set((event.tool_input?.questions ?? [])
+  .flatMap(question => question.options ?? [])
+  .map(option => String(option.label ?? '')));
 
 const candidateIdOf = label => /^(F[0-9]{2})\b/.exec(label)?.[1] ?? null;
 
@@ -290,29 +321,61 @@ function recordManifest(event, path) {
 
 function recordSelection(event, run) {
   if (run.state !== 'awaiting-selection') return null;
-  const labels = selectedLabels(event.tool_response?.answers ?? event.tool_input?.answers);
+  const offered = offeredOptionLabels(event);
+  const answered = selectedLabels(event.tool_response?.answers ?? event.tool_input?.answers);
+  const labels = offered.size > 0 ? answered.filter(label => offered.has(label)) : answered;
   if (labels.length === 0) return null;
   const known = run.manifest.candidates.map(candidate => candidate.id);
   const ids = labels.map(candidateIdOf);
   if (ids.every(id => id === null)) {
     return { decision: 'block', reason: `${PREFIX}: no selected option names a candidate id. Each option label must start with the candidate id (${known.join(', ')}); ask again with those labels.` };
   }
-  const unknown = labels.filter((label, index) => !known.includes(ids[index]));
+  const unknown = labels.filter((label, index) => ids[index] !== null && !known.includes(ids[index]));
   if (unknown.length > 0) {
     return { decision: 'block', reason: `${PREFIX}: selected labels are not candidate ids of the manifest: ${unknown.join(', ')}. Offer exactly the manifest ids (${known.join(', ')}) and ask again.` };
   }
-  append(event.session_id, fromTool(event, { event: 'selection', selected: ids, origin: 'question' }));
+  append(event.session_id, fromTool(event, { event: 'selection', selected: ids.filter(Boolean), origin: 'question' }));
   return null;
 }
 
+const sourceChanged = source => hashFile(source.subject) !== source.digest;
+
+const changedSources = run => run.sources.filter(sourceChanged).map(source => source.subject);
+
+const sourcesChangedSinceStat = run => run.sources
+  .filter(source => source.stat === undefined || statOf(source.subject) !== source.stat)
+  .filter(sourceChanged)
+  .map(source => source.subject);
+
+const sourcesChangedMessage = changed => `sources changed during the read-only audit: ${changed.join(', ')}. Restore them; repairs are applied only after the user selects candidate ids.`;
+
+function sourcesChangedThroughShell(run) {
+  if (run.state === 'applying') return null;
+  const changed = sourcesChangedSinceStat(run);
+  return changed.length > 0
+    ? { decision: 'block', reason: `${PREFIX}: D4: ${sourcesChangedMessage(changed)}` }
+    : null;
+}
+
+const DISCOVERY_OUTPUT = /^(# Agent configuration candidate manifest|kind\tscope\tpath)/;
+const isDiscoveryRun = event => /discover-agent-config\.sh/.test(event.tool_input?.command ?? '')
+  && DISCOVERY_OUTPUT.test(String(event.tool_response?.stdout ?? '').trimStart());
+
 function record(event) {
-  const run = derive(ledgerOrLazyArm(event));
+  const { lines, lazy } = ledgerOrLazyArm(event);
+  const run = derive(lines);
   if (inactive(run)) return null;
+  const outcome = recordTool(event, run);
+  if (outcome || !lazy) return outcome;
+  return { hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: armedContext(lazy) } };
+}
+
+function recordTool(event, run) {
   const input = event.tool_input ?? {};
   switch (event.tool_name) {
     case 'Bash':
-      if (/discover-agent-config\.sh/.test(input.command ?? '')) append(event.session_id, fromTool(event, { event: 'discovery' }));
-      return null;
+      if (isDiscoveryRun(event)) append(event.session_id, fromTool(event, { event: 'discovery' }));
+      return sourcesChangedThroughShell(run);
     case 'Read': {
       const path = resolve(input.file_path ?? '');
       append(event.session_id, fromTool(event, { event: 'read', subject: path, digest: hashFile(path) }));
@@ -327,36 +390,143 @@ function record(event) {
   }
 }
 
+const normalizedLines = text => {
+  const value = String(text);
+  if (value === '') return [];
+  return value.replace(/\n$/, '').split('\n').map(line => line.trimEnd());
+};
+
+const countLines = lines => lines.reduce((counts, line) => counts.set(line, (counts.get(line) ?? 0) + 1), new Map());
+
+function beyond(lines, allowance) {
+  const left = new Map(allowance);
+  return lines.filter(line => {
+    const remaining = left.get(line) ?? 0;
+    if (remaining === 0) return true;
+    left.set(line, remaining - 1);
+    return false;
+  });
+}
+
+function lineDelta(before, after) {
+  const oldLines = normalizedLines(before);
+  const newLines = normalizedLines(after);
+  return { removed: beyond(oldLines, countLines(newLines)), added: beyond(newLines, countLines(oldLines)) };
+}
+
+function proposedChanges(event, target) {
+  const input = event.tool_input ?? {};
+  switch (event.tool_name) {
+    case 'Edit':
+      return [lineDelta(input.old_string ?? '', input.new_string ?? '')];
+    case 'MultiEdit':
+      return (input.edits ?? []).map(edit => lineDelta(edit.old_string ?? '', edit.new_string ?? ''));
+    case 'Write':
+      return [lineDelta(existsSync(target) ? readFileSync(target, 'utf8') : '', input.content ?? '')];
+    case 'NotebookEdit':
+      return [{ removed: [], added: normalizedLines(input.new_source ?? '') }];
+    default:
+      return [];
+  }
+}
+
+function patchLinesFor(patch, target) {
+  const sections = [{ path: null, lines: [] }];
+  for (const line of patch.split('\n')) {
+    if (line.startsWith('--- ')) continue;
+    if (line.startsWith('+++ ')) sections.push({ path: line.slice(4).trim().replace(/^b\//, ''), lines: [] });
+    else sections.at(-1).lines.push(line);
+  }
+  const headed = sections.filter(section => section.path !== null);
+  const relevant = headed.length > 0
+    ? headed.filter(section => target === section.path || target.endsWith(`/${section.path}`))
+    : sections;
+  if (relevant.length === 0) return { removed: [], added: [], replacement: false };
+  const body = relevant.flatMap(section => section.lines).filter(line => !line.startsWith('@@'));
+  const removed = body.filter(line => line.startsWith('-')).map(line => line.slice(1).trimEnd());
+  const added = body.filter(line => line.startsWith('+')).map(line => line.slice(1).trimEnd());
+  if (removed.length + added.length > 0) return { removed, added, replacement: false };
+  return { removed: [], added: body.map(line => line.trimEnd()), replacement: true };
+}
+
+function linesOutsidePatches(event, target, patches) {
+  const allowed = patches.map(patch => patchLinesFor(patch, target));
+  const changes = proposedChanges(event, target);
+  const extraAdded = beyond(changes.flatMap(change => change.added), countLines(allowed.flatMap(lines => lines.added)));
+  const removalChecked = allowed.every(lines => !lines.replacement);
+  const extraRemoved = removalChecked
+    ? beyond(changes.flatMap(change => change.removed), countLines(allowed.flatMap(lines => lines.removed)))
+    : [];
+  return [...extraAdded.map(line => `+${line}`), ...extraRemoved.map(line => `-${line}`)];
+}
+
 const allow = reason => ({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow', permissionDecisionReason: reason } });
 const deny = reason => ({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: `${PREFIX}: ${reason}` } });
 
 function canWrite(event) {
-  const run = derive(ledgerOrLazyArm(event));
+  const { lines, lazy } = ledgerOrLazyArm(event);
+  const run = derive(lines);
   if (inactive(run)) return null;
   const input = event.tool_input ?? {};
   const target = resolve(input.file_path ?? input.notebook_path ?? '');
-  if (target === run.armed.subject) return allow('candidates manifest of agent-instruction-doctor');
+  if (target === run.armed.subject) {
+    if (event.tool_name === 'Write') return allow('candidates manifest of agent-instruction-doctor');
+    return deny(`rewrite the candidates manifest whole with the Write tool, so the guardrail records it: ${target}`);
+  }
   if (run.state !== 'applying') {
-    return deny(`the audit is read-only until the user selects candidate ids, so ${target} cannot be written. Present the repair candidates and ask which ones to apply.`);
+    return deny(`the audit is read-only until the user selects candidate ids, so ${target} cannot be written. Present the repair candidates and ask which ones to apply.${lazy ? `\n${armedContext(lazy)}` : ''}`);
   }
   const cwd = event.cwd ?? process.cwd();
   const selected = run.manifest.candidates.filter(candidate => run.selection.selected.includes(candidate.id));
-  const owner = selected.find(candidate => candidate.affects.some(path => resolve(cwd, path) === target));
-  if (!owner) return deny(`${target} is not selected: no selected candidate (${selected.map(candidate => candidate.id).join(', ')}) lists it under affects.`);
+  const owners = selected.filter(candidate => candidate.affects.some(path => resolve(cwd, path) === target));
+  if (owners.length === 0) return deny(`${target} is not selected: no selected candidate (${selected.map(candidate => candidate.id).join(', ')}) lists it under affects.`);
+  const ownerIds = owners.map(owner => owner.id).join(', ');
   const reread = run.reads.filter(read => read.subject === target && compareLines(read, run.selection) > 0).at(-1);
   if (!reread) return deny(`re-read ${target} with the Read tool immediately before editing it (step 12).`);
-  if (hashFile(target) !== reread.digest) return deny(`${target} changed since its re-read; re-read it, or report ${owner.id} as stale.`);
-  let current;
+  if (hashFile(target) !== reread.digest) return deny(`${target} changed since its re-read; re-read it, or report ${ownerIds} as stale.`);
+  let manifest;
   try {
-    current = readManifestFile(run.armed.subject).candidates.find(candidate => candidate.id === owner.id);
+    manifest = readManifestFile(run.armed.subject);
   } catch {
-    current = null;
+    manifest = null;
   }
-  if (!current || hashText(current.patch) !== owner.patch_digest) {
-    return deny(`${owner.id} is stale: its patch differs from the one the user selected. Present the revised candidate and ask again before applying it.`);
+  const current = owners.map(owner => manifest?.candidates?.find(candidate => candidate.id === owner.id) ?? null);
+  const staleOwner = owners.find((owner, index) => !current[index] || hashText(current[index].patch) !== owner.patch_digest);
+  if (staleOwner) {
+    return deny(`${staleOwner.id} is stale: its patch differs from the one the user selected. Present the revised candidate and ask again before applying it.`);
+  }
+  const outside = linesOutsidePatches(event, target, current.map(candidate => candidate.patch));
+  if (outside.length > 0) {
+    return deny(`this ${event.tool_name} changes lines that no selected patch for ${target} holds (${ownerIds}): ${outside.slice(0, 5).join(' | ')}. Apply the presented patch exactly, or report the candidate as failed.`);
   }
   return null;
 }
+
+function presentSelection(event) {
+  if (event.agent_id) return null;
+  const lines = readLedger(event.session_id);
+  if (!lines) return null;
+  const run = derive(lines);
+  const offered = [...offeredOptionLabels(event)].map(candidateIdOf).filter(Boolean);
+  if (offered.length === 0) return null;
+  if (run.state === 'armed') return deny(`write the candidates manifest with the Write tool to ${run.armed.subject} before asking which repairs to apply.`);
+  if (run.state !== 'awaiting-selection') return null;
+  const known = run.manifest.candidates.map(candidate => candidate.id);
+  const unknown = offered.filter(id => !known.includes(id));
+  if (unknown.length > 0) return deny(`the question offers ids that are not in the manifest: ${unknown.join(', ')}. Offer only ${known.join(', ')}.`);
+  if (hashFile(run.armed.subject) !== run.manifest.digest) {
+    return deny(`the candidates manifest changed since it was recorded; rewrite it with the Write tool before asking: ${run.armed.subject}`);
+  }
+  const shown = readManifestFile(run.armed.subject).candidates.filter(candidate => offered.includes(candidate.id));
+  return {
+    systemMessage: [
+      `${PREFIX}: the patches below come from the candidates manifest and are the ones enforced on selection.`,
+      ...shown.map(candidate => `\n${candidate.id} - ${candidate.title} (${candidate.severity})\n${candidate.patch}`),
+    ].join('\n'),
+  };
+}
+
+const preToolUse = event => (event.tool_name === 'AskUserQuestion' ? presentSelection(event) : canWrite(event));
 
 const referenceReads = run => new Set(run.reads
   .filter(read => dirname(read.subject) === REFERENCES_DIR)
@@ -368,8 +538,8 @@ function diagnosisFindings(run) {
   const hard = [];
   const soft = [];
   if (!run.discovered) hard.push(finding('D1', 'run scripts/discover-agent-config.sh (step 2) before finishing.'));
-  const changed = run.sources.filter(source => hashFile(source.subject) !== source.digest).map(source => source.subject);
-  if (changed.length > 0) hard.push(finding('D4', `sources changed during the read-only audit: ${changed.join(', ')}. Restore them; repairs are applied only after the user selects candidate ids.`));
+  const changed = changedSources(run);
+  if (changed.length > 0) hard.push(finding('D4', sourcesChangedMessage(changed)));
   if (!run.manifest) hard.push(finding('D5', `write the candidates manifest to ${run.armed.subject} (step 10), even with an empty candidates list.`));
   const reads = referenceReads(run);
   const targeted = run.armed.symptom.length > 0 || run.manifest?.mode === 'targeted';
@@ -381,9 +551,9 @@ function diagnosisFindings(run) {
 }
 
 function applyingFindings(run, message) {
-  const missing = run.selection.selected.filter(id => !new RegExp(`\\b${id}\\b[^\\n]*\\b(${REPAIR_STATUS.join('|')})\\b`).test(message));
+  const missing = run.selection.selected.filter(id => !new RegExp(`\\b${id}\\b[*_\`]*\\s*[-:]\\s*[*_\`]*(${REPAIR_STATUS.join('|')})\\b`).test(message));
   return missing.length > 0
-    ? [finding('D8', `report a status (${REPAIR_STATUS.join(', ')}) for ${missing.join(', ')} in the final message (step 13).`)]
+    ? [finding('D8', `report a status (${REPAIR_STATUS.join(', ')}) right after each id, as \`${missing[0]} - applied\`, for ${missing.join(', ')} in the final message (step 13).`)]
     : [];
 }
 
@@ -441,7 +611,7 @@ function selfCheck(event) {
 const COMMANDS = {
   prompt,
   record,
-  'can-write': canWrite,
+  'pre-tool-use': preToolUse,
   'can-stop': canStop,
   close,
   'self-check': selfCheck,
