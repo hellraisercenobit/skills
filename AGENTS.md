@@ -28,7 +28,7 @@ Claude Code subagents live in `agents/<agent-name>.md` at the repo root (frontma
 
 ## Versioning
 
-- Bump with [changesets](https://github.com/changesets/changesets) against `@hellraisercenobit/ai-engineering-gate` (the only workspace package). `npm run version` applies pending changesets, then `scripts/sync-version.sh` copies that version into the root `package.json`, `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. Never edit those versions by hand.
+- Bump with [changesets](https://github.com/changesets/changesets) against `@hellraisercenobit/ai-engineering-gate` (the only workspace package). `npm run version` applies pending changesets, then `scripts/sync-version.sh` copies that version into the root `package.json`, `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`, and rebuilds the root `CHANGELOG.md` from the package changelog above the entries older than 0.6.0. Never edit those versions or either changelog by hand.
 - Pushing to `main` opens a version PR via `.github/workflows/release.yml`.
 
 ## Linking locally

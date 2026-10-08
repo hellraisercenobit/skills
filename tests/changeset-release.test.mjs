@@ -59,3 +59,39 @@ test('version sync copies the gate version onto the plugin manifests', async () 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('version sync rebuilds the root changelog from the gate changelog above the legacy entries', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'changelog-sync-'));
+  try {
+    await mkdir(join(root, 'scripts'));
+    await mkdir(join(root, 'packages/ai-engineering-gate'), { recursive: true });
+    await mkdir(join(root, '.claude-plugin'));
+    await cp(syncScript, join(root, 'scripts/sync-version.sh'));
+    await writeFile(join(root, 'package.json'), JSON.stringify({ name: 'hellraisercenobit-skills', version: '0.5.0' }));
+    await writeFile(join(root, 'packages/ai-engineering-gate/package.json'), JSON.stringify({ name: '@hellraisercenobit/ai-engineering-gate', version: '0.7.0' }));
+    await writeFile(join(root, '.claude-plugin/plugin.json'), JSON.stringify({ name: 'hellraisercenobit-skills', version: '0.5.0' }));
+    await writeFile(join(root, '.claude-plugin/marketplace.json'), JSON.stringify({ metadata: { version: '0.5.0' }, plugins: [] }));
+    await writeFile(join(root, 'packages/ai-engineering-gate/CHANGELOG.md'), [
+      '# @hellraisercenobit/ai-engineering-gate', '', '## 0.7.0', '', '### Minor Changes', '', '- seven', '',
+      '## 0.6.0', '', '### Minor Changes', '', '- six', '',
+    ].join('\n'));
+    await writeFile(join(root, 'CHANGELOG.md'), [
+      '# Changelog', '', '## 0.6.0', '', '### Minor Changes', '', '- six, synced earlier', '',
+      '## 0.5.0', '', '### Minor Changes', '', '- five', '', '## 0.4.2', '', '### Patch Changes', '', '- four two', '',
+    ].join('\n'));
+    const run = () => spawnSync('bash', [join(root, 'scripts/sync-version.sh')], { encoding: 'utf8', cwd: root });
+    const first = run();
+    assert.equal(first.status, 0, `${first.stdout}${first.stderr}`);
+    const expected = [
+      '# Changelog', '', '## 0.7.0', '', '### Minor Changes', '', '- seven', '',
+      '## 0.6.0', '', '### Minor Changes', '', '- six', '',
+      '## 0.5.0', '', '### Minor Changes', '', '- five', '', '## 0.4.2', '', '### Patch Changes', '', '- four two', '',
+    ].join('\n');
+    assert.equal(await readFile(join(root, 'CHANGELOG.md'), 'utf8'), expected);
+    const second = run();
+    assert.equal(second.status, 0, `${second.stdout}${second.stderr}`);
+    assert.equal(await readFile(join(root, 'CHANGELOG.md'), 'utf8'), expected, 'a second sync changes nothing');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
