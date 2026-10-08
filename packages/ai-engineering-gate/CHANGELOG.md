@@ -1,5 +1,13 @@
 # @hellraisercenobit/ai-engineering-gate
 
+## 0.9.1
+
+### Patch Changes
+
+- [#46](https://github.com/hellraisercenobit/skills/pull/46) [`44b54ce`](https://github.com/hellraisercenobit/skills/commit/44b54ce1e94cafecdd7cdcab0cfba75f9d6010fa) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - The `agent-instruction-doctor` guardrail arms in well under a second outside a repository: discovery stops two levels down there, reads only the instruction folders of `.codex`, follows linked skills, fingerprints each real file once, leaves out the skills Claude Code syncs, and is cut at its timeout. Its checks hold tighter: an edit may only remove and add the lines its selected patch holds, the selection question shows the manifest patches it will enforce, a source changed through Bash is reported on that call, the discovery counts only when it printed its manifest, a note typed next to the selected options never selects anything, the manifest is revised with Write only, and each status must follow its id.
+
+- [#48](https://github.com/hellraisercenobit/skills/pull/48) [`132b1e4`](https://github.com/hellraisercenobit/skills/commit/132b1e4d519eeffa63a218a5efe00a1042ee02f0) Thanks [@hellraisercenobit](https://github.com/hellraisercenobit)! - `agent-instruction-doctor` audits now end: hypotheses are the read list, the always-loaded sources and the skill frontmatters are the inventory, and writing the candidates manifest closes the search. The discovery manifest lists one row per skill and leaves the files inside skill folders out with their count, so a machine with hundreds of skills hands the agent an index it can hold. The guardrail releases a turn it blocked twice in one phase whatever ran in between; a discovery re-run or a rewritten manifest no longer resets that counter.
+
 ## 0.9.0
 
 ### Minor Changes
