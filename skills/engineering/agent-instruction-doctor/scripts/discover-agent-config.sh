@@ -89,13 +89,16 @@ scan_resource_dir() {
   scope=$2
   [ -d "$dir" ] || return 0
   dir=$(canonical_dir "$dir")
-  find -L "$dir" -type f 2>/dev/null | awk -v scope="$scope" '{
-    if ($0 ~ /\/rules\//) kind = "rule"
-    else if ($0 ~ /\/agents\//) kind = "agent"
-    else if ($0 ~ /\/(commands|prompts)\//) kind = "command"
-    else if ($0 ~ /\/hooks\//) kind = "hook"
-    else if ($0 ~ /\/skills\//) kind = "skill-resource"
-    else if ($0 ~ /\/config\.toml$/) kind = "settings"
+  parent=$(dirname "$dir")
+  find -L "$dir" -type f 2>/dev/null | awk -v scope="$scope" -v parent="$parent" '{
+    inside = substr($0, length(parent) + 1)
+    if (inside ~ /\/skills\/.*\/SKILL\.md$/) kind = "skill"
+    else if (inside ~ /\/skills\//) kind = "skill-resource"
+    else if (inside ~ /\/rules\//) kind = "rule"
+    else if (inside ~ /\/agents\//) kind = "agent"
+    else if (inside ~ /\/(commands|prompts)\//) kind = "command"
+    else if (inside ~ /\/hooks\//) kind = "hook"
+    else if (inside ~ /\/config\.toml$/) kind = "settings"
     else kind = "candidate"
     printf "%s\t%s\t%s\n", kind, scope, $0
   }' >> "$TMP"
@@ -187,13 +190,15 @@ if [ "$FORMAT" = "tsv" ]; then
   printf 'kind\tscope\tpath\n'
   cat "$TMP"
 else
+  OMITTED=$(awk -F '\t' '$1 == "skill-resource" { count += 1 } END { print count + 0 }' "$TMP")
   printf '# Agent configuration candidate manifest\n\n'
   printf -- '- cwd: `%s`\n' "$ROOT"
   printf -- '- repo root: `%s`\n' "$REPO_ROOT"
-  printf -- '- global scan: `%s`\n\n' "$INCLUDE_GLOBAL"
+  printf -- '- global scan: `%s`\n' "$INCLUDE_GLOBAL"
+  printf -- '- skill resources omitted: `%s` (files inside skill folders other than SKILL.md, listed by `--format tsv`)\n\n' "$OMITTED"
   printf '| Kind | Scope | Path |\n'
   printf '|---|---|---|\n'
-  awk -F '\t' '{
+  awk -F '\t' '$1 != "skill-resource" {
     path = substr($0, length($1) + length($2) + 3)
     gsub(/\|/, "\\|", path)
     printf "| %s | %s | `%s` |\n", $1, $2, path

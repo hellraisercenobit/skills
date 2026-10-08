@@ -304,14 +304,19 @@ withSession('a tool event before any prompt arms the guardrail lazily through re
   assert.equal(s.pre('Write', { file_path: join(s.project, 'CLAUDE.md'), content: 'x' }).hookSpecificOutput.permissionDecision, 'deny');
 });
 
-withSession('reads between two blocked Stops do not reset the release counter', s => {
+const releasedAfterTwoBlocksDespite = (name, between, before = () => {}) => withSession(`${name} between two blocked Stops does not reset the release counter`, s => {
   s.prompt('/agent-instruction-doctor comments keep appearing');
+  before(s);
   assert.equal(s.stop().decision, 'block');
-  s.read(join(s.project, 'CLAUDE.md'));
+  between(s);
   assert.equal(s.stop('still nothing', true).decision, 'block');
-  s.read(join(s.project, 'CLAUDE.md'));
+  between(s);
   assert.match(s.stop('still nothing', true).systemMessage, /released/);
 });
+
+releasedAfterTwoBlocksDespite('a read', s => s.read(join(s.project, 'CLAUDE.md')));
+releasedAfterTwoBlocksDespite('a discovery re-run', s => s.discover());
+releasedAfterTwoBlocksDespite('a rewritten manifest', s => s.writeManifest(s.candidates({ symptom: `comments keep appearing ${s.ledgerLines().length}` })), s => s.writeManifest(s.candidates()));
 
 withSession('a Stop without any ledger says that nothing was verified', s => {
   const out = s.stop();

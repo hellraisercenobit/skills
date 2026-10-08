@@ -37,6 +37,8 @@ hooks:
 
 Audit the effective instruction system that controls a coding agent. Reconstruct what can influence behavior, determine what actually applies, then explain the smallest plausible cause of the reported symptom.
 
+The audit is hypothesis-led: hypotheses decide which sources are read, and the candidates manifest of step 10 ends the search. A source still unread when the manifest is written is reported as unverified.
+
 Default to diagnosis plus selectable repair candidates. Stay read-only during discovery and diagnosis. Treat the user selecting one or more proposed repair IDs as explicit authorization to apply exactly those patches. Always finish a completed audit with concrete minimal patch candidates when safe textual/configuration repairs can be expressed.
 
 ## Output
@@ -74,11 +76,9 @@ Examples:
 - `Claude and Codex behave differently on tests`
 - `a hook seems to fight the formatter`
 
-If the user provides a symptom, make it the investigation focus. Keep discovery broad enough to find indirect causes outside the named surface.
+If the user provides a symptom, make it the outcome to explain. The hypotheses of step 2, not the symptom's keywords, choose the sources to read.
 
-Example: for `comments keep appearing although my rules forbid them`, inspect not only rules containing the word `comment`, but also skills that request explanation, code-generation templates, formatters/generators, hooks, subagent prompts, conflicting documentation requirements, rule scope, precedence, and reachability.
-
-Do not mechanically filter discovery by keywords from the symptom.
+Example: for `comments keep appearing although my rules forbid them`, the hypotheses reach rules containing the word `comment` and also skills that request explanation, code-generation templates, formatters/generators, hooks, subagent prompts, conflicting documentation requirements, rule scope, precedence, and reachability.
 
 If no symptom is supplied, run a general audit.
 
@@ -109,9 +109,18 @@ ${CLAUDE_SKILL_DIR}/scripts/discover-agent-config.sh --root "$PWD" --include-glo
 
 The script lives in this skill's own `scripts/` folder; if your harness does not substitute `${CLAUDE_SKILL_DIR}`, run it from that folder.
 
-Use the manifest as candidate discovery, not as proof that every file is active.
+The manifest is an index, not a reading list and not proof that a file is active. It lists one row per skill and leaves the files inside skill folders out, with their count.
 
-Also inspect repository-specific locations revealed by config files, symlinks, plugin manifests, scripts, or pointers.
+#### Read list
+
+Read, in this order, and nothing beyond it:
+
+1. **Always-loaded sources**: instruction files from the working directory up to the home directory, rules, settings, hooks, agents, plugin and MCP manifests. They apply on every turn, so every audit reads them whole.
+2. **Skill frontmatters**: the `name`, `description` and `hooks` of each skill row. A skill body, its references and scripts are read only when a hypothesis names that skill.
+3. **Hypothesis evidence**: before reading past the always-loaded sources and the skill frontmatters on a targeted audit, write 3-8 competing hypotheses across the layers of step 7. Each further read must distinguish two of them. A read that distinguishes none is skipped.
+4. **Pointer targets**: a location revealed by a config file, symlink, plugin manifest, script or pointer on the read list joins the read list.
+
+Discovery is complete when every hypothesis has its evidence or is labeled unverified, or, on a general audit, when the three dimensions of step 6 are checked over the always-loaded sources and the skill frontmatters. Then write the manifest of step 10.
 
 Read only the harness reference(s) needed for sources that actually participate in the effective configuration or symptom:
 
@@ -122,7 +131,7 @@ Do not perform a Claude-vs-Codex comparison by default. If the user is debugging
 
 ### 3. Build the effective instruction graph
 
-For every relevant source, extract nodes with these fields when known:
+For every source on the read list, extract nodes with these fields when known:
 
 - `source`: file and line/range
 - `kind`: instruction, rule, skill, hook, setting, tool, agent, command, script, pointer
@@ -153,7 +162,7 @@ Audit both the target and the pointer.
 
 A correct target behind an ambiguous trigger is still a configuration defect.
 
-For each pointer, ask:
+For each pointer on a hypothesis path, ask:
 
 1. Is the target reachable?
 2. Is the trigger precise enough to fire when required?
@@ -179,7 +188,7 @@ Do not execute project hooks merely to understand them unless the user explicitl
 
 ### 6. Check three dimensions
 
-Perform all three unless the user's symptom clearly makes one irrelevant.
+Perform all three over the read list unless the user's symptom clearly makes one irrelevant.
 
 #### Static consistency
 
@@ -197,7 +206,7 @@ Read [references/finding-taxonomy.md](references/finding-taxonomy.md) for findin
 
 ### 7. Trace the symptom
 
-When the user provides a symptom, form competing causal hypotheses before concluding.
+The hypotheses written at step 2 are the ones traced here; add one only when the evidence read so far demands it.
 
 Example symptom: `comments are still generated`.
 
@@ -215,7 +224,7 @@ Possible hypotheses include:
 - the rule is unreachable because its pointer is weak
 - the behavior is produced by a formatter/generator, not by the model
 
-Seek evidence that distinguishes these hypotheses.
+Seek evidence that distinguishes these hypotheses. A hypothesis with no distinguishing evidence on the read list stays unverified in the report; it never extends the search.
 
 Prefer a causal chain such as:
 
@@ -401,13 +410,15 @@ Do not modify configuration to perform the experiment unless explicitly authoriz
 
 When no symptom is supplied:
 
-1. inventory effective sources
+1. inventory effective sources: the manifest, the always-loaded sources read whole, the skill frontmatters
 2. audit static consistency
 3. audit reachability
 4. audit execution consistency
 5. identify duplicated authority and stale-cache risks
 6. inspect cross-harness divergence only when it is materially relevant
 7. report only material findings
+
+A skill body is read when a dimension flags its pointer, never to complete the inventory. The audit ends when the three dimensions are checked over that inventory; the manifest of step 10 records the result.
 
 ## Important constraints
 

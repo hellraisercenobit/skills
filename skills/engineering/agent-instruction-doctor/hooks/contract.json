@@ -1,6 +1,6 @@
 {
   "skill": "agent-instruction-doctor",
-  "skill_sha256": "sha256:fa27f500981b98b65e619a822f7bfaff6f4a2dc43f5a79e3944bc53eeb679e92",
+  "skill_sha256": "sha256:f33b5c4fb581b4898c24a8a3a72d8568c9349d4e2eaf85b386bb5c38c03ac1be",
   "manifest_file": "candidates.json",
   "ledger_dir": "agent-instruction-doctor",
   "ledger_max_age_hours": 24,

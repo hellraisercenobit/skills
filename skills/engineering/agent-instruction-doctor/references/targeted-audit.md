@@ -46,6 +46,8 @@ Useful layers:
 
 Do not force one hypothesis merely because it appears first.
 
+The hypotheses are the read list: a source is read when it distinguishes two of them. When every hypothesis is either supported, refuted or labeled unverified, discovery is complete.
+
 ## Trace causal evidence
 
 For each surviving hypothesis, seek a chain:
@@ -62,7 +64,7 @@ Label gaps as unverified.
 
 ## Focus the output, not discovery
 
-Discovery stays broad enough to resolve indirect causes.
+Discovery reaches every layer a hypothesis names and stops there.
 
 The report stays narrow:
 
