@@ -98,13 +98,16 @@ function chainOf(lines) {
   return lines.reduce((previous, line) => hashText(`${previous}${line.line_hash}`), 'sha256:genesis');
 }
 
-const PROGRESS_EVENTS = new Set(['armed', 'discovery', 'manifest', 'selection', 'closed']);
+const PHASE_EVENTS = new Set(['armed', 'selection', 'closed']);
+
+const firstManifest = lines => lines.findIndex(line => line.event === 'manifest');
 
 function consecutiveStopBlocks(lines) {
+  const phaseStarts = index => PHASE_EVENTS.has(lines[index].event) || index === firstManifest(lines);
   let count = 0;
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     if (lines[index].event === 'block') count += 1;
-    else if (PROGRESS_EVENTS.has(lines[index].event)) break;
+    else if (phaseStarts(index)) break;
   }
   return count;
 }

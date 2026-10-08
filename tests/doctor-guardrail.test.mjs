@@ -313,6 +313,25 @@ withSession('reads between two blocked Stops do not reset the release counter', 
   assert.match(s.stop('still nothing', true).systemMessage, /released/);
 });
 
+withSession('a discovery re-run between two blocked Stops does not reset the release counter', s => {
+  s.prompt('/agent-instruction-doctor comments keep appearing');
+  assert.equal(s.stop().decision, 'block');
+  s.discover();
+  assert.equal(s.stop('still nothing', true).decision, 'block');
+  s.discover();
+  assert.match(s.stop('still nothing', true).systemMessage, /released/);
+});
+
+withSession('a manifest rewritten between two blocked Stops does not reset the release counter', s => {
+  s.prompt('/agent-instruction-doctor comments keep appearing');
+  s.writeManifest(s.candidates());
+  assert.equal(s.stop().decision, 'block');
+  s.writeManifest(s.candidates({ symptom: 'comments keep appearing in tests' }));
+  assert.equal(s.stop('still nothing', true).decision, 'block');
+  s.writeManifest(s.candidates({ symptom: 'comments keep appearing in specs' }));
+  assert.match(s.stop('still nothing', true).systemMessage, /released/);
+});
+
 withSession('a Stop without any ledger says that nothing was verified', s => {
   const out = s.stop();
   assert.equal(out.decision, undefined);
