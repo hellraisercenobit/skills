@@ -117,7 +117,7 @@ Read, in this order, and nothing beyond it:
 
 1. **Always-loaded sources**: instruction files from the working directory up to the home directory, rules, settings, hooks, agents, plugin and MCP manifests. They apply on every turn, so every audit reads them whole.
 2. **Skill frontmatters**: the `name`, `description` and `hooks` of each skill row. A skill body, its references and scripts are read only when a hypothesis names that skill.
-3. **Hypothesis evidence**: before reading past the always-loaded set on a targeted audit, write 3-8 competing hypotheses across the layers of step 7. Each further read must distinguish two of them. A read that distinguishes none is skipped.
+3. **Hypothesis evidence**: before reading past the always-loaded sources and the skill frontmatters on a targeted audit, write 3-8 competing hypotheses across the layers of step 7. Each further read must distinguish two of them. A read that distinguishes none is skipped.
 4. **Pointer targets**: a location revealed by a config file, symlink, plugin manifest, script or pointer on the read list joins the read list.
 
 Discovery is complete when every hypothesis has its evidence or is labeled unverified, or, on a general audit, when the three dimensions of step 6 are checked over the always-loaded sources and the skill frontmatters. Then write the manifest of step 10.

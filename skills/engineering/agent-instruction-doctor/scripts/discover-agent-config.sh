@@ -89,14 +89,16 @@ scan_resource_dir() {
   scope=$2
   [ -d "$dir" ] || return 0
   dir=$(canonical_dir "$dir")
-  find -L "$dir" -type f 2>/dev/null | awk -v scope="$scope" '{
-    if ($0 ~ /\/skills\/.*\/SKILL\.md$/) kind = "skill"
-    else if ($0 ~ /\/skills\//) kind = "skill-resource"
-    else if ($0 ~ /\/rules\//) kind = "rule"
-    else if ($0 ~ /\/agents\//) kind = "agent"
-    else if ($0 ~ /\/(commands|prompts)\//) kind = "command"
-    else if ($0 ~ /\/hooks\//) kind = "hook"
-    else if ($0 ~ /\/config\.toml$/) kind = "settings"
+  parent=$(dirname "$dir")
+  find -L "$dir" -type f 2>/dev/null | awk -v scope="$scope" -v parent="$parent" '{
+    inside = substr($0, length(parent) + 1)
+    if (inside ~ /\/skills\/.*\/SKILL\.md$/) kind = "skill"
+    else if (inside ~ /\/skills\//) kind = "skill-resource"
+    else if (inside ~ /\/rules\//) kind = "rule"
+    else if (inside ~ /\/agents\//) kind = "agent"
+    else if (inside ~ /\/(commands|prompts)\//) kind = "command"
+    else if (inside ~ /\/hooks\//) kind = "hook"
+    else if (inside ~ /\/config\.toml$/) kind = "settings"
     else kind = "candidate"
     printf "%s\t%s\t%s\n", kind, scope, $0
   }' >> "$TMP"
@@ -193,7 +195,7 @@ else
   printf -- '- cwd: `%s`\n' "$ROOT"
   printf -- '- repo root: `%s`\n' "$REPO_ROOT"
   printf -- '- global scan: `%s`\n' "$INCLUDE_GLOBAL"
-  printf -- '- skill resources omitted: `%s` (files inside skill folders other than SKILL.md; read a skill folder only when a hypothesis points at it, `--format tsv` lists them)\n\n' "$OMITTED"
+  printf -- '- skill resources omitted: `%s` (files inside skill folders other than SKILL.md, listed by `--format tsv`)\n\n' "$OMITTED"
   printf '| Kind | Scope | Path |\n'
   printf '|---|---|---|\n'
   awk -F '\t' '$1 != "skill-resource" {

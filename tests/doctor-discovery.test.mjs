@@ -10,7 +10,7 @@ const SCRIPT = resolve('skills/engineering/agent-instruction-doctor/scripts/disc
 function fixture() {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'doctor-discovery-')));
   const home = join(root, 'home');
-  const project = join(root, 'project');
+  const project = join(root, 'skills/project');
   const skill = join(home, '.claude/skills/foo');
   mkdirSync(join(skill, 'references'), { recursive: true });
   mkdirSync(join(home, '.agents/skills'), { recursive: true });
@@ -21,7 +21,11 @@ function fixture() {
   mkdirSync(join(skill, 'agents'), { recursive: true });
   writeFileSync(join(skill, 'agents/openai.yaml'), 'interface: {}\n');
   symlinkSync(skill, join(home, '.agents/skills/foo'));
+  mkdirSync(join(project, '.claude/rules'), { recursive: true });
+  mkdirSync(join(project, '.claude/agents'), { recursive: true });
   writeFileSync(join(project, 'CLAUDE.md'), '# rules\n');
+  writeFileSync(join(project, '.claude/rules/no-comments.md'), 'No comments.\n');
+  writeFileSync(join(project, '.claude/agents/reviewer.md'), '# reviewer\n');
   const discover = format => {
     const result = spawnSync('sh', [SCRIPT, '--root', project, '--include-global', '--format', format], {
       encoding: 'utf8',
@@ -46,6 +50,12 @@ withFixture('every SKILL.md under a skills folder is a skill row at each locatio
   assert.equal(kinds.get(join(f.home, '.claude/skills/foo/references/method.md')), 'skill-resource');
   assert.equal(kinds.get(join(f.home, '.agents/skills/foo/hooks.json')), 'skill-resource');
   assert.equal(kinds.get(join(f.home, '.claude/skills/foo/agents/openai.yaml')), 'skill-resource');
+});
+
+withFixture('rules and agents of a repository whose path contains a skills folder keep their kind', f => {
+  const kinds = new Map(f.rows(f.discover('tsv')).map(([kind, , path]) => [path, kind]));
+  assert.equal(kinds.get(join(f.project, '.claude/rules/no-comments.md')), 'rule');
+  assert.equal(kinds.get(join(f.project, '.claude/agents/reviewer.md')), 'agent');
 });
 
 withFixture('the markdown manifest lists skills without their resource files and says how many it left out', f => {
