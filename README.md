@@ -381,6 +381,21 @@ npx skills update transpose-design-patterns review-design-patterns transpose-mod
 
 Use `--global` for personal installs. Plugin: `claude plugin update hellraisercenobit-skills@hellraisercenobit`. A catalog change expires affected reviews.
 
+### Keep the plugin updated
+
+A release reaches a plugin install only when the plugin's version changes, which every release of this repository does. Claude Code checks for that change in the background only for marketplaces with auto-update on, and it is off by default for every marketplace outside Anthropic's. Turn it on for this one in `/plugin` (Marketplaces tab) or in your user settings:
+
+```json
+"extraKnownMarketplaces": {
+  "hellraisercenobit": {
+    "source": { "source": "github", "repo": "hellraisercenobit/skills" },
+    "autoUpdate": true
+  }
+}
+```
+
+Without it, `claude plugin update hellraisercenobit-skills@hellraisercenobit` refreshes the marketplace and installs the latest version in one command. Either way the running session keeps the old version until `/reload-plugins` or a new session, and the `agent-instruction-doctor` guardrail hooks register when you next invoke the skill. A skills.sh install has no background update: run `npx skills update <skill> --global` (or `--project`). A `npm run link-skills` symlink follows the checkout, so a `git pull` is the update.
+
 | Symptom | Check |
 | --- | --- |
 | Skill missing | Scope, selected agent, new session |
